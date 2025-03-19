@@ -53,7 +53,7 @@ The SUSTracker is a web-based application designed to help users maintain a heal
   - API keys for external services (e.g., LLM API) must be securely managed.
 - **Performance**
   - Page load times should be under 2 seconds for a smooth user experience.
-  - The system should handle at least 50 concurrent users without significant lag (scalable for demo purposes).
+  - The system should handle multiple concurrent users without significant lag (scalable for demo purposes).
 - **Reliability**
   - The web app should remain stable during testing by multiple users.
 - **Portability**
