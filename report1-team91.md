@@ -120,7 +120,7 @@ The SUSTracker is a web-based application designed to help users maintain a heal
   - **Testing**: Postman for API testing, manual testing for UI.
 - **Development Tools**
   - **IDE**: VS Code for coding.
-  - **Project Management**: Trello or GitHub Projects for task tracking.
+  - **Project Management**:  GitHub Projects for task tracking.
   - **Design**: Figma for wireframes and UI mockups.
 - **Hardware Requirements**
   - Standard laptops/desktops with a browser and internet access.
