@@ -1,8 +1,13 @@
+
+import { DialogAddGoal } from '@/components/addgoal-dialog'
 import React from 'react'
 
 const setGoalPage = () => {
   return (
-    <div>setGoalPage</div>
+    <div >
+      <DialogAddGoal /> 
+    </div>
+
   )
 }
 
