@@ -29,7 +29,7 @@ const data = {
         {
           title: "Set Goals",
           url: "/dashboard/set-goals",
-          isActive: true, 
+          isActive: false, 
         },
         {
           title: "Completed Tasks",
