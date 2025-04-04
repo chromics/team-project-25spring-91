@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int              @id @default(autoincrement()) @map("user_id")
+  email            String           @unique
+  passwordHash     String           @map("password_hash")
+  displayName      String?          @map("display_name")
+  dateOfBirth      DateTime?        @map("date_of_birth") @db.Date
+  gender           String?
+  heightCm         Int?             @map("height_cm")
+  weightKg         Decimal?         @map("weight_kg") @db.Decimal(5, 2)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  plannedWorkouts  PlannedWorkout[]
+  actualWorkouts   ActualWorkout[]
+
+  @@map("users")
+}
+
+model Exercise {
+  id               Int               @id @default(autoincrement()) @map("exercise_id")
+  name             String
+  category         String?
+  description      String?
+  createdAt        DateTime          @default(now()) @map("created_at")
+  plannedExercises PlannedExercise[]
+  actualExercises  ActualExercise[]
+
+  @@map("exercises")
+}
+
+model PlannedWorkout {
+  id               Int               @id @default(autoincrement()) @map("planned_id")
+  userId           Int               @map("user_id")
+  title            String
+  scheduledDate    DateTime          @map("scheduled_date") @db.Date
+  estimatedDuration Int?             @map("estimated_duration")
+  reminderSent     Boolean           @default(false) @map("reminder_sent")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plannedExercises PlannedExercise[]
+  actualWorkouts   ActualWorkout[]
+
+  @@map("planned_workouts")
+}
+
+model PlannedExercise {
+  id               Int              @id @default(autoincrement()) @map("planned_exercise_id")
+  plannedId        Int              @map("planned_id")
+  exerciseId       Int              @map("exercise_id")
+  plannedSets      Int?             @map("planned_sets")
+  plannedReps      Int?             @map("planned_reps")
+  plannedWeight    Decimal?         @map("planned_weight") @db.Decimal(5, 2)
+  plannedDuration  Int?             @map("planned_duration")
+  plannedWorkout   PlannedWorkout   @relation(fields: [plannedId], references: [id], onDelete: Cascade)
+  exercise         Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  actualExercises  ActualExercise[]
+
+  @@map("planned_exercises")
+}
+
+model ActualWorkout {
+  id               Int              @id @default(autoincrement()) @map("actual_id")
+  plannedId        Int?             @map("planned_id")
+  userId           Int              @map("user_id")
+  title            String
+  completedDate    DateTime         @map("completed_date") @db.Date
+  completedTime    DateTime?        @map("completed_time") @db.Time()
+  actualDuration   Int?             @map("actual_duration")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plannedWorkout   PlannedWorkout?  @relation(fields: [plannedId], references: [id], onDelete: SetNull)
+  actualExercises  ActualExercise[]
+
+  @@map("actual_workouts")
+}
+
+model ActualExercise {
+  id                Int              @id @default(autoincrement()) @map("actual_exercise_id")
+  actualId          Int              @map("actual_id")
+  exerciseId        Int              @map("exercise_id")
+  plannedExerciseId Int?             @map("planned_exercise_id")
+  actualSets        Int?             @map("actual_sets")
+  actualReps        Int?             @map("actual_reps")
+  actualWeight      Decimal?         @map("actual_weight") @db.Decimal(5, 2)
+  actualDuration    Int?             @map("actual_duration")
+  actualWorkout     ActualWorkout    @relation(fields: [actualId], references: [id], onDelete: Cascade)
+  exercise          Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  plannedExercise   PlannedExercise? @relation(fields: [plannedExerciseId], references: [id], onDelete: SetNull)
+
+  @@map("actual_exercises")
+}
