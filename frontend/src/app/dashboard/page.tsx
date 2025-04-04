@@ -1,6 +1,7 @@
 //app/dashboard/page
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { AuthCheck } from "@/components/auth/auth-check"
 import { Header } from "@/components/layout/header"
 import {
   Breadcrumb,
@@ -10,6 +11,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { LoadingSpinner } from "@/components/ui/loading";
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -18,7 +20,9 @@ import {
 } from "@/components/ui/sidebar"
 
 export default function Page() {
+  
   return (
+    <AuthCheck requireAuth={true}>
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
@@ -53,5 +57,6 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </AuthCheck>
   )
 }

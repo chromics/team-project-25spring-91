@@ -1,4 +1,4 @@
-"use client";
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,8 +16,17 @@ import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React from "react"
 
+interface Goal{
+    date: string;
+    calories: number;
+}
 
-export function SheetDemo() {
+interface SheetDemoProps {
+    propAddGoal: (goal: Goal) => void; 
+}
+
+export function SheetDemo({ propAddGoal } : SheetDemoProps) {
+    const [open, setOpen] = React.useState(false);
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [calories, setCalories] = React.useState('');
     const [isLoading, setIsLoading] = React.useState(false);
@@ -27,6 +36,12 @@ export function SheetDemo() {
     const sheetCloseRef = React.useRef<HTMLButtonElement>(null);
 
     const handleAddGoal = async () => {
+        if (!calories) {
+            toast.error("Blank input", {
+                description:"Please fill in the calories"
+            });
+            return; 
+        }
         if (!date) {
             console.log("the date does not exist");
             return;
@@ -51,10 +66,18 @@ export function SheetDemo() {
                 toast.error("fail to add");
                 throw new Error("fail to add");
             }
-            //get message from backend
+            
+            propAddGoal({
+                date: date.toISOString(),
+                calories: Number(calories)
+            })
+
+            // get message from backend
             const data = await response.json();
             toast.success(data.message);
-            sheetCloseRef.current?.click();
+            // sheetCloseRef.current?.click();
+            setOpen(false);
+
         } catch (err) {
             console.error(err);
         } finally {
@@ -63,9 +86,9 @@ export function SheetDemo() {
     }
 
     return (
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" className="ml-2 mt-2 ">Add goals</Button>
+                <Button variant="ghost" size="icon" className="ml-2 mt-2 w-8 h-8 rounded-full">+</Button>
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
@@ -127,7 +150,7 @@ export function SheetDemo() {
 
                     </div>
                     <SheetFooter>
-                        <SheetClose ref={sheetCloseRef}>
+                        {/* <SheetClose ref={sheetCloseRef}> */}
                             <Button
                                 className="m-5"
                                 type="submit"
@@ -136,7 +159,7 @@ export function SheetDemo() {
                             >
                                 {isLoading ? "Adding..." : "ADD GOAL"}
                             </Button>
-                        </SheetClose>
+                        {/* </SheetClose> */}
                     </SheetFooter>
                 </form>
 
