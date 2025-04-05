@@ -23,7 +23,7 @@ export function AuthCheck({
   useEffect(() => {
     if (!loading) {
       const isAuthenticated = !!user;
-      console.log(user?.uid);
+      // console.log(user?.uid);
       if (requireAuth && !isAuthenticated) {
         router.push(redirectTo);
       } else if (!requireAuth && isAuthenticated) {

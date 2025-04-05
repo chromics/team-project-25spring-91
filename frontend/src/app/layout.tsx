@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Header } from "@/components/layout/header";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
             <div className="flex-1">{children}</div>
 
           </ThemeProvider>
+          <Toaster position="bottom-right" />
         </body>
       </AuthProvider>
     </html >

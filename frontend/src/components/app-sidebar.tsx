@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react"
 
 import { SearchForm } from "@/components/search-form"
@@ -14,132 +15,84 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { GlowEffect } from "./motion-primitives/glow-effect"
+import { useRouter } from "next/navigation";
 
 // This is sample data.
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
-      title: "Getting Started",
+      title: "Training Tasks",
       url: "#",
       items: [
         {
-          title: "Installation",
-          url: "#",
+          title: "Set Goals",
+          url: "/dashboard/set-goals",
+          isActive: false, 
         },
         {
-          title: "Project Structure",
+          title: "Completed Tasks",
+          url: "/dashboard/completed-tasks",
+          isActive: false,
+        },
+      ],
+    },
+    {
+      title: "Gym",
+      url: "#",
+      items: [
+        {
+          title: "Make Appointment",
           url: "#",
         },
       ],
     },
     {
-      title: "Building Your Application",
+      title: "Diet",
       url: "#",
       items: [
         {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
+          title: "Diet Discussion",
           url: "#",
         },
       ],
     },
     {
-      title: "API Reference",
+      title: "Growth",
       url: "#",
       items: [
         {
-          title: "Components",
+          title: "Statistics",
           url: "#",
         },
         {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
+          title: "Online Competition",
           url: "#",
         },
       ],
     },
     {
-      title: "Architecture",
+      title: "Personal",
       url: "#",
       items: [
         {
-          title: "Accessibility",
+          title: "Personal Info",
           url: "#",
         },
         {
-          title: "Fast Refresh",
+          title: "FAQ",
           url: "#",
         },
+      ],
+    },
+    {
+      title: "Coach",
+      url: "#",
+      items: [
+
         {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
+          title: "Ask AI",
           url: "#",
         },
       ],
@@ -148,6 +101,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [active, setIsActive] = React.useState(false);
+  const router = useRouter(); 
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -166,8 +121,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {item.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive}>
-                      <a href={item.url}>{item.title}</a>
+                    <SidebarMenuButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsActive(true);  
+                        router.push(item.url);
+                      }}
+                      asChild
+                      // isActive={active}
+                      className={item.title === 'Ask AI'
+                        ? 'relative bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] transition-all duration-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0'
+                        : ''
+                      }
+                    >
+                      <a href={item.url} className="relative z-10">
+                        {item.title}
+                      </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

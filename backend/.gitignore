@@ -2,7 +2,7 @@
 /node_modules
 
 # environment variables
-serviceAccountKey.json
+adminKey.json
 .env
 .env.local
 .env.development
