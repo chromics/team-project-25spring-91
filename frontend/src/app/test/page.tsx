@@ -7,7 +7,7 @@ export default function ApiTest() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/test')
+    fetch('http://localhost:6000/api/test')
       .then(response => response.json())
       .then(data => setMessage(data.message))
       .catch(err => setError('Failed to connect to backend: ' + err.message));

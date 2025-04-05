@@ -30,7 +30,7 @@ export default function TestAuthPage() {
         throw new Error('No authentication token available');
       }
 
-      const response = await fetch('http://localhost:5000/api/test', {
+      const response = await fetch('http://localhost:6000/api/test', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -69,7 +69,7 @@ export default function TestAuthPage() {
       }
   
       console.log('2. Making request...');
-      const response = await fetch('http://localhost:5000/api/test', {
+      const response = await fetch('http://localhost:6000/api/test', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

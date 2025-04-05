@@ -6,7 +6,7 @@ export const api = {
     const auth = getAuth();
     const token = await auth.currentUser?.getIdToken();
 
-    const response = await fetch('http://localhost:5000/api/test', {
+    const response = await fetch('http://localhost:6000/api/test', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -22,7 +22,7 @@ export const api = {
     const auth = getAuth();
     const token = await auth.currentUser?.getIdToken();
 
-    const response = await fetch('http://localhost:5000/api/test', {
+    const response = await fetch('http://localhost:6000/api/test', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
