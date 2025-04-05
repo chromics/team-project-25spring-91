@@ -32,7 +32,7 @@ model User {
 
 model Exercise {
   id               Int               @id @default(autoincrement()) @map("exercise_id")
-  name             String
+  name             String            @unique
   category         String?
   description      String?
   createdAt        DateTime          @default(now()) @map("created_at")
