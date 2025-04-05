@@ -27,6 +27,7 @@ export function LoginForm({
       toast.success("Welcome back!", {
         description: "You've successfully signed in."
       });
+      // toast("Welcome back" + email); 
       router.push("/dashboard");
     } catch (error) {
       // Error is handled in the auth context

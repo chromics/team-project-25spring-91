@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 try {
-  const serviceAccountPath = path.resolve(__dirname, '../../auth-188ea-firebase-adminsdk-fbsvc-255ae8a51a.json');
+  const serviceAccountPath = path.resolve(__dirname, '../../adminKey.json');
   
   if (!fs.existsSync(serviceAccountPath)) {
     throw new Error(`Service account file not found at: ${serviceAccountPath}`);
