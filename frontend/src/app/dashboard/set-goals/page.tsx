@@ -11,7 +11,13 @@ interface Goal {
 }
 
 const setGoalPage = () => {
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([
+    {
+      date: new Date().toISOString(),
+      calories: 2000
+
+    }
+  ]);
 
   const handleAddGoal = (newGoal: Goal) => {
     setGoals([...goals, newGoal]);
@@ -57,12 +63,21 @@ const setGoalPage = () => {
     return sortedGoals.map(goal => (
       <li
         key={new Date(goal.date).toISOString()}
-        className="p-4 rounded-lg border shadow-sm"
+        className="px-4 py-2 rounded-lg border shadow-sm"
       >
-        <p className="font-medium">{goal.calories} calories</p>
-        <p className="text-sm text-gray-600">
-          {new Date(goal.date).toLocaleDateString()}
-        </p>
+        <div className='flex justify-between'>
+          <div>
+
+            <p className="font-medium">{goal.calories} calories</p>
+            <p className="text-sm text-gray-600">
+              {new Date(goal.date).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-green-500 text-green-600 bg-green-50">
+            Online
+          </div>
+        </div>
       </li>
     ));
   };
@@ -74,7 +89,7 @@ const setGoalPage = () => {
 
 
   return (
-    <div className='flex'>
+    <div>
       {/* <DialogAddGoal />  */}
 
       <SheetDemo propAddGoal={handleAddGoal} />
