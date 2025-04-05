@@ -8,14 +8,15 @@ import { useState } from 'react'
 interface Goal {
   date: string;
   calories: number;
+  title: string; 
 }
 
 const setGoalPage = () => {
   const [goals, setGoals] = useState<Goal[]>([
     {
       date: new Date().toISOString(),
-      calories: 2000
-
+      calories: 2000, 
+      title: 'leg day'
     }
   ]);
 
@@ -67,7 +68,8 @@ const setGoalPage = () => {
       >
         <div className='flex justify-between'>
           <div>
-
+        
+            <p className="font-bold">{goal.title}</p>
             <p className="font-medium">{goal.calories} calories</p>
             <p className="text-sm text-gray-600">
               {new Date(goal.date).toLocaleDateString()}
