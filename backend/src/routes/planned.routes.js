@@ -16,11 +16,6 @@ router.get(
   asyncHandler(plannedController.getUpcomingWorkouts)
 );
 
-router.get(
-  '/calendar',
-  validate(plannedSchemas.getCalendar),
-  asyncHandler(plannedController.getCalendarData)
-);
 
 router.get(
   '/:id',
