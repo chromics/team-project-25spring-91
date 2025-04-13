@@ -64,7 +64,7 @@ const data = {
       items: [
         {
           title: "Statistics",
-          url: "#",
+          url: "/dashboard/statistics",
         },
         {
           title: "Online Competition",
