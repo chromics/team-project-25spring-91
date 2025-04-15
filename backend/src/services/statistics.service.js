@@ -4,6 +4,10 @@ const { ApiError } = require('../utils/ApiError');
 const statisticsService = {
 
 }
+    function calculateVolume(sets, reps, weight) {
+        if (!sets || !reps || !weight) return 0;
+        return sets * reps * weight;
+    }
 
   function getWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
