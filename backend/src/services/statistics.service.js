@@ -5,6 +5,171 @@ const statisticsService = {
 
 }
 
+// Helper function to get best exercise records
+async function getBestExerciseRecords(userId) {
+    // Get all exercises with their stats
+    const exercises = await prisma.actualExercise.findMany({
+      where: {
+        actualWorkout: {
+          userId
+        }
+      },
+      include: {
+        exercise: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+    
+    // Find records
+    let heaviestWeight = { weight: 0, exercise: null };
+    let mostReps = { reps: 0, exercise: null };
+    let mostSets = { sets: 0, exercise: null };
+    
+    exercises.forEach(ex => {
+      // Convert Decimal to Number for comparison
+      const weight = ex.actualWeight ? parseFloat(ex.actualWeight.toString()) : 0;
+      
+      // Heaviest weight
+      if (weight > parseFloat(heaviestWeight.weight.toString() || '0')) {
+        heaviestWeight = {
+          weight: ex.actualWeight,
+          exercise: ex.exercise
+        };
+      }
+      
+      // Most reps
+      if (ex.actualReps && ex.actualReps > mostReps.reps) {
+        mostReps = {
+          reps: ex.actualReps,
+          exercise: ex.exercise
+        };
+      }
+      
+      // Most sets
+      if (ex.actualSets && ex.actualSets > mostSets.sets) {
+        mostSets = {
+          sets: ex.actualSets,
+          exercise: ex.exercise
+        };
+      }
+    });
+    
+    return {
+      heaviestWeight,
+      mostReps,
+      mostSets
+    };
+  }
+  
+  // Helper function to get monthly volume data
+  async function getMonthlyVolumeData(userId, year) {
+    const volumeData = [];
+    const currentDate = new Date();
+    
+    for (let month = 0; month < 12; month++) {
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
+      
+      // Skip future months
+      if (startDate > currentDate) {
+        volumeData.push({
+          month: month + 1,
+          monthName: new Date(year, month, 1).toLocaleString('default', { month: 'long' }),
+          volume: 0
+        });
+        continue;
+      }
+      
+      // Get all exercises in this month
+      const exercises = await prisma.actualExercise.findMany({
+        where: {
+          actualWorkout: {
+            userId,
+            completedDate: {
+              gte: startDate,
+              lte: endDate
+            }
+          }
+        },
+        select: {
+          actualSets: true,
+          actualReps: true,
+          actualWeight: true
+        }
+      });
+      
+      // Calculate total volume for month
+      let totalVolume = 0;
+      exercises.forEach(ex => {
+        totalVolume += calculateVolume(ex.actualSets, ex.actualReps, ex.actualWeight);
+      });
+      
+      volumeData.push({
+        month: month + 1,
+        monthName: new Date(year, month, 1).toLocaleString('default', { month: 'long' }),
+        volume: totalVolume
+      });
+    }
+    
+    return volumeData;
+  }
+  
+  // Helper function to get top most frequent exercises
+  async function getTopExercises(userId, limit) {
+    // Get count of each exercise used
+    const exerciseCounts = await prisma.actualExercise.groupBy({
+      by: ['exerciseId'],
+      where: {
+        actualWorkout: {
+          userId
+        }
+      },
+      _count: {
+        exerciseId: true
+      }
+    });
+    
+    // Sort by count descending
+    exerciseCounts.sort((a, b) => b._count.exerciseId - a._count.exerciseId);
+    
+    // Get top N exercises
+    const topExerciseIds = exerciseCounts.slice(0, limit).map(e => e.exerciseId);
+    
+    if (topExerciseIds.length === 0) {
+      return [];
+    }
+    
+    // Get exercise details
+    const topExercises = await prisma.exercise.findMany({
+      where: {
+        id: {
+          in: topExerciseIds
+        }
+      }
+    });
+    
+    // Map count to exercises and sort
+    return topExerciseIds.map(id => {
+      const exercise = topExercises.find(e => e.id === id);
+      const count = exerciseCounts.find(e => e.exerciseId === id)._count.exerciseId;
+      return {
+        id: exercise.id,
+        name: exercise.name,
+        category: exercise.category,
+        count
+      };
+    });
+  }
+
+
+
+
+//finish 
+
 // Helper function to calculate weekly streaks
 function calculateWeeklyStreaks(dates) {
     if (dates.length === 0) {
