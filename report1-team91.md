@@ -103,6 +103,7 @@ The SUSTracker is a web-based application designed to help users maintain a heal
   - **Client-Side**: Web-based application accessible via modern browsers (Chrome, Edge, Firefox, Safari) on desktop and mobile.
   - **Server-Side**: Hosted on a cloud platform (e.g., Heroku for back-end, Vercel for front-end) for deployment and demo.
   - **Development**: Local development on team members’ machines (Windows/Mac/Linux).
+  
 - **Tech Stack**
   - **Programming Language: JavaScript**
   - **Front-End**:
@@ -118,10 +119,18 @@ The SUSTracker is a web-based application designed to help users maintain a heal
   - **Notifications**: Browser notifications (Web Push API) or Nodemailer for email reminders.
   - **Version Control**: Git/GitHub for team collaboration.
   - **Testing**: Postman for API testing, manual testing for UI.
+  
 - **Development Tools**
   - **IDE**: VS Code for coding.
   - **Project Management**:  GitHub Projects for task tracking.
   - **Design**: Figma for wireframes and UI mockups.
+  
 - **Hardware Requirements**
   - Standard laptops/desktops with a browser and internet access.
+  
   - Standard smartphones with a browser and internet access.
+  
+    
+
+#### Plan for first Sprint
+
