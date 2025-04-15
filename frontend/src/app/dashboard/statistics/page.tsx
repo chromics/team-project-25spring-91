@@ -2,6 +2,91 @@ import { Component } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
 import React from 'react'
 
+interface WorkoutStats {
+    status: string;
+    data: {
+        completedWorkoutSessions: number;
+        currentMonthCompletionRate: number;
+        workoutsByYear: YearlyWorkouts[];
+        monthlyCompletedWorkouts: MonthlyWorkout[];
+        longestStreak: number;
+        currentStreak: number;
+        bestRecords: {
+            heaviestWeight: {
+                weight: string;
+                exercise: {
+                    id: number;
+                    name: string;
+                }
+            };
+            mostReps: {
+                reps: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                }
+            };
+            mostSets: {
+                sets: number;
+                exercise: {
+                    id: number;
+                    name: string;
+                }
+            };
+        };
+        volumeByYear: YearlyVolume[];
+        monthlyVolume: MonthlyVolume[];
+        topExercises: TopExercise[];
+    };
+}
+
+interface YearlyWorkouts {
+    year: number;
+    months: MonthlyWorkout[];
+}
+
+interface MonthlyWorkout {
+    month: number;
+    monthName: string;
+    count: number;
+}
+
+interface YearlyVolume {
+    year: number;
+    months: MonthlyVolume[];
+}
+
+interface MonthlyVolume {
+    month: number;
+    monthName: string;
+    volume: number;
+}
+
+interface TopExercise {
+    id: number;
+    name: string;
+    category: string;
+    count: number;
+}
+
+interface PlannedWorkout {
+    id: number;
+    title: string;
+    scheduledDate: string;
+    estimatedDuration: number;
+    reminderSent: boolean;
+    plannedExercises: {
+        id: number;
+        exercise: {
+            name: string;
+            category: string;
+        };
+        plannedSets: number | null;
+        plannedReps: number | null;
+        plannedDuration: number | null;
+    }[];
+}
+
 const records = {
     heaviestLift: {
       name: "Bench Press",
