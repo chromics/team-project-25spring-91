@@ -1,3 +1,5 @@
+import { Component } from '@/components/area-chart';
+import AnnualBarChart from '@/components/barchart';
 import React from 'react'
 
 const records = {
@@ -147,6 +149,12 @@ const page = () => {
                 </div>
             </div>
 
+            {/* 
+                BarChart displaying Total Workout Session Completed Per Month
+            */}
+            <div>
+                <AnnualBarChart />
+            </div>
 
             {/* 
                 Best Records:
