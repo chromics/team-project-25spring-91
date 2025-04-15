@@ -1,13 +1,10 @@
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Sheet,
-    SheetClose,
     SheetContent,
     SheetDescription,
-    SheetFooter,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -17,16 +14,17 @@ import { toast } from "sonner"
 import React from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
 
+// Update interfaces to match AddExerciseDialog
+interface Exercise {
+    exerciseId: number;
+    plannedSets: number;
+    plannedReps: number;
+}
+
 interface Goal {
     date: string;
     calories: number;
     title: string;
-}
-
-interface Exercise {
-    name: string,
-    reps: number,
-    sets: number
 }
 
 interface SheetDemoProps {
@@ -39,82 +37,126 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
     const [calories, setCalories] = React.useState('');
     const [isLoading, setIsLoading] = React.useState(false);
     const [title, setTitle] = React.useState('');
-
     const [exercises, setExercises] = React.useState<Exercise[]>([]);
 
-    const url = "http://localhost:5000";
     const maxCalories = 3000;
     const minCalories = 0;
-    const sheetCloseRef = React.useRef<HTMLButtonElement>(null);
 
+    // Updated to match the new Exercise interface
     const handleAddExercise = (newExercise: Exercise) => {
         setExercises([...exercises, newExercise]);
     }
 
     const handleAddGoal = async () => {
-        if (!calories) {
-            toast.error("Blank input", {
-                description: "Please fill in the calories"
-            });
+        if (!title.trim()) {
+            toast.error("Please enter a workout title");
             return;
         }
         if (!date) {
-            console.log("the date does not exist");
+            toast.error("Please select a date");
             return;
         }
-        if (!title) {
-            toast.error("Please input the name of the title");
+        if (exercises.length === 0) {
+            toast.error("Please add at least one exercise");
             return;
         }
-        if (Number(calories) < minCalories || Number(calories) > maxCalories) {
-            toast.error(`the calories should be between ${minCalories} and ${maxCalories}`);
-            return;
-        }
+
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${url}/planned-workouts`, {
+            const token = localStorage.getItem('auth-token');
+
+            if (!token) {
+                toast.error("Authentication token not found. Please login again.");
+                return;
+            }
+
+            // Modified to use 'exercises' instead of 'plannedExercises'
+            const workoutData = {
+                title: title.trim(),
+                scheduledDate: date.toISOString().split('T')[0],
+                estimatedDuration: 60,
+                targetCalories: calories ? parseInt(calories) : null,
+                exercises: exercises.map(ex => ({
+                    exerciseId: ex.exerciseId,
+                    plannedSets: parseInt(ex.plannedSets.toString()),
+                    plannedReps: parseInt(ex.plannedReps.toString())
+                }))
+            };
+
+            console.log('Sending workout data:', JSON.stringify(workoutData, null, 2));
+
+            const response = await fetch("http://localhost:5000/api/planned-workouts", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    date: date.toISOString(), //convert date to string format
-                    calories: Number(calories),
-                    title: String(title),
-                    estimatedDuration: 60,
-                    plannedExercises: exercises,
-                }),
+                body: JSON.stringify(workoutData),
             });
+
+            const responseText = await response.text();
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers));
+            console.log('Response body:', responseText);
+
             if (!response.ok) {
-                toast.error("fail to add");
-                throw new Error("fail to add");
+                let errorMessage = "Failed to add workout";
+                try {
+                    const errorData = JSON.parse(responseText);
+                    if (errorData.error && Array.isArray(errorData.error)) {
+                        // Handle validation errors array
+                        errorMessage = errorData.error.map((err: any) => err.message).join('\n');
+                    } else {
+                        errorMessage = errorData.message || errorData.error || errorMessage;
+                    }
+                } catch {
+                    errorMessage = responseText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
+
+            const data = JSON.parse(responseText);
 
             propAddGoal({
                 date: date.toISOString(),
-                calories: Number(calories),
-                title: String(title)
-            })
+                calories: Number(calories) || 0,
+                title: title
+            });
 
-            // get message from backend
-            const data = await response.json();
-            toast.success(data.message);
-            // sheetCloseRef.current?.click();
+            toast.success(data.message || "Workout planned successfully");
             setOpen(false);
-            // Reset form
-            setTitle('');
-            setCalories('');
-            setExercises([]);
-            setDate(new Date());
+            resetForm();
 
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            console.error('Error details:', error);
+
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'An unexpected error occurred';
+
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
     }
+    const resetForm = () => {
+        setTitle('');
+        setCalories('');
+        setExercises([]);
+        setDate(new Date());
+    }
+
+    // Helper function to get exercise name from ID
+    const getExerciseName = (exerciseId: number): string => {
+        // This should match your exerciseOptions from AddExerciseDialog
+        const exerciseMap: { [key: number]: string } = {
+            1: "Bench Press",
+            2: "Squats",
+            3: "Deadlift",
+            // ... add all your exercises here
+        };
+        return exerciseMap[exerciseId] || "Unknown Exercise";
+    };
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -124,9 +166,9 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             <SheetContent>
                 <div className="flex flex-col h-full">
                     <SheetHeader className="mb-6">
-                        <SheetTitle>Add calorie goal</SheetTitle>
+                        <SheetTitle>Add Workout Plan</SheetTitle>
                         <SheetDescription>
-                            Click add when you're done.
+                            Create a new workout plan with exercises.
                         </SheetDescription>
                     </SheetHeader>
 
@@ -144,7 +186,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                         id="exercise-title"
                                         type="text"
                                         value={title}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                                        onChange={(e) => setTitle(e.target.value)}
                                         placeholder="ex: Leg day"
                                         className="col-span-3"
                                     />
@@ -157,22 +199,12 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                     <Input
                                         id="calories"
                                         type="number"
-                                        pattern="[0-9]*"
                                         value={calories}
                                         onChange={(e) => setCalories(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            const isNumber = /[0-9]/.test(e.key);
-                                            const isBackspace = e.key === 'Backspace';
-                                            const isDelete = e.key === 'Delete';
-                                            const isArrow = e.key.startsWith('Arrow');
-                                            const isTab = e.key === 'Tab';
-
-                                            if (!isNumber && !isBackspace && !isDelete && !isArrow && !isTab) {
-                                                e.preventDefault();
-                                            }
-                                        }}
                                         placeholder="ex: 1000"
                                         className="col-span-3"
+                                        min={minCalories}
+                                        max={maxCalories}
                                     />
                                 </div>
 
@@ -186,10 +218,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                                 className="p-2 rounded-lg border shadow-sm"
                                             >
                                                 <div className="flex items-center justify-between">
-                                                    <p className="font-medium flex-1">{exercise.name}</p>
+                                                    <p className="font-medium flex-1">
+                                                        {getExerciseName(exercise.exerciseId)}
+                                                    </p>
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-sm text-gray-600">{exercise.reps} reps</span>
-                                                        <span className="text-sm text-gray-600">{exercise.sets} sets</span>
+                                                        <span className="text-sm text-gray-600">
+                                                            {exercise.plannedReps} reps
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            {exercise.plannedSets} sets
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </li>
@@ -201,10 +239,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                     <Calendar
                                         mode="single"
                                         selected={date}
-                                        onSelect={(selectedDate: Date | undefined) => {
-                                            setDate(selectedDate)
-                                            console.log("the selected date is: " + selectedDate)
-                                        }}
+                                        onSelect={setDate}
                                         className="rounded-md border shadow"
                                     />
                                 </div>
@@ -218,7 +253,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                             disabled={isLoading}
                             className="w-full"
                         >
-                            {isLoading ? "Adding..." : "ADD GOAL"}
+                            {isLoading ? "Adding..." : "Add Workout Plan"}
                         </Button>
                     </div>
                 </div>

@@ -12,120 +12,192 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { toast } from "sonner"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface Exercise {
-    name: string,
-    reps: number,
-    sets: number
+    exerciseId: number;
+    plannedSets: number;
+    plannedReps: number;
 }
 
 interface AddExerciseDialogProps {
     propAddExercise: (exercise: Exercise) => void;
 }
 
+// Updated exercise options with IDs
+const exerciseOptions = [
+    {
+        category: "Strength",
+        exercises: [
+            { id: 1, name: "Bench Press" },
+            { id: 2, name: "Squats" },
+            { id: 3, name: "Deadlift" },
+            { id: 4, name: "Overhead Press" }
+        ]
+    },
+    {
+        category: "Cardio",
+        exercises: [
+            { id: 5, name: "Running" },
+            { id: 6, name: "Cycling" },
+            { id: 7, name: "Jump Rope" },
+            { id: 8, name: "Swimming" }
+        ]
+    },
+    {
+        category: "Flexibility",
+        exercises: [
+            { id: 9, name: "Yoga" },
+            { id: 10, name: "Stretching" },
+            { id: 11, name: "Pilates" }
+        ]
+    },
+    {
+        category: "Bodyweight",
+        exercises: [
+            { id: 12, name: "Push-ups" },
+            { id: 13, name: "Pull-ups" },
+            { id: 14, name: "Dips" },
+            { id: 15, name: "Planks" }
+        ]
+    }
+];
 
 export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
-    const [name, setName] = useState('');
+    const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
     const [reps, setReps] = useState('');
     const [sets, setSets] = useState('');
+    const [open, setOpen] = useState(false);
 
     const handleSaveExercise = () => {
         try {
-            if (!name || !reps || !sets) {
-                toast.error("all fields are reqiured");
+            if (!selectedExerciseId || !reps || !sets) {
+                toast.error("All fields are required");
                 return;
             }
-            
 
+            if (Number(reps) <= 0 || Number(sets) <= 0) {
+                toast.error("Reps and sets must be greater than 0");
+                return;
+            }
 
             propAddExercise({
-                name: name,
-                reps: Number(reps),
-                sets: Number(sets)
+                exerciseId: Number(selectedExerciseId),
+                plannedReps: Number(reps),
+                plannedSets: Number(sets)
             });
 
+            // Reset form
+            setSelectedExerciseId('');
+            setReps('');
+            setSets('');
+            setOpen(false);
+            
+            toast.success("Exercise added successfully");
         } catch (error) {
             console.error("Error saving exercise:", error);
+            toast.error("Failed to add exercise");
         }
     }
 
+    // Helper function to find exercise name by ID
+    const getExerciseName = (id: string): string => {
+        for (const category of exerciseOptions) {
+            const exercise = category.exercises.find(e => e.id.toString() === id);
+            if (exercise) return exercise.name;
+        }
+        return '';
+    }
+
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">Add your exercises</Button>
+                <Button variant="outline">Add Exercise</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Choose exercises</DialogTitle>
+                    <DialogTitle>Add Exercise to Workout</DialogTitle>
                     <DialogDescription>
-                        Click save when you're done.
+                        Select an exercise and specify sets and reps.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                            Name
+                        <Label htmlFor="exercise" className="text-right">
+                            Exercise
                         </Label>
-                        <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="col-span-3"
-                        />
+                        <Select
+                            value={selectedExerciseId}
+                            onValueChange={setSelectedExerciseId}
+                        >
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select an exercise">
+                                    {selectedExerciseId && getExerciseName(selectedExerciseId)}
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {exerciseOptions.map((group) => (
+                                    <SelectGroup key={group.category}>
+                                        <SelectLabel className="capitalize">
+                                            {group.category}
+                                        </SelectLabel>
+                                        {group.exercises.map((exercise) => (
+                                            <SelectItem
+                                                key={exercise.id}
+                                                value={exercise.id.toString()}
+                                            >
+                                                {exercise.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="reps" className="text-right">
-                            REPS
+                            Reps
                         </Label>
                         <Input
                             id="reps"
                             type="number"
-                            pattern="[0-9]*"
                             value={reps}
                             onChange={(e) => setReps(e.target.value)}
-                            onKeyDown={(e) => {
-                                // Prevent non-numeric input
-                                const isNumber = /[0-9]/.test(e.key);
-                                const isBackspace = e.key === 'Backspace';
-                                const isDelete = e.key === 'Delete';
-                                const isArrow = e.key.startsWith('Arrow');
-                                const isTab = e.key === 'Tab';
-
-                                if (!isNumber && !isBackspace && !isDelete && !isArrow && !isTab) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            placeholder="ex: 1000"
-                            className="col-span-3" />
+                            className="col-span-3"
+                            min="1"
+                            placeholder="Number of repetitions"
+                        />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="sets" className="text-right">
-                            SETS
+                            Sets
                         </Label>
                         <Input
                             id="sets"
                             type="number"
-                            pattern="[0-9]*"
                             value={sets}
                             onChange={(e) => setSets(e.target.value)}
-                            onKeyDown={(e) => {
-                                // Prevent non-numeric input
-                                const isNumber = /[0-9]/.test(e.key);
-                                const isBackspace = e.key === 'Backspace';
-                                const isDelete = e.key === 'Delete';
-                                const isArrow = e.key.startsWith('Arrow');
-                                const isTab = e.key === 'Tab';
-
-                                if (!isNumber && !isBackspace && !isDelete && !isArrow && !isTab) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            placeholder="ex: 1000"
-                            className="col-span-3" />
+                            className="col-span-3"
+                            min="1"
+                            placeholder="Number of sets"
+                        />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="button" onClick={handleSaveExercise}>Save changes</Button>
+                    <Button 
+                        type="button" 
+                        onClick={handleSaveExercise}
+                    >
+                        Add Exercise
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

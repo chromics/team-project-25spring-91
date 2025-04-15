@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { 
+import {
   User,
   UserCredential,
   createUserWithEmailAndPassword,
@@ -17,7 +17,7 @@ import {
 import { auth } from "@/lib/firebase";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
-import { 
+import {
   fetchSignInMethodsForEmail,
   // Include other imports you already have
 } from "firebase/auth";
@@ -42,11 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // onAuthStateChanged(auth, callback) : Firebase function listens for changes in the user's authentication state
-    const unsubscribe = onAuthStateChanged(auth, async (user) => { 
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) { // when user is authenticated 
         setUser(user); // set user to the state above 
         const token = await user.getIdToken();
-        Cookies.set('firebase-token', token, { 
+        Cookies.set('firebase-token', token, {
           // property name expected by js-cookie : secure and sameSite.
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict'
@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => unsubscribe();
   }, []);
-
-  const signUp = async (email: string, password: string) => { 
+  
+  const signUp = async (email: string, password: string) => {
     try {
       return await createUserWithEmailAndPassword(auth, email, password); // return in userCredential object (contain user info)
     } catch (error: any) {
@@ -115,11 +115,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.code === 'auth/account-exists-with-different-credential') {
         // Get the email from the error
         const email = error.customData?.email;
-        
+
         if (email) {
           // Fetch sign-in methods for this email
           const methods = await fetchSignInMethodsForEmail(auth, email);
-          
+
           // Create a user-friendly list of sign-in methods
           const methodNames: Record<string, string> = {
             'password': 'Email/Password',
@@ -130,15 +130,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             'microsoft.com': 'Microsoft',
             'apple.com': 'Apple'
           };
-          
-          const friendlyMethods = methods.map(method => 
+
+          const friendlyMethods = methods.map(method =>
             methodNames[method] || method
           ).join(', ');
-          
+
           toast.error(
-            "Account already exists", 
-            { 
-              description: `This email is already used with ${friendlyMethods}. Please sign in using that method instead.` 
+            "Account already exists",
+            {
+              description: `This email is already used with ${friendlyMethods}. Please sign in using that method instead.`
             }
           );
         } else {
