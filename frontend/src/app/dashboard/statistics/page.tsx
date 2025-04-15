@@ -1,5 +1,5 @@
-import { Component } from '@/components/area-chart';
-import AnnualBarChart from '@/components/barchart';
+import { Component } from '@/components/line-chart';
+import AnnualBarChart from '@/components/bar-chart';
 import React from 'react'
 
 const records = {
@@ -205,6 +205,10 @@ const page = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div>
+                <Component />
             </div>
             
             {/* 
