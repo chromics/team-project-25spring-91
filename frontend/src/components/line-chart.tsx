@@ -133,7 +133,7 @@ export function Component() {
             </Select>
           </div>
           <CardDescription>
-            Showing total workout volume per month {timeRange === "all" ? "for all time" : 
+            Shows the total workout volume per month {timeRange === "all" ? "for all time" : 
               timeRange === "past-year" ? "for the past year" : "for the past 2 years"}
           </CardDescription>
         </div>

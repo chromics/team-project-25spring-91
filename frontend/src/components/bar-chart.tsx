@@ -64,7 +64,7 @@ export default function AnnualBarChart() {
           <div className="grid flex-1 gap-1 text-center sm:text-left">
             <CardTitle>Total Workout Completed Per Month</CardTitle>
             <CardDescription>
-              Status: ¯\_(ツ)_/¯
+              Your year long workout completion
             </CardDescription>
           </div>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
