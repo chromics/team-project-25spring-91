@@ -1,4 +1,6 @@
-"use client"; 
+//components/auth/login-form.tsx
+
+"use client";
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,6 +9,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
+import Cookies from 'js-cookie';
 
 export function LoginForm({
   className,
@@ -16,12 +19,59 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
+  // const { signIn } = useAuth();
   const router = useRouter();
+  
+  const handleManualSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+      const token = data.data.token;
+      
+      // Save token to both localStorage and cookies
+      localStorage.setItem('auth-token', token);
+      Cookies.set('auth-token', token, { expires: 7 }); // Expires in 7 days
+      
+      toast.success("Login successful", {
+        description: "Welcome back!"
+      });
+  
+      // Save token to localStorage
+      localStorage.setItem('auth-token', data.data.token);
+      
+      // Navigate to dashboard
+      router.push('/dashboard');
+  
+    } catch (error) {
+      toast.error("Login failed", {
+        description: error instanceof Error ? error.message : "Something went wrong"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await signIn(email, password);
       toast.success("Welcome back!", {
@@ -61,7 +111,7 @@ export function LoginForm({
   };
 
   return (
-    <form onSubmit={handleSignIn} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleManualSignIn} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
@@ -71,11 +121,11 @@ export function LoginForm({
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="m@example.com" 
-            required 
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
@@ -95,10 +145,10 @@ export function LoginForm({
               Forgot your password?
             </a>
           </div>
-          <Input 
-            id="password" 
-            type="password" 
-            required 
+          <Input
+            id="password"
+            type="password"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
@@ -113,11 +163,11 @@ export function LoginForm({
           </span>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             type="button"
-            onClick={handleGoogleSignIn}
+            // onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -140,11 +190,11 @@ export function LoginForm({
             </svg>
             Google
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             type="button"
-            onClick={handleGithubSignIn}
+            // onClick={handleGithubSignIn}
             disabled={isLoading}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 mr-2">
@@ -159,8 +209,8 @@ export function LoginForm({
       </div>
       <div className="text-center text-sm">
         Don&apos;t have an account?{" "}
-        <Button 
-          variant="link" 
+        <Button
+          variant="link"
           className="p-0 h-auto underline underline-offset-4"
           onClick={() => router.push("/sign-up")}
         >
