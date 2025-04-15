@@ -1,9 +1,150 @@
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 
+// Update statisticsService object to include getDashboardStatistics
 const statisticsService = {
-
-}
+    // Get user's workout statistics dashboard data
+    getDashboardStatistics: async (userId) => {
+      // Get all the required statistics in one comprehensive API call
+      const dashboardData = {};
+      
+      // 1. Completed Workout Sessions count
+      dashboardData.completedWorkoutSessions = await prisma.actualWorkout.count({
+        where: { userId }
+      });
+      
+      // 2. Current Month Completion Rate
+      const currentDate = new Date();
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      
+      // Get planned workouts for the current month
+      const plannedWorkoutsThisMonth = await prisma.plannedWorkout.count({
+        where: {
+          userId,
+          scheduledDate: {
+            gte: firstDayOfMonth,
+            lte: lastDayOfMonth
+          }
+        }
+      });
+      
+      // Get completed workouts that were linked to planned workouts
+      const completedPlannedWorkoutsThisMonth = await prisma.actualWorkout.count({
+        where: {
+          userId,
+          plannedId: { not: null }, // Only count those linked to planned workouts
+          completedDate: {
+            gte: firstDayOfMonth,
+            lte: lastDayOfMonth
+          }
+        }
+      });
+      
+      // Calculate rate based on planned workouts that were completed
+      dashboardData.currentMonthCompletionRate = plannedWorkoutsThisMonth > 0
+        ? Math.min(100, (completedPlannedWorkoutsThisMonth / plannedWorkoutsThisMonth) * 100)
+        : 0;
+      
+      // 3. Monthly Workout Sessions (for the last 5 years)
+      const currentYear = currentDate.getFullYear();
+      const lastFiveYearsData = [];
+      
+      // Loop through the last 5 years (including current)
+      for (let yearOffset = 0; yearOffset < 5; yearOffset++) {
+        const year = currentYear - yearOffset;
+        const yearData = {
+          year,
+          months: []
+        };
+        
+        // Get data for each month in this year
+        for (let month = 0; month < 12; month++) {
+          const startDate = new Date(year, month, 1);
+          const endDate = new Date(year, month + 1, 0);
+          
+          // Skip future months in current year
+          if (yearOffset === 0 && startDate > currentDate) {
+            yearData.months.push({
+              month: month + 1,
+              monthName: new Date(year, month, 1).toLocaleString('default', { month: 'long' }),
+              count: 0
+            });
+            continue;
+          }
+          
+          const count = await prisma.actualWorkout.count({
+            where: {
+              userId,
+              completedDate: {
+                gte: startDate,
+                lte: endDate
+              }
+            }
+          });
+          
+          yearData.months.push({
+            month: month + 1,
+            monthName: new Date(year, month, 1).toLocaleString('default', { month: 'long' }),
+            count
+          });
+        }
+        
+        lastFiveYearsData.push(yearData);
+      }
+      
+      dashboardData.workoutsByYear = lastFiveYearsData;
+      
+      // Also include currentYear data separately for backward compatibility
+      dashboardData.monthlyCompletedWorkouts = lastFiveYearsData[0].months;
+      
+      // 4. Weekly Streaks (both longest and current)
+      const allWorkouts = await prisma.actualWorkout.findMany({
+        where: { userId },
+        select: { completedDate: true },
+        orderBy: { completedDate: 'asc' }
+      });
+      
+      const streaks = calculateWeeklyStreaks(allWorkouts.map(w => w.completedDate));
+      
+      // Add debugging info to help understand streak calculation
+      console.log("Total workouts:", allWorkouts.length);
+      console.log("Longest streak:", streaks.longest);
+      console.log("Current streak:", streaks.current);
+      
+      dashboardData.longestStreak = streaks.longest;
+      dashboardData.currentStreak = streaks.current;
+      
+      // 5. Best records (heaviest weight, most reps, most sets)
+      const bestRecords = await getBestExerciseRecords(userId);
+      dashboardData.bestRecords = bestRecords;
+      
+      // 6. Monthly volume totals for the last 5 years
+      const volumeByYear = [];
+      
+      // Loop through the last 5 years (including current)
+      for (let yearOffset = 0; yearOffset < 5; yearOffset++) {
+        const year = currentYear - yearOffset;
+        const yearData = {
+          year,
+          months: await getMonthlyVolumeData(userId, year)
+        };
+        
+        volumeByYear.push(yearData);
+      }
+      
+      dashboardData.volumeByYear = volumeByYear;
+      
+      // Also include currentYear data separately for backward compatibility
+      dashboardData.monthlyVolume = volumeByYear[0].months;
+      
+      // 7. Top 3 most frequent exercises
+      const topExercises = await getTopExercises(userId, 3);
+      dashboardData.topExercises = topExercises;
+      
+      return dashboardData;
+    },
+  };
 
 // Helper function to get best exercise records
 async function getBestExerciseRecords(userId) {
@@ -308,3 +449,5 @@ function calculateWeeklyStreaks(dates) {
   
 
 module.exports = { statisticsService };
+
+//note that AI is used for some part of this folder since this one is a bit difficult and had so many errors
