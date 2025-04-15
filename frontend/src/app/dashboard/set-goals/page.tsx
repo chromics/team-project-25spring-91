@@ -1,9 +1,11 @@
+//page.tsx 
 "use client";
 import { SheetDemo } from '@/components/add-goal-sheet'
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner';
-import { Calendar, Clock, Dumbbell } from 'lucide-react';
+import { Calendar, Clock, Dumbbell, Edit, Trash2 } from 'lucide-react';
+import { EditWorkoutDialog } from '@/components/edit-workouts-dialog';
 
 interface PlannedWorkout {
     id: number;
@@ -32,6 +34,8 @@ interface Goal {
 const SetGoalPage = () => {
     const [workouts, setWorkouts] = useState<PlannedWorkout[]>([]);
     const [loading, setLoading] = useState(true);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedWorkout, setSelectedWorkout] = useState<PlannedWorkout | null>(null);
 
     useEffect(() => {
         fetchWorkouts();
@@ -61,6 +65,88 @@ const SetGoalPage = () => {
     const handleAddGoal = async (newGoal: Goal) => {
         await fetchWorkouts(); // Refresh the workouts after adding a new one
     }
+
+    const handleDeleteGoal = async (id: number) => {
+        setLoading(true);
+        const maxRetries = 3;
+        let retryCount = 0;
+
+        while (retryCount < maxRetries) {
+            try {
+                const token = localStorage.getItem('auth-token');
+                const response = await fetch(`http://localhost:5000/api/planned-workouts/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const responseText = await response.text();
+                    throw new Error(`Failed to delete workout: ${response.status} ${responseText}`);
+                }
+
+                await fetchWorkouts();
+                toast.success('Workout deleted successfully');
+                break; // Exit loop on success
+
+            } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                    toast.error("Failed to delete workout after multiple attempts");
+                    console.error(error);
+                } else {
+                   
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+        setLoading(false);
+    }
+
+    const handleEditGoal = async (workout: PlannedWorkout) => {
+        setLoading(true);
+        const maxRetries = 3;
+        let retryCount = 0;
+
+        while (retryCount < maxRetries) {
+            try {
+                const token = localStorage.getItem('auth-token');
+                const response = await fetch(`http://localhost:5000/api/planned-workouts/${workout.id}`, {
+                    method: 'PUT', 
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: workout.title,
+                        scheduledDate: workout.scheduledDate,
+                        estimatedDuration: workout.estimatedDuration,
+                        plannedExercises: workout.plannedExercises
+                    })
+                });
+
+                if (!response.ok) {
+                    const responseText = await response.text();
+                    throw new Error(`Failed to edit workout: ${response.status} ${responseText}`);
+                }
+
+                await fetchWorkouts();
+                toast.success('Workout updated successfully');
+                break;
+
+            } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                    toast.error("Failed to update workout after multiple attempts");
+                    console.error(error);
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+        setLoading(false);
+    };
 
     const groupWorkouts = (workouts: PlannedWorkout[]) => {
         const today = new Date();
@@ -101,36 +187,53 @@ const SetGoalPage = () => {
 
         return sortedWorkouts.map(workout => (
             <li key={workout.id} className="px-4 py-3 rounded-lg border shadow-sm">
-                <div className='flex justify-between items-start'>
-                    <div className="space-y-2">
-                        <h3 className="font-bold text-lg">{workout.title}</h3>
-                        <div className="flex items-center text-gray-600 text-sm">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            <span>{new Date(workout.scheduledDate).toLocaleDateString()}</span>
-                            <Clock className="w-4 h-4 ml-3 mr-1" />
-                            <span>{workout.estimatedDuration} min</span>
+                <div className='flex flex-col'>
+                    <div className='flex justify-between items-start'>
+                        <div className="space-y-2">
+                            <h3 className="font-bold text-lg">{workout.title}</h3>
+                            <div className="flex items-center text-gray-600 text-sm">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <span>{new Date(workout.scheduledDate).toLocaleDateString()}</span>
+                                <Clock className="w-4 h-4 ml-3 mr-1" />
+                                <span>{workout.estimatedDuration} min</span>
+                            </div>
+
+                            <div className="space-y-1">
+                                {workout.plannedExercises.map((exercise) => (
+                                    <div key={exercise.id} className="flex items-center text-sm text-gray-700">
+                                        <Dumbbell className="w-3 h-3 mr-1" />
+                                        <span>{exercise.exercise.name}</span>
+                                        {exercise.plannedSets && exercise.plannedReps && (
+                                            <span className="ml-2">
+                                                ({exercise.plannedSets} × {exercise.plannedReps})
+                                            </span>
+                                        )}
+                                        {exercise.plannedDuration && (
+                                            <span className="ml-2">({exercise.plannedDuration} min)</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        
-                        <div className="space-y-1">
-                            {workout.plannedExercises.map((exercise) => (
-                                <div key={exercise.id} className="flex items-center text-sm text-gray-700">
-                                    <Dumbbell className="w-3 h-3 mr-1" />
-                                    <span>{exercise.exercise.name}</span>
-                                    {exercise.plannedSets && exercise.plannedReps && (
-                                        <span className="ml-2">
-                                            ({exercise.plannedSets} × {exercise.plannedReps})
-                                        </span>
-                                    )}
-                                    {exercise.plannedDuration && (
-                                        <span className="ml-2">({exercise.plannedDuration} min)</span>
-                                    )}
-                                </div>
-                            ))}
+
+                        <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-green-500 text-green-600 bg-green-50">
+                            Planned
                         </div>
                     </div>
 
-                    <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-green-500 text-green-600 bg-green-50">
-                        Planned
+                    <div className="flex justify-end gap-2 mt-3">
+                        <button onClick={() => {
+                            setSelectedWorkout(workout);
+                            setEditDialogOpen(true);
+                        }
+                        }
+                            className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
+                            <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteGoal(workout.id)}
+                            className="p-1 text-gray-600 hover:text-red-600 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             </li>
@@ -149,6 +252,12 @@ const SetGoalPage = () => {
 
     return (
         <div>
+            <EditWorkoutDialog
+                workout={selectedWorkout}
+                isOpen={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                onSave={handleEditGoal}
+            />
             <SheetDemo propAddGoal={handleAddGoal} />
 
             <div className="mt-8 max-w mx-auto px-20">
