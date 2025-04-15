@@ -99,7 +99,7 @@ const actualRoutes = require('./routes/actual.routes');
 
 // Initialize express app
 const app = express();
-const PORT =  3001;
+const PORT =  5000;
 
 // Middleware
 app.use(helmet());
