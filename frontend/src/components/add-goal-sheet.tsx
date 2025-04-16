@@ -14,6 +14,7 @@ import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
+import { Plus } from "lucide-react"
 
 interface Exercise {
     exerciseId: number;
@@ -176,7 +177,13 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-2 mt-2 w-8 h-8 rounded-full">+</Button>
+                <Button
+                    variant="ghost"
+                    className="w-full flex items-center justify-center py-6 px-20 my-2 rounded-lg "
+                >
+                    <Plus className="h-6 w-6" />
+                    <span className="ml-2">Add New Workout Plan</span>
+                </Button>
             </SheetTrigger>
             <SheetContent>
                 <div className="flex flex-col h-full">
@@ -207,7 +214,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
+                                {/* <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="calories" className="text-right">
                                         Calorie
                                     </Label>
@@ -221,7 +228,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                         min={minCalories}
                                         max={maxCalories}
                                     />
-                                </div>
+                                </div> */}
 
                                 <AddExerciseDialog propAddExercise={handleAddExercise} />
 

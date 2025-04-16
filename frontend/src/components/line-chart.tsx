@@ -135,84 +135,86 @@ export function AnnualLineChart({ chartData }: ComponentProps) {
   }, [filteredData]);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <div className="flex items-center justify-between">
-            <CardTitle>Total Workout Volume Per Month</CardTitle>
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="past-1-year">Past 1 Year</SelectItem>
-                <SelectItem value="past-3-years">Past 3 Years</SelectItem>
-                <SelectItem value="past-5-years">Past 5 Years</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <CardDescription>
-            Shows the total workout volume per month for the {
-              timeRange === "past-1-year" ? "past year" : 
-              timeRange === "past-3-years" ? "past 3 years" : 
-              "past 5 years"
-            }
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="px-2 sm:p-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <LineChart
-            accessibilityLayer
-            data={filteredData}
-            margin={{
-              top: 20, // Add more top margin
-              left: 12,
-              right: 12,
-              bottom: 8,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="label"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const [month, year] = value.split(' ');
-                return `${month.slice(0, 3)} ${year}`;
-              }}
-            />
-            <YAxis 
-              domain={[0, maxVolume]} // Set explicit domain with calculated max
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) => value.toLocaleString()}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="views"
-                  labelFormatter={(value) => value}
-                />
+    <div className="mx-auto w-full max-w-5xl">
+      <Card className="bg-background shadow-none border-0">
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+          <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
+            <div className="flex items-center justify-between">
+              <CardTitle>Total Workout Volume Per Month</CardTitle>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="past-1-year">Past 1 Year</SelectItem>
+                  <SelectItem value="past-3-years">Past 3 Years</SelectItem>
+                  <SelectItem value="past-5-years">Past 5 Years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <CardDescription>
+              Shows the total workout volume per month for the {
+                timeRange === "past-1-year" ? "past year" : 
+                timeRange === "past-3-years" ? "past 3 years" : 
+                "past 5 years"
               }
-            />
-            <Line
-              dataKey="volume" // Changed from "count" to "volume"
-              type="natural"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="px-2 sm:p-6">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <LineChart
+              accessibilityLayer
+              data={filteredData}
+              margin={{
+                top: 20, // Add more top margin
+                left: 12,
+                right: 12,
+                bottom: 8,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const [month, year] = value.split(' ');
+                  return `${month.slice(0, 3)} ${year}`;
+                }}
+              />
+              <YAxis 
+                domain={[0, maxVolume]} // Set explicit domain with calculated max
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(value) => value.toLocaleString()}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="w-[150px]"
+                    nameKey="views"
+                    labelFormatter={(value) => value}
+                  />
+                }
+              />
+              <Line
+                dataKey="volume" // Changed from "count" to "volume"
+                type="natural"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
