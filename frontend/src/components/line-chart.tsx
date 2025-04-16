@@ -58,6 +58,14 @@ const chartConfig = {
 
 export function AnnualLineChart({ chartData }: ComponentProps) {
   const [timeRange, setTimeRange] = React.useState("past-1-year");
+  
+  /**
+   * AI-generated-content
+   * tool: Grok 
+   * version: 3
+   * usage: I used the prompt "Based on the graph code and data interface, how to
+   * transform the data to fit the code for the graph" and then directly copy it
+   */
 
   // Process data for the chart
   const processedChartData: ProcessedDataItem[] = React.useMemo(() => 

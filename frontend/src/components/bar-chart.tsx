@@ -41,6 +41,13 @@ export default function AnnualBarChart({ chartData = [] }: ComponentProps) {
 
   const [selectedYear, setSelectedYear] = React.useState(years.length > 0 ? years[0].toString() : new Date().getFullYear().toString());
 
+  /**
+   * AI-generated-content
+   * tool: Grok 
+   * version: 3
+   * usage: I used the prompt "Based on the graph code and data interface, how to
+   * transform the data to fit the code for the graph" and then directly copy it
+   */
   const completeData = React.useMemo(() => {
     // Find the yearly data for the selected year
     const yearData = chartData.find(year => year.year.toString() === selectedYear);
