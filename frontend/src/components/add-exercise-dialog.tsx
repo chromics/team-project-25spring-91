@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import {
     Select,
@@ -22,6 +22,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { error } from "console"
 
 interface Exercise {
     exerciseId: number;
@@ -29,54 +30,26 @@ interface Exercise {
     plannedReps: number;
 }
 
+interface ExerciseOption {
+    id: string;
+    name: string;
+    category: string;
+}
+
 interface AddExerciseDialogProps {
     propAddExercise: (exercise: Exercise) => void;
 }
 
-// Updated exercise options with IDs
-const exerciseOptions = [
-    {
-        category: "Strength",
-        exercises: [
-            { id: 1, name: "Bench Press" },
-            { id: 2, name: "Squats" },
-            { id: 3, name: "Deadlift" },
-            { id: 4, name: "Overhead Press" }
-        ]
-    },
-    {
-        category: "Cardio",
-        exercises: [
-            { id: 5, name: "Running" },
-            { id: 6, name: "Cycling" },
-            { id: 7, name: "Jump Rope" },
-            { id: 8, name: "Swimming" }
-        ]
-    },
-    {
-        category: "Flexibility",
-        exercises: [
-            { id: 9, name: "Yoga" },
-            { id: 10, name: "Stretching" },
-            { id: 11, name: "Pilates" }
-        ]
-    },
-    {
-        category: "Bodyweight",
-        exercises: [
-            { id: 12, name: "Push-ups" },
-            { id: 13, name: "Pull-ups" },
-            { id: 14, name: "Dips" },
-            { id: 15, name: "Planks" }
-        ]
-    }
-];
 
 export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
     const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
     const [reps, setReps] = useState('');
     const [sets, setSets] = useState('');
     const [open, setOpen] = useState(false);
+    const [exerciseOptions, setExerciseOptions] = useState<ExerciseOption[]>([]);
+    useEffect(() => {
+        handleFetchExercises();
+    }, []);
 
     const handleSaveExercise = () => {
         try {
@@ -101,7 +74,7 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
             setReps('');
             setSets('');
             setOpen(false);
-            
+
             toast.success("Exercise added successfully");
         } catch (error) {
             console.error("Error saving exercise:", error);
@@ -109,14 +82,63 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
         }
     }
 
-    // Helper function to find exercise name by ID
+    const handleFetchExercises = async () => {
+        try {
+            const token = localStorage.getItem('auth-token');
+
+            if (!token) {
+                toast.error("Authentication token not found. Please login again.");
+                return;
+            }
+            const response = await fetch('http://localhost:5000/api/exercises', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error("cannot fetch exercises");
+            }
+            const data = await response.json();
+            const options = data.data.map((exercise: any) => ({
+                id: exercise.id.toString(),
+                name: exercise.name,
+                category: exercise.category
+            }));
+            setExerciseOptions(options);
+
+        } catch (error: unknown) {
+            console.error('Error details:', error);
+
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'An unexpected error occurred';
+
+            toast.error(errorMessage);
+        }
+    }
+
     const getExerciseName = (id: string): string => {
-        for (const category of exerciseOptions) {
-            const exercise = category.exercises.find(e => e.id.toString() === id);
-            if (exercise) return exercise.name;
+        for (const exercise of exerciseOptions) {
+            if (exercise.id.toString() === id) {
+                return exercise.name;
+            }
         }
         return '';
     }
+    const groupExercisesByCategory = (exercises: ExerciseOption[]) => {
+        const groups: Record<string, ExerciseOption[]> = {};
+        
+        exercises.forEach(exercise => {
+            if (!groups[exercise.category]) {
+                groups[exercise.category] = [];
+            }
+            groups[exercise.category].push(exercise);
+        });
+    
+        return groups;
+    };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -145,15 +167,15 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                {exerciseOptions.map((group) => (
-                                    <SelectGroup key={group.category}>
+                                {Object.entries(groupExercisesByCategory(exerciseOptions)).map(([category, exercises]) => (
+                                    <SelectGroup key={category}>
                                         <SelectLabel className="capitalize">
-                                            {group.category}
+                                            {category}
                                         </SelectLabel>
-                                        {group.exercises.map((exercise) => (
+                                        {exercises.map((exercise) => (
                                             <SelectItem
                                                 key={exercise.id}
-                                                value={exercise.id.toString()}
+                                                value={exercise.id}
                                             >
                                                 {exercise.name}
                                             </SelectItem>
@@ -193,8 +215,8 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button 
-                        type="button" 
+                    <Button
+                        type="button"
                         onClick={handleSaveExercise}
                     >
                         Add Exercise
