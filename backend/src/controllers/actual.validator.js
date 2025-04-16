@@ -1,4 +1,8 @@
-
+/** 
+     * AI-generated-content 
+     * tool: ChatGPT4o-mini
+     * usage: Validation is written by AI because depend on our api feature, AI can detect edge case scenarios better than human, so I let AI to validate 
+     */ 
 const { z } = require('zod');
 
 const actualSchemas = {
