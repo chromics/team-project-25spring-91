@@ -1,13 +1,13 @@
-// app/chat/page.tsx
-import ChatBot from '@/components/ChatBot';
+// frontend/src/app/chat/page.tsx
+import ClientChatWrapper from '@/components/ClientChatWrapper';
 
 export default function ChatPage() {
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold text-center mb-6">
-        SUSTracker Fitness Assistant
-      </h1>
-      <ChatBot />
-    </div>
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Fitness Assistant</h1>
+      <div className="w-full max-w-3xl mx-auto">
+        <ClientChatWrapper />
+      </div>
+    </main>
   );
 }

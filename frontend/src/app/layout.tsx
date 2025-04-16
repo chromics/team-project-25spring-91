@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-// import { AuthProvider } from "@/context/auth-context";
+import "../utils/useLayoutEffectFix"; // Add this import
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Toaster } from "sonner";
@@ -40,11 +40,10 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="flex-1">{children}</div>
-
           </ThemeProvider>
           <Toaster position="bottom-right" />
         </body>
       </AuthProvider>
-    </html >
+    </html>
   );
 }

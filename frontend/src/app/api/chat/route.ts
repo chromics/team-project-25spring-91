@@ -1,89 +1,88 @@
-// app/api/chat/route.ts
+// frontend/src/app/api/chat/route.ts
 import { NextResponse } from 'next/server';
-import axios from 'axios';
-import type { WitResponse } from '@/types/chat';
+import { CohereClient } from 'cohere-ai';
 
-const WIT_ACCESS_TOKEN = process.env.WIT_ACCESS_TOKEN;
+// Create a Cohere client instance
+const cohere = new CohereClient({
+token: process.env.COHERE_API_KEY || '',
+});
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+    // Check if API key is configured
+    if (!process.env.COHERE_API_KEY) {
+      throw new Error('COHERE_API_KEY is not configured in environment variables');
+    }
 
-    // Call Wit.ai API
-    const response = await axios.get<WitResponse>('https://api.wit.ai/message', {
-      params: {
-        q: message,
-      },
-      headers: {
-        'Authorization': `Bearer ${WIT_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
+    // Parse the request body
+    const { message, history = [] } = await request.json();
+
+    // Format the conversation history for Cohere
+    const chatHistory = history.map(item => ({
+      role: item.role === 'user' ? 'USER' : 'CHATBOT',
+      message: item.parts
+    }));
+
+    // Prepare the system prompt
+    const systemPrompt = "You are a fitness and workout assistant. Provide accurate, helpful information about exercise, nutrition, and general fitness. Keep your responses concise and actionable.";
+
+    // Generate a response using Cohere's chat endpoint
+    const response = await cohere.chat({
+      message: message,
+      chatHistory: chatHistory,
+      model: 'command', // You can also use 'command-light' or other Cohere models
+      temperature: 0.7,
+      preamble: systemPrompt,
+      maxTokens: 800,
     });
 
-    // Extract intent and entities
-    const data = response.data;
-    const intents = data.intents || [];
-    const topIntent = intents.length > 0 ? intents[0].name : null;
-    const confidence = intents.length > 0 ? intents[0].confidence : 0;
-    const entities = data.entities || {};
+    // Extract the response text
+    const responseText = response.text;
 
-    // Generate appropriate response
-    let botResponse = handleIntent(topIntent, entities, confidence);
+    // Update the conversation history
+    const updatedHistory = [
+      ...history,
+      { role: 'user', parts: message },
+      { role: 'model', parts: responseText }
+    ];
 
-    return NextResponse.json({ response: botResponse });
+    // Return the response
+    return NextResponse.json({
+      response: responseText,
+      history: updatedHistory
+    });
   } catch (error) {
-    console.error('Error processing chatbot request:', error);
+    // Log the error for debugging
+    console.error('Error in chat API:', error);
+
+    // Check for specific error types
+    if (error.status === 429) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded. Please try again later.',
+          details: error.message
+        },
+        { status: 429 }
+      );
+    }
+
+    if (error.status === 401) {
+      return NextResponse.json(
+        {
+          error: 'Invalid API key or authentication error.',
+          details: error.message
+        },
+        { status: 401 }
+      );
+    }
+
+    // Return a general error response
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      {
+        error: 'Failed to process chat request',
+        details: error.message
+      },
       { status: 500 }
     );
   }
-}
-
-function handleIntent(
-  intent: string | null,
-  entities: Record<string, any[]>,
-  confidence: number
-): string {
-  // Default response if no intent matches or confidence is low
-  if (!intent || confidence < 0.7) {
-    return "I'm not sure I understand. Could you rephrase that?";
-  }
-
-  // Handle different intents
-  switch (intent) {
-    case 'greeting':
-      return "Hello! I'm your fitness assistant. How can I help you today?";
-
-    case 'workout_recommendations':
-      // Check for muscle group entity if you defined one
-      const muscleGroup = entities['muscle_group:muscle_group']?.[0]?.value;
-
-      if (muscleGroup) {
-        return `For ${muscleGroup} training, I recommend focusing on exercises like ${getExercisesForMuscle(muscleGroup)}.`;
-      } else {
-        return "For a balanced workout, I recommend combining compound exercises like squats, bench press, and rows with some cardio. What muscle groups would you like to focus on?";
-      }
-
-    case 'exercise_form':
-      return "Proper form is crucial for preventing injuries. Make sure to maintain good posture, engage your core, and move through the full range of motion. Would you like specific form advice for a particular exercise?";
-
-    // Add cases for other intents
-
-    default:
-      return "I'm still learning about fitness topics. Could you ask me about workout recommendations or exercise form?";
-  }
-}
-
-function getExercisesForMuscle(muscle: string): string {
-  const exercises: Record<string, string> = {
-    chest: "bench press, push-ups, and chest flyes",
-    legs: "squats, lunges, and leg press",
-    arms: "bicep curls, tricep dips, and hammer curls",
-    back: "pull-ups, rows, and lat pulldowns",
-    shoulders: "overhead press, lateral raises, and face pulls",
-    core: "planks, crunches, and Russian twists"
-  };
-
-  return exercises[muscle.toLowerCase()] || "various targeted exercises";
 }
