@@ -199,6 +199,13 @@ const SetGoalPage = () => {
         return groups;
     };
 
+
+    /**
+     * AI generated code 
+     * tool: chat-gpt 
+     * version: o3 mini high
+     * usage: actually the pagination is from a library called ShadCN, but i want it to render the page properly, like 10 items per page    
+     */
     const paginateWorkouts = (workouts: PlannedWorkout[], page: number) => {
         const start = (page - 1) * ITEMS_PER_PAGE;
         return workouts.slice(start, start + ITEMS_PER_PAGE);

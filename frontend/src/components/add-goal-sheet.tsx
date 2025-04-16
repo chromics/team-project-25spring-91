@@ -126,7 +126,12 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             });
 
             const responseText = await response.text();
-
+{/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: typescript is a bit strict with type, i use it to correct the syntax and more robust error checking  
+            */}
             if (!response.ok) {
                 let errorMessage = "Failed to add workout";
                 try {

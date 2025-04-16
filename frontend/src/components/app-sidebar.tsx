@@ -116,6 +116,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i want a colorful button for 'ask ai' feature, i use ai to help me generate the gradient color   
+            */}
                 {item.items.map((subItem) => (
                   <SidebarMenuItem key={subItem.title}>
                     <SidebarMenuButton
@@ -124,6 +130,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         router.push(subItem.url);
                       }}
                       isActive={pathname === subItem.url}
+                                  
                       className={`
                         ${subItem.title === 'Ask AI'
                           ? 'relative bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] transition-all duration-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0'

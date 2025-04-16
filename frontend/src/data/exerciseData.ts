@@ -1,5 +1,10 @@
 // src/data/exerciseData.ts
-
+{/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: this is for testing only, mock data from ai 
+            */}
 export const exerciseCategories = {
     STRENGTH: 'strength',
     CARDIO: 'cardio',

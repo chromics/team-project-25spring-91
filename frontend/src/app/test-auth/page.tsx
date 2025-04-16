@@ -11,6 +11,15 @@ interface TestItem {
   txt: string;
 }
 
+
+  {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i use ai to help generate test case and validation for authentication with firebase, but we will migrate from it soon. 
+            */}
+
+
 export default function TestAuthPage() {
   const { user, logout } = useAuth();
   const [items, setItems] = useState<TestItem[]>([]);
