@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet"
 import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
-import React from "react"
+import React, { useEffect } from "react"
 import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
 
 interface CompletedExercise {
@@ -20,6 +20,12 @@ interface CompletedExercise {
     actualSets: number | null;
     actualReps: number | null;
     actualDuration: number | null;
+}
+
+interface ExerciseOption {
+    id: number;
+    name: string;
+    category: string;
 }
 
 interface AddCompletedTaskSheetProps {
@@ -32,6 +38,34 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
     const [isLoading, setIsLoading] = React.useState(false);
     const [title, setTitle] = React.useState('');
     const [exercises, setExercises] = React.useState<CompletedExercise[]>([]);
+    const [exerciseOptions, setExerciseOptions] = React.useState<ExerciseOption[]>([]);
+
+    useEffect(() => {
+        if (open) {
+            handleFetchExercises();
+        }
+    }, [open]);
+
+    const handleFetchExercises = async () => {
+        try {
+            const token = localStorage.getItem('auth-token');
+            if (!token) {
+                toast.error("Authentication token not found");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/api/exercises', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            const data = await response.json();
+            setExerciseOptions(data.data);
+        } catch (error) {
+            console.error('Error fetching exercises:', error);
+            toast.error("Failed to fetch exercises");
+        }
+    };
 
     const handleAddExercise = (newExercise: CompletedExercise) => {
         setExercises([...exercises, newExercise]);
@@ -50,29 +84,27 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
             toast.error("Please add at least one exercise");
             return;
         }
-    
+
         try {
             setIsLoading(true);
             const token = localStorage.getItem('auth-token');
-    
+
             if (!token) {
                 toast.error("Authentication token not found. Please login again.");
                 return;
             }
-    
+
             const workoutData = {
                 title: title.trim(),
                 completedDate: date.toISOString().split('T')[0],
-                exercises: exercises.map(ex => ({  // Changed from actualExercises to exercises
+                exercises: exercises.map(ex => ({
                     exerciseId: ex.exerciseId,
                     actualSets: ex.actualSets,
                     actualReps: ex.actualReps,
                     actualDuration: ex.actualDuration
                 }))
             };
-    
-            console.log('Sending workout data:', JSON.stringify(workoutData, null, 2));
-    
+
             const response = await fetch("http://localhost:5000/api/actual-workouts", {
                 method: 'POST',
                 headers: {
@@ -81,48 +113,29 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                 },
                 body: JSON.stringify(workoutData),
             });
-    
+
             const responseText = await response.text();
-            console.log('Response:', responseText);
-    
-            interface ErrorResponse {
-                status?: string;
-                message?: string;
-                error?: Array<{ path: string; message: string }> | string;
-            }
-    
-            let data: ErrorResponse;
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                throw new Error('Invalid response format from server');
-            }
-    
+
             if (!response.ok) {
-                let errorMessage = 'Failed to add completed workout';
-                
-                if (data.error) {
-                    if (Array.isArray(data.error)) {
-                        errorMessage = data.error
-                            .map(err => err.message)
-                            .join('\n');
-                    } else if (typeof data.error === 'string') {
-                        errorMessage = data.error;
-                    }
-                } else if (data.message) {
-                    errorMessage = data.message;
+                let errorMessage = "Failed to add completed workout";
+                try {
+                    const errorData = JSON.parse(responseText);
+                    errorMessage = Array.isArray(errorData.error)
+                        ? errorData.error.map((err: any) => err.message).join('\n')
+                        : errorData.message || errorData.error || errorMessage;
+                } catch {
+                    errorMessage = responseText || errorMessage;
                 }
-                
                 throw new Error(errorMessage);
             }
-    
+
+            const data = JSON.parse(responseText);
             propAddCompletedTasks();
             toast.success(data.message || "Workout completed successfully");
             setOpen(false);
             resetForm();
-    
+
         } catch (error: unknown) {
-            console.error('Error details:', error);
             const errorMessage = error instanceof Error
                 ? error.message
                 : 'An unexpected error occurred';
@@ -132,7 +145,6 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
         }
     }
 
-    
     const resetForm = () => {
         setTitle('');
         setExercises([]);
@@ -140,18 +152,8 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
     }
 
     const getExerciseName = (exerciseId: number): string => {
-        const exerciseMap: { [key: number]: string } = {
-            1: "Bench Press",
-            2: "Squats",
-            3: "Deadlift",
-            4: "Overhead Press",
-            5: "Running",
-            6: "Cycling",
-            7: "Jump Rope",
-            8: "Swimming",
-            // ... add all exercises here
-        };
-        return exerciseMap[exerciseId] || "Unknown Exercise";
+        const exercise = exerciseOptions.find(ex => ex.id === exerciseId);
+        return exercise?.name || "Unknown Exercise";
     };
 
     return (
@@ -202,7 +204,7 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                                                         {getExerciseName(exercise.exerciseId)}
                                                     </p>
                                                     <div className="flex items-center gap-4">
-                                                        {exercise.actualReps && exercise.actualSets && (
+                                                        {exercise.actualReps !== null && exercise.actualSets !== null && (
                                                             <>
                                                                 <span className="text-sm text-gray-600">
                                                                     {exercise.actualReps} reps
@@ -212,7 +214,7 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                                                                 </span>
                                                             </>
                                                         )}
-                                                        {exercise.actualDuration && (
+                                                        {exercise.actualDuration !== null && (
                                                             <span className="text-sm text-gray-600">
                                                                 {exercise.actualDuration} min
                                                             </span>
