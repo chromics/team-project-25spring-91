@@ -1,17 +1,18 @@
+// src/app/chat/page.tsx
 'use client';
 
-import React from 'react';
-import ChatInterface from '../../components/ChatInterface';
+import dynamic from 'next/dynamic';
+
+const ChatInterface = dynamic(
+  () => import('@/components/ChatInterface'),
+  { ssr: false }
+);
 
 export default function ChatPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="w-full max-w-3xl">
-        <h1 className="text-3xl font-bold mb-8 text-center">
-          Cohere AI Chatbot
-        </h1>
-        <ChatInterface />
-      </div>
-    </main>
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6 text-center">SUSTracker Health Assistant</h1>
+      <ChatInterface />
+    </div>
   );
 }

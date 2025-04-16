@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@radix-ui/react-scroll-area": "^1.2.4",
+    "cohere-ai": "^7.17.1",
     "lucide-react": "^0.487.0"
   }
 }

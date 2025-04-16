@@ -1,103 +1,144 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Message = {
-  content: string;
   role: 'user' | 'assistant';
+  content: string;
 };
 
-const ChatInterface: React.FC = () => {
+export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages update
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSendMessage = async (messageText: string) => {
-    if (isLoading) return;
-
-    // Add user message
-    const userMessage: Message = {
-      content: messageText,
-      role: 'user',
-    };
-
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    
+    // Add user message to chat
+    const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
+    setInput('');
     setIsLoading(true);
-
+    
     try {
-      // Prepare chat history for the API
-      const chatHistory = messages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
-
-      // Call our API route
+      // Call your API route
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: messageText,
-          chatHistory: chatHistory,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          messages: [...messages, userMessage] 
         }),
       });
-
+      
       const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Add assistant response
-      const assistantMessage: Message = {
-        content: data.response,
-        role: 'assistant',
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
+      
+      // Add AI response to chat
+      setMessages((prev) => [
+        ...prev, 
+        { role: 'assistant', content: data.response }
+      ]);
     } catch (error) {
       console.error('Error sending message:', error);
-      // Add error message
-      const errorMessage: Message = {
-        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`,
-        role: 'assistant',
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'Sorry, I encountered an error processing your request.' }
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[600px] w-full max-w-2xl mx-auto border rounded-lg overflow-hidden">
-      <div className="bg-gray-100 p-4 border-b">
-        <h2 className="text-xl font-bold">Cohere AI Chatbot</h2>
-      </div>
-
-      <div className="flex-1 p-4 overflow-y-auto">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
-            Send a message to start the conversation
-          </div>
-        ) : (
-          messages.map((msg, index) => (
-            <ChatMessage key={index} content={msg.content} role={msg.role} />
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="p-4 border-t">
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-      </div>
-    </div>
+    <Card className="w-full max-w-md mx-auto h-[600px] flex flex-col">
+      <CardHeader>
+        <CardTitle>Health Assistant</CardTitle>
+      </CardHeader>
+      
+      <CardContent className="flex-grow overflow-hidden">
+        <ScrollArea className="h-[400px] pr-4">
+          {messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-6">
+              Ask me anything about your health goals!
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((message, i) => (
+                <div 
+                  key={i} 
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className="flex items-start gap-2 max-w-[80%]">
+                    {message.role === 'assistant' && (
+                      <Avatar className="h-8 w-8">
+                        <div className="bg-primary text-white flex items-center justify-center h-full w-full rounded-full">AI</div>
+                      </Avatar>
+                    )}
+                    <div 
+                      className={`rounded-lg px-3 py-2 text-sm ${
+                        message.role === 'user' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                    {message.role === 'user' && (
+                      <Avatar className="h-8 w-8">
+                        <div className="bg-secondary text-secondary-foreground flex items-center justify-center h-full w-full rounded-full">You</div>
+                      </Avatar>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex items-start gap-2 max-w-[80%]">
+                    <Avatar className="h-8 w-8">
+                      <div className="bg-primary text-white flex items-center justify-center h-full w-full rounded-full">AI</div>
+                    </Avatar>
+                    <div className="rounded-lg px-3 py-2 text-sm bg-muted">
+                      Typing...
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
+      
+      <CardFooter className="border-t p-4">
+        <div className="flex w-full items-center space-x-2">
+          <Textarea 
+            placeholder="Ask me anything about your health..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            disabled={isLoading}
+          />
+          <Button 
+            onClick={sendMessage} 
+            disabled={isLoading || !input.trim()}
+            size="icon"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
+            </svg>
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
   );
-};
-
-export default ChatInterface;
+}
