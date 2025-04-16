@@ -78,7 +78,7 @@ const authController = {
     // For browser flow, check if frontend URL is configured
     if (process.env.FRONTEND_URL) {
       // Redirect to frontend with token
-      return res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${token}`);
+      return res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
     }
     
     // Fallback when no frontend is configured yet (your current situation)
