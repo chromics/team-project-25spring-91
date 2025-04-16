@@ -1,43 +1,42 @@
+"use client";
 import { Component } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { toast } from 'sonner';
 
 interface WorkoutStats {
-    status: string;
-    data: {
-        completedWorkoutSessions: number;
-        currentMonthCompletionRate: number;
-        workoutsByYear: YearlyWorkouts[];
-        monthlyCompletedWorkouts: MonthlyWorkout[];
-        longestStreak: number;
-        currentStreak: number;
-        bestRecords: {
-            heaviestWeight: {
-                weight: string;
-                exercise: {
-                    id: number;
-                    name: string;
-                }
-            };
-            mostReps: {
-                reps: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                }
-            };
-            mostSets: {
-                sets: number;
-                exercise: {
-                    id: number;
-                    name: string;
-                }
-            };
+    completedWorkoutSessions: number;
+    currentMonthCompletionRate: number;
+    workoutsByYear: YearlyWorkouts[];
+    monthlyCompletedWorkouts: MonthlyWorkout[];
+    longestStreak: number;
+    currentStreak: number;
+    bestRecords: {
+        heaviestWeight: {
+            weight: string;
+            exercise: {
+                id: number;
+                name: string;
+            }
         };
-        volumeByYear: YearlyVolume[];
-        monthlyVolume: MonthlyVolume[];
-        topExercises: TopExercise[];
+        mostReps: {
+            reps: number;
+            exercise: {
+                id: number;
+                name: string;
+            }
+        };
+        mostSets: {
+            sets: number;
+            exercise: {
+                id: number;
+                name: string;
+            }
+        };
     };
+    volumeByYear: YearlyVolume[];
+    monthlyVolume: MonthlyVolume[];
+    topExercises: TopExercise[];
 }
 
 interface YearlyWorkouts {
@@ -69,85 +68,108 @@ interface TopExercise {
     count: number;
 }
 
-interface PlannedWorkout {
-    id: number;
-    title: string;
-    scheduledDate: string;
-    estimatedDuration: number;
-    reminderSent: boolean;
-    plannedExercises: {
-        id: number;
-        exercise: {
-            name: string;
-            category: string;
-        };
-        plannedSets: number | null;
-        plannedReps: number | null;
-        plannedDuration: number | null;
-    }[];
-}
+const StatsPage = () => {
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<WorkoutStats | null>(null);
+    
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
-const records = {
-    heaviestLift: {
-      name: "Bench Press",
-      value: 50,
-      unit: "kg",
-      description: "Heaviest lift",
-    },
-    mostReps: {
-      name: "Pull-ups",
-      value: 20,
-      unit: "rep",
-      unitPlural: "reps",
-      description: "Most reps",
-    },
-    longestStreak: {
-        value: 120,
-        unit: "week",
-        unitPlural: "weeks",
-        description: "Longest streak",
-    },
-    currentStreak: {
-        value: 53,
-        unit: "week",
-        unitPlural: "weeks",
-        description: "Current streak",
-    },
-    TotalCompletion: {
-        value: 100,
-        unit: "Task",
-        unitPlural: "Tasks",
-        description: "Total completion",
-    },
-    CompletionRate: {
-        value: 75,
-        unit: "%",
-        description: "Completion rate (Last 30 days)"
-    },
-    TopMostFrequentExercise: {
-        name: "Pull-up",
-        value: 20,
-        unit: "Time",
-        unitPlural: "Times",
-        description: "1st",
-    },
-    SecondMostFrequentExercise: {
-        name: "Sit-up",
-        value: 10,
-        unit: "Time",
-        unitPlural: "Times",
-        description: "2nd",
-    },
-    ThirdMostFrequentExercise: {
-        name: "No Data",
-        value: 0,
-        unit: "Time",
-        unitPlural: "Times",
-        description: "3rd",
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('auth-token');
+            const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch statistics');
+
+            const data = await response.json();
+            setStats(data.data);
+        } catch (error) {
+            toast.error("Failed to load statistics");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+        );
     }
-};
 
-const page = () => {
+    // Prepare the data for components
+    const records = {
+        heaviestLift: {
+            name: stats?.bestRecords?.heaviestWeight?.exercise?.name || "No data",
+            value: parseFloat(stats?.bestRecords?.heaviestWeight?.weight || "0"),
+            unit: "kg",
+            description: "Heaviest lift",
+        },
+        mostReps: {
+            name: stats?.bestRecords?.mostReps?.exercise?.name || "No data",
+            value: stats?.bestRecords?.mostReps?.reps || 0,
+            unit: "rep",
+            unitPlural: "reps",
+            description: "Most reps",
+        },
+        longestStreak: {
+            value: stats?.longestStreak || 0,
+            unit: "day",
+            unitPlural: "days",
+            description: "Longest streak",
+        },
+        currentStreak: {
+            value: stats?.currentStreak || 0,
+            unit: "day",
+            unitPlural: "days",
+            description: "Current streak",
+        },
+        TotalCompletion: {
+            value: stats?.completedWorkoutSessions || 0,
+            unit: "Workout",
+            unitPlural: "Workouts",
+            description: "Total completion",
+        },
+        CompletionRate: {
+            value: Math.round(stats?.currentMonthCompletionRate || 0),
+            unit: "%",
+            description: "Completion rate (Last 30 days)"
+        },
+        TopMostFrequentExercise: {
+            name: stats?.topExercises?.[0]?.name || "No data",
+            value: stats?.topExercises?.[0]?.count || 0,
+            unit: "Time",
+            unitPlural: "Times",
+            description: "1st",
+        },
+        SecondMostFrequentExercise: {
+            name: stats?.topExercises?.[1]?.name || "No data",
+            value: stats?.topExercises?.[1]?.count || 0,
+            unit: "Time",
+            unitPlural: "Times",
+            description: "2nd",
+        },
+        ThirdMostFrequentExercise: {
+            name: stats?.topExercises?.[2]?.name || "No data",
+            value: stats?.topExercises?.[2]?.count || 0,
+            unit: "Time",
+            unitPlural: "Times",
+            description: "3rd",
+        }
+    };
+
+    // Pass the data to chart components if needed
+    const monthlyWorkoutData = stats?.monthlyCompletedWorkouts || [];
+    const volumeData = stats?.monthlyVolume || [];
+
     return (
         <>
             {/* 
@@ -237,9 +259,9 @@ const page = () => {
             {/* 
                 BarChart displaying Total Workout Session Completed Per Month
             */}
-            <div>
-                <AnnualBarChart />
-            </div>
+            {/* <div>
+                <AnnualBarChart chartData={stats?.data?.workoutsByYear || []} />
+            </div> */}
 
             {/* 
                 Best Records:
@@ -292,9 +314,9 @@ const page = () => {
                 </div>
             </div>
 
-            <div>
-                <Component />
-            </div>
+            {/* <div>
+                <Component chartData={stats?.data?.volumeByYear || []} />
+            </div> */}
             
             {/* 
                 Top 3 most frequent Exercises
@@ -368,4 +390,4 @@ const page = () => {
     )
 }
 
-export default page
+export default StatsPage;
