@@ -1,86 +1,52 @@
-// frontend/src/app/api/chat/route.ts
 import { NextResponse } from 'next/server';
 import { CohereClient } from 'cohere-ai';
 
-// Create a Cohere client instance
-const cohere = new CohereClient({
-token: process.env.COHERE_API_KEY || '',
-});
+// Initialize the Cohere client
+const getCohereClient = () => {
+return new CohereClient({
+    token: process.env.COHERE_API_KEY || '',
+  });
+};
 
 export async function POST(request: Request) {
   try {
-    // Check if API key is configured
-    if (!process.env.COHERE_API_KEY) {
-      throw new Error('COHERE_API_KEY is not configured in environment variables');
+    const body = await request.json();
+    const { message, chatHistory = [] } = body;
+
+    if (!message) {
+      return NextResponse.json(
+        { error: 'Message is required' },
+        { status: 400 }
+      );
     }
 
-    // Parse the request body
-    const { message, history = [] } = await request.json();
+    const cohere = getCohereClient();
 
-    // Format the conversation history for Cohere
-    const chatHistory = history.map(item => ({
-      role: item.role === 'user' ? 'USER' : 'CHATBOT',
-      message: item.parts
+    // Format history for Cohere
+    const formattedHistory = chatHistory.map((msg: any) => ({
+      role: msg.role === 'user' ? 'USER' : 'CHATBOT',
+      message: msg.content
     }));
 
-    // Prepare the system prompt
-    const systemPrompt = "You are a fitness and workout assistant. Provide accurate, helpful information about exercise, nutrition, and general fitness. Keep your responses concise and actionable.";
-
-    // Generate a response using Cohere's chat endpoint
+    // Call Cohere Chat API
     const response = await cohere.chat({
       message: message,
-      chatHistory: chatHistory,
-      model: 'command', // You can also use 'command-light' or other Cohere models
-      temperature: 0.7,
-      preamble: systemPrompt,
-      maxTokens: 800,
+      chatHistory: formattedHistory,
+      model: 'command-light', // Use a model available in the free tier
+      temperature: 0.7
     });
 
-    // Extract the response text
-    const responseText = response.text;
-
-    // Update the conversation history
-    const updatedHistory = [
-      ...history,
-      { role: 'user', parts: message },
-      { role: 'model', parts: responseText }
-    ];
-
-    // Return the response
+    // Return the AI response
     return NextResponse.json({
-      response: responseText,
-      history: updatedHistory
+      response: response.text
     });
-  } catch (error) {
-    // Log the error for debugging
+
+  } catch (error: any) {
     console.error('Error in chat API:', error);
 
-    // Check for specific error types
-    if (error.status === 429) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded. Please try again later.',
-          details: error.message
-        },
-        { status: 429 }
-      );
-    }
-
-    if (error.status === 401) {
-      return NextResponse.json(
-        {
-          error: 'Invalid API key or authentication error.',
-          details: error.message
-        },
-        { status: 401 }
-      );
-    }
-
-    // Return a general error response
     return NextResponse.json(
       {
-        error: 'Failed to process chat request',
-        details: error.message
+        error: `An error occurred: ${error.message}`
       },
       { status: 500 }
     );
