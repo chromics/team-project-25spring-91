@@ -1,6 +1,6 @@
 1. #### Architectural Design
 
-​                               ![](C:\Users\cleve\Downloads\微信图片_20250417034418.png)
+​  ![ArchitectureDesign](images/ArchiDesign.png)
 
 
 
@@ -40,22 +40,22 @@
 
 - Task Management 
 
-![微信图片_20250417035101](C:\Users\cleve\Downloads\微信图片_20250417035101.jpg)
+![Task Management ](images/TasksManagement.jpg)
 
 - Completed Tasks 
 
-  ![微信图片_20250417035054](C:\Users\cleve\Downloads\微信图片_20250417035054.jpg)
+![Completed Tasks ](images/CompletedTasks.jpg)
 
 - Gym Appointment 
 
-  ![微信图片_20250417035107](C:\Users\cleve\Downloads\微信图片_20250417035107.jpg)
+![Gym Appointment ](images/GymAppointment.jpg)
 
 - Diet Plan 
 
   
 
-![微信图片_20250417035113](C:\Users\cleve\Downloads\微信图片_20250417035113.jpg)
+![Diet Plan ](images/DietPlan.jpg)
 
 - Competition 
 
-![微信图片_20250417031822](C:\Users\cleve\Downloads\微信图片_20250417031822.jpg)
+![Competition](images/Competition.jpg)
