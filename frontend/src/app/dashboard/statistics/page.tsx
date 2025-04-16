@@ -171,15 +171,15 @@ const StatsPage = () => {
     const volumeData = stats?.monthlyVolume || [];
 
     return (
-        <>
+        <div className='mx-4 my-4'>
             {/* 
                 Streaks and Completion Rate and Count
             */}
-            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-4xl m-auto text-center">
+            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
                 
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
                     {/* Longest Streak */}
-                    <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col items-center gap-2 w-full sm:w-auto ">
                         <div className="flex flex-wrap items-baseline text-2xl sm:text-3xl font-bold text-primary">
                             {records.longestStreak.value}
                             <span className="text-lg sm:text-xl text-primary/80 ml-1">
@@ -268,7 +268,7 @@ const StatsPage = () => {
                 - Heaviest Lift
                 - Most Reps
             */}
-            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-4xl m-auto text-center">
+            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
                 <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-4 sm:mb-6">Best Records</h2>
                 
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
@@ -322,7 +322,7 @@ const StatsPage = () => {
             {/* 
                 Top 3 most frequent Exercises
             */}
-            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-4xl m-auto text-center">
+            <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
                 <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-4 sm:mb-6">Top 3 Most Frequently Scheduled Exercises</h2>
                 
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
@@ -387,7 +387,7 @@ const StatsPage = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 
