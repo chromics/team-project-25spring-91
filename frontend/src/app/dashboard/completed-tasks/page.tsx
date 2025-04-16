@@ -195,27 +195,27 @@ const CompletedWorkoutsPage = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-3">
+          <div className="flex justify-end gap-3 mt-3">
             <button
               onClick={() => {
                 setSelectedWorkout(workout);
                 setEditDialogOpen(true);
               }}
-              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-5 h-5" />
             </button>
             <button
               onClick={() => handleDeleteGoal(workout.id)}
-              className="p-1 text-gray-600 hover:text-red-600 transition-colors"
+              className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-5 h-5" />
             </button>
           </div>
         </div>
       </li>
     ));
-};
+  };
 
   const groupedWorkouts = groupWorkouts(workouts);
 

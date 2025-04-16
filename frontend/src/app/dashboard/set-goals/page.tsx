@@ -156,48 +156,48 @@ const SetGoalPage = () => {
         let retryCount = 0;
 
 
-            try {
-                const token = localStorage.getItem('auth-token');
+        try {
+            const token = localStorage.getItem('auth-token');
 
 
-                //if the user check the plan as completed, the plan is sent to completed tasks
-                const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                      title: workout.title,
-                      completedDate: workout.scheduledDate,
-                      actualDuration: workout.estimatedDuration,
-                      actualExercises: workout.plannedExercises
-                    })
-                  });
+            //if the user check the plan as completed, the plan is sent to completed tasks
+            const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: workout.title,
+                    completedDate: workout.scheduledDate,
+                    actualDuration: workout.estimatedDuration,
+                    actualExercises: workout.plannedExercises
+                })
+            });
 
-                if (!response.ok) {
-                    const responseText = await response.text();
-                    const data = JSON.parse(responseText);
-                    const message = data.message || data.error || data;
-                    toast.error(message);
+            if (!response.ok) {
+                const responseText = await response.text();
+                const data = JSON.parse(responseText);
+                const message = data.message || data.error || data;
+                toast.error(message);
 
-                    throw new Error(`Failed to edit workout: ${response.status} ${responseText}`);
-                }
-                // await handleDeleteGoal(workout.id); // no need to delete..
-
-                await fetchWorkouts();
-                toast.success('Workout updated successfully');
-
-
-            } catch (error) {
-
-                if (retryCount === maxRetries) {
-                    toast.error("Failed to update workout");
-                    console.error(error);
-                } else {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
+                throw new Error(`Failed to edit workout: ${response.status} ${responseText}`);
             }
+            // await handleDeleteGoal(workout.id); // no need to delete..
+
+            await fetchWorkouts();
+            toast.success('Workout updated successfully');
+
+
+        } catch (error) {
+
+            if (retryCount === maxRetries) {
+                toast.error("Failed to update workout");
+                console.error(error);
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
 
         setLoading(false);
     }
@@ -275,23 +275,27 @@ const SetGoalPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 mt-3">
+                    <div className="flex justify-end gap-3 mt-3">
                         <button
                             onClick={() => markAsCompleted(workout)}
-                            className="p-1 text-gray-600 hover:text-green-600 transition-colors"
+                            className="p-2 text-gray-600 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
                         >
-                            <CheckCircle className="w-4 h-4" />
+                            <CheckCircle className="w-5 h-5" />
                         </button>
-                        <button onClick={() => {
-                            setSelectedWorkout(workout);
-                            setEditDialogOpen(true);
-                        }}
-                            className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
-                            <Edit className="w-4 h-4" />
+                        <button
+                            onClick={() => {
+                                setSelectedWorkout(workout);
+                                setEditDialogOpen(true);
+                            }}
+                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                        >
+                            <Edit className="w-5 h-5" />
                         </button>
-                        <button onClick={() => handleDeleteGoal(workout.id)}
-                            className="p-1 text-gray-600 hover:text-red-600 transition-colors">
-                            <Trash2 className="w-4 h-4" />
+                        <button
+                            onClick={() => handleDeleteGoal(workout.id)}
+                            className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                        >
+                            <Trash2 className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
