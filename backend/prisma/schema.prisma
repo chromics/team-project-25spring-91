@@ -24,6 +24,8 @@ model User {
   heightCm         Int?             @map("height_cm")
   weightKg         Decimal?         @map("weight_kg") @db.Decimal(5, 2)
   createdAt        DateTime         @default(now()) @map("created_at")
+  oauthProvider    String?          @map("oauth_provider")
+  oauthId          String?          @map("oauth_id")
   plannedWorkouts  PlannedWorkout[]
   actualWorkouts   ActualWorkout[]
 

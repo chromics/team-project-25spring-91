@@ -78,106 +78,106 @@ const userService = {
     return updatedUser;
   },
   
-  getUserWorkoutStats: async (userId) => {
-    // Get total planned workouts
-    const totalPlanned = await prisma.plannedWorkout.count({
-      where: { userId }
-    });
+  // getUserWorkoutStats: async (userId) => {
+  //   // Get total planned workouts
+  //   const totalPlanned = await prisma.plannedWorkout.count({
+  //     where: { userId }
+  //   });
     
-    // Get total completed workouts
-    const totalCompleted = await prisma.actualWorkout.count({
-      where: { userId }
-    });
+  //   // Get total completed workouts
+  //   const totalCompleted = await prisma.actualWorkout.count({
+  //     where: { userId }
+  //   });
     
-    // Get completion rate
-    const completionRate = totalPlanned > 0 
-      ? ((await prisma.actualWorkout.count({
-          where: {
-            userId,
-            plannedId: { not: null }
-          }
-        }) / totalPlanned) * 100).toFixed(2)
-      : 0;
+  //   // Get completion rate
+  //   const completionRate = totalPlanned > 0 
+  //     ? ((await prisma.actualWorkout.count({
+  //         where: {
+  //           userId,
+  //           plannedId: { not: null }
+  //         }
+  //       }) / totalPlanned) * 100).toFixed(2)
+  //     : 0;
     
-    // Get weekly workout frequency (last 4 weeks)
-    const fourWeeksAgo = new Date();
-    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+  //   // Get weekly workout frequency (last 4 weeks)
+  //   const fourWeeksAgo = new Date();
+  //   fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
     
-    const recentWorkouts = await prisma.actualWorkout.findMany({
-      where: {
-        userId,
-        completedDate: { gte: fourWeeksAgo }
-      },
-      select: {
-        completedDate: true
-      },
-      orderBy: {
-        completedDate: 'asc'
-      }
-    });
+  //   const recentWorkouts = await prisma.actualWorkout.findMany({
+  //     where: {
+  //       userId,
+  //       completedDate: { gte: fourWeeksAgo }
+  //     },
+  //     select: {
+  //       completedDate: true
+  //     },
+  //     orderBy: {
+  //       completedDate: 'asc'
+  //     }
+  //   });
     
-    // Group by week
-    const weeklyFrequency = {};
-    recentWorkouts.forEach(workout => {
-      const weekStart = new Date(workout.completedDate);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekKey = weekStart.toISOString().split('T')[0];
+  //   // Group by week
+  //   const weeklyFrequency = {};
+  //   recentWorkouts.forEach(workout => {
+  //     const weekStart = new Date(workout.completedDate);
+  //     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  //     const weekKey = weekStart.toISOString().split('T')[0];
       
-      if (!weeklyFrequency[weekKey]) {
-        weeklyFrequency[weekKey] = 0;
-      }
+  //     if (!weeklyFrequency[weekKey]) {
+  //       weeklyFrequency[weekKey] = 0;
+  //     }
       
-      weeklyFrequency[weekKey]++;
-    });
+  //     weeklyFrequency[weekKey]++;
+  //   });
     
-    return {
-      totalPlanned,
-      totalCompleted,
-      completionRate: parseFloat(completionRate),
-      weeklyFrequency: Object.entries(weeklyFrequency).map(([week, count]) => ({
-        week,
-        count
-      })),
-      // Add streak calculation
-      currentStreak: calculateStreak(recentWorkouts.map(w => w.completedDate))
-    };
-  }
+  //   return {
+  //     totalPlanned,
+  //     totalCompleted,
+  //     completionRate: parseFloat(completionRate),
+  //     weeklyFrequency: Object.entries(weeklyFrequency).map(([week, count]) => ({
+  //       week,
+  //       count
+  //     })),
+  //     // Add streak calculation
+  //     currentStreak: calculateStreak(recentWorkouts.map(w => w.completedDate))
+  //   };
+  // }
 };
 
 // Helper function to calculate streak
-function calculateStreak(dates) {
-  if (dates.length === 0) return 0;
+// function calculateStreak(dates) {
+//   if (dates.length === 0) return 0;
   
-  // Sort dates in descending order
-  const sortedDates = [...dates].sort((a, b) => new Date(b) - new Date(a));
+//   // Sort dates in descending order
+//   const sortedDates = [...dates].sort((a, b) => new Date(b) - new Date(a));
   
-  // Check if the most recent workout was within the last 48 hours
-  const mostRecent = new Date(sortedDates[0]);
-  const now = new Date();
-  const daysSinceLastWorkout = Math.floor((now - mostRecent) / (1000 * 60 * 60 * 24));
+//   // Check if the most recent workout was within the last 48 hours
+//   const mostRecent = new Date(sortedDates[0]);
+//   const now = new Date();
+//   const daysSinceLastWorkout = Math.floor((now - mostRecent) / (1000 * 60 * 60 * 24));
   
-  if (daysSinceLastWorkout > 2) return 0;  // Streak broken if more than 2 days
+//   if (daysSinceLastWorkout > 2) return 0;  // Streak broken if more than 2 days
   
-  // Calculate continuous streak
-  let streak = 1;
-  let currentDate = new Date(sortedDates[0]);
+//   // Calculate continuous streak
+//   let streak = 1;
+//   let currentDate = new Date(sortedDates[0]);
   
-  // For each previous date, check if it falls within streak window
-  for (let i = 1; i < sortedDates.length; i++) {
-    const prevDate = new Date(sortedDates[i]);
-    const dayDiff = Math.floor((currentDate - prevDate) / (1000 * 60 * 60 * 24));
+//   // For each previous date, check if it falls within streak window
+//   for (let i = 1; i < sortedDates.length; i++) {
+//     const prevDate = new Date(sortedDates[i]);
+//     const dayDiff = Math.floor((currentDate - prevDate) / (1000 * 60 * 60 * 24));
     
-    if (dayDiff <= 2) {  // Allow a 1-day gap
-      if (dayDiff >= 1) {  // Only count as new day if at least 1 day apart
-        streak++;
-        currentDate = prevDate;
-      }
-    } else {
-      break;  // Streak broken
-    }
-  }
+//     if (dayDiff <= 2) {  // Allow a 1-day gap
+//       if (dayDiff >= 1) {  // Only count as new day if at least 1 day apart
+//         streak++;
+//         currentDate = prevDate;
+//       }
+//     } else {
+//       break;  // Streak broken
+//     }
+//   }
   
-  return streak;
-}
+//   return streak;
+// }
 
 module.exports = { userService };

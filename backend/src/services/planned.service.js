@@ -21,7 +21,8 @@ const plannedService = {
       },
       orderBy: {
         scheduledDate: 'desc'
-      }
+      },
+      // take: 30
     });
     
     return workouts;
