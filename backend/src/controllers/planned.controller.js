@@ -25,21 +25,7 @@ const plannedController = {
     });
   },
   
-  getCalendarData: async (req, res) => {
-    const userId = req.user.id;
-    const { startDate, endDate } = req.query;
-    
-    const calendarData = await plannedService.getCalendarData(
-      userId, 
-      new Date(startDate), 
-      new Date(endDate)
-    );
-    
-    res.status(200).json({
-      status: 'success',
-      data: calendarData
-    });
-  },
+
   
   getPlannedWorkoutById: async (req, res) => {
     const userId = req.user.id;

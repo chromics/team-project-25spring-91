@@ -1,5 +1,6 @@
 // Common interfaces (you can put these in a separate file)
 interface Exercise {
+    plannedDuration: React.JSX.Element;
     exerciseId: number;
     plannedSets: number;
     plannedReps: number;
