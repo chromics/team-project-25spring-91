@@ -61,7 +61,12 @@ export function EditCompletedWorkoutDialog({
     completedDate: "",
     actualDuration: 0,
   });
-
+{/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i use ai to help me correct the state in react to make sure i fetch whenever the worker changes  
+            */}
   useEffect(() => {
     if (workout) {
       setFormData({
@@ -88,6 +93,12 @@ export function EditCompletedWorkoutDialog({
     onOpenChange(false);
   };
 
+  {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i use ai to help correct me with syntax
+            */}
   const handleInputChange = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -151,6 +162,12 @@ export function EditCompletedWorkoutDialog({
             <div className="grid grid-cols-4 items-start gap-4">
               <Label className="text-right pt-2">Exercises</Label>
               <div className="col-span-3 space-y-2">
+                {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i use ai to help correct the mapping syntax  
+            */}
                 {workout.actualExercises.map((exercise) => (
                   <div
                     key={exercise.id}

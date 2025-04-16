@@ -32,7 +32,12 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 };
-
+{/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: i use it to help me create a auth provider from firebase 
+            */}
 // Create the context with explicit naming to avoid any potential conflicts
 const FirebaseAuthContext = React.createContext<AuthContextType | null>(null);
 
