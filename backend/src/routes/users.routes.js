@@ -17,9 +17,9 @@ router.put(
   asyncHandler(userController.updateProfile)
 );
 
-router.get(
-  '/stats',
-  asyncHandler(userController.getWorkoutStats)
-);
+// router.get(
+//   '/stats',
+//   asyncHandler(userController.getWorkoutStats)
+// );
 
 module.exports = router;
