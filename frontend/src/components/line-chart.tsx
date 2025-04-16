@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -24,96 +24,115 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type Month = "January" | "February" | "March" | "April" | "May" | "June" | 
-  "July" | "August" | "September" | "October" | "November" | "December";
-
-type ChartDataItem = {
+interface YearlyVolume {
   year: number;
-  month: Month;
-  desktop: number;
-  mobile: number;
-  label?: string;
+  months: MonthlyVolume[];
 }
 
-const chartData: ChartDataItem[] = [
-  { year: 2021, month: "January", desktop: 221, mobile: 171 },
-  { year: 2021, month: "September", desktop: 209, mobile: 164 },
-  { year: 2023, month: "April", desktop: 211, mobile: 138 },
-  { year: 2023, month: "June", desktop: 231, mobile: 151 },
-  { year: 2024, month: "January", desktop: 186, mobile: 80 },
-  { year: 2024, month: "February", desktop: 305, mobile: 200 },
-  { year: 2024, month: "March", desktop: 237, mobile: 120 },
-  { year: 2024, month: "April", desktop: 73, mobile: 190 },
-  { year: 2024, month: "May", desktop: 209, mobile: 130 },
-  { year: 2024, month: "June", desktop: 214, mobile: 140 }
-];
+interface MonthlyVolume {
+  month: number;
+  monthName: string;
+  volume: number;
+}
 
-// Sort data chronologically
-const sortedChartData = [...chartData].sort((a, b) => {
-  const monthOrder: Record<Month, number> = {
-    "January": 0, "February": 1, "March": 2, "April": 3, 
-    "May": 4, "June": 5, "July": 6, "August": 7, 
-    "September": 8, "October": 9, "November": 10, "December": 11
-  };
-  
-  if (a.year !== b.year) {
-    return a.year - b.year;
-  }
-  return monthOrder[a.month] - monthOrder[b.month];
-});
+interface ProcessedDataItem {
+  year: number;
+  monthName: string;
+  volume: number;
+  label: string;
+}
 
-// Add labels for each data point
-const processedChartData = sortedChartData.map(item => ({
-  ...item,
-  label: `${item.month} ${item.year}`
-}));
+interface ComponentProps {
+  chartData: YearlyVolume[];
+}
 
 const chartConfig = {
   views: {
-    label: "Page Views",
+    label: "Workout Volume",
   },
-  desktop: {
-    label: "Desktop",
+  count: {
+    label: "Count",
     color: "var(--chart-1)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
-  },
+  }
 } satisfies ChartConfig
 
-export function Component() {
-  const [activeChart, setActiveChart] = 
-    React.useState<keyof typeof chartConfig>("desktop");
-  const [timeRange, setTimeRange] = React.useState("all");
+export function AnnualLineChart({ chartData }: ComponentProps) {
+  const [timeRange, setTimeRange] = React.useState("past-1-year");
+
+  // Process data for the chart
+  const processedChartData: ProcessedDataItem[] = React.useMemo(() => 
+    chartData.flatMap(yearData => 
+      yearData.months.map(monthData => ({
+        year: yearData.year,
+        monthName: monthData.monthName,
+        volume: monthData.volume,
+        label: `${monthData.monthName} ${yearData.year}`
+      }))
+    ),
+    [chartData]
+  );
+
+  // Sort data chronologically
+  const sortedChartData = React.useMemo(() => 
+    [...processedChartData].sort((a, b) => {
+      const monthOrder: Record<string, number> = {
+        "January": 0, "February": 1, "March": 2, "April": 3, 
+        "May": 4, "June": 5, "July": 6, "August": 7, 
+        "September": 8, "October": 9, "November": 10, "December": 11
+      };
+      
+      if (a.year !== b.year) {
+        return a.year - b.year;
+      }
+      return monthOrder[a.monthName] - monthOrder[b.monthName];
+    }),
+    [processedChartData]
+  );
 
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
   const filteredData = React.useMemo(() => {
-    if (timeRange === "all") {
-      return processedChartData;
+    let yearsToInclude;
+    
+    switch (timeRange) {
+      case "past-1-year":
+        yearsToInclude = 1;
+        break;
+      case "past-3-years":
+        yearsToInclude = 3;
+        break;
+      case "past-5-years":
+        yearsToInclude = 5;
+        break;
+      default:
+        yearsToInclude = 1;
     }
     
-    const yearsToInclude = timeRange === "past-year" ? 1 : 2;
-    
-    return processedChartData.filter(item => {
-      const itemDate = new Date(item.year, getMonthIndex(item.month));
+    return sortedChartData.filter(item => {
+      const itemDate = new Date(item.year, getMonthIndex(item.monthName));
       const cutoffDate = new Date(currentYear, currentMonth);
       cutoffDate.setFullYear(cutoffDate.getFullYear() - yearsToInclude);
       
       return itemDate >= cutoffDate;
     });
-  }, [timeRange]);
+  }, [timeRange, sortedChartData, currentYear, currentMonth]);
 
   const total = React.useMemo(
     () => ({
-      desktop: filteredData.reduce((acc, curr) => acc + curr.desktop, 0),
-      mobile: filteredData.reduce((acc, curr) => acc + curr.mobile, 0),
+      count: filteredData.reduce((acc, curr) => acc + curr.volume, 0),
     }),
     [filteredData]
   );
+
+  // Calculate the maximum volume for proper scaling
+  const maxVolume = React.useMemo(() => {
+    if (filteredData.length === 0) return 1000;
+    const max = Math.max(...filteredData.map(item => item.volume));
+    // Add 10% padding to the top of the chart
+    return Math.ceil(max * 1.1);
+  }, [filteredData]);
 
   return (
     <Card>
@@ -126,15 +145,18 @@ export function Component() {
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="past-year">Past Year</SelectItem>
-                <SelectItem value="past-2-years">Past 2 Years</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="past-1-year">Past 1 Year</SelectItem>
+                <SelectItem value="past-3-years">Past 3 Years</SelectItem>
+                <SelectItem value="past-5-years">Past 5 Years</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <CardDescription>
-            Shows the total workout volume per month {timeRange === "all" ? "for all time" : 
-              timeRange === "past-year" ? "for the past year" : "for the past 2 years"}
+            Shows the total workout volume per month for the {
+              timeRange === "past-1-year" ? "past year" : 
+              timeRange === "past-3-years" ? "past 3 years" : 
+              "past 5 years"
+            }
           </CardDescription>
         </div>
       </CardHeader>
@@ -147,8 +169,10 @@ export function Component() {
             accessibilityLayer
             data={filteredData}
             margin={{
+              top: 20, // Add more top margin
               left: 12,
               right: 12,
+              bottom: 8,
             }}
           >
             <CartesianGrid vertical={false} />
@@ -163,6 +187,12 @@ export function Component() {
                 return `${month.slice(0, 3)} ${year}`;
               }}
             />
+            <YAxis 
+              domain={[0, maxVolume]} // Set explicit domain with calculated max
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(value) => value.toLocaleString()}
+            />
             <ChartTooltip
               content={
                 <ChartTooltipContent
@@ -173,9 +203,9 @@ export function Component() {
               }
             />
             <Line
-              dataKey="desktop"
+              dataKey="volume" // Changed from "count" to "volume"
               type="natural"
-              stroke="var(--color-desktop)"
+              stroke="var(--chart-1)"
               strokeWidth={2}
               dot={false}
             />
@@ -187,11 +217,11 @@ export function Component() {
 }
 
 // Helper function to convert month name to index
-function getMonthIndex(monthName: Month): number {
-  const months: Record<Month, number> = {
+function getMonthIndex(monthName: string): number {
+  const months: Record<string, number> = {
     "January": 0, "February": 1, "March": 2, "April": 3, 
     "May": 4, "June": 5, "July": 6, "August": 7, 
     "September": 8, "October": 9, "November": 10, "December": 11
   };
-  return months[monthName];
+  return months[monthName] || 0;
 }

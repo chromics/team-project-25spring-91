@@ -1,5 +1,5 @@
 "use client";
-import { Component } from '@/components/line-chart';
+import { AnnualLineChart } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
@@ -314,9 +314,10 @@ const StatsPage = () => {
                 </div>
             </div>
 
-            {/* <div>
-                <Component chartData={stats?.data?.volumeByYear || []} />
-            </div> */}
+
+            <div>
+                <AnnualLineChart chartData={stats?.volumeByYear || []} />
+            </div>
             
             {/* 
                 Top 3 most frequent Exercises
