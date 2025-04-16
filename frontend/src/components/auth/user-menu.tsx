@@ -29,6 +29,12 @@ export function UserMenu() {
       console.error("Error signing out:", error);
     }
   };
+  {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: generate a helper method  
+            */}
 
   const getInitials = () => {
     if (user.displayName) {

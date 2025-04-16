@@ -54,7 +54,7 @@ export function LoginForm({
       localStorage.setItem('auth-token', data.data.token);
       
       // Navigate to dashboard
-      router.push('/dashboard');
+      router.push('/dashboard/statistics');
   
     } catch (error) {
       toast.error("Login failed", {

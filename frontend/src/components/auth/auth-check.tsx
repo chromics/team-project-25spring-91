@@ -12,6 +12,13 @@ interface AuthCheckProps {
   redirectTo?: string;
 }
 
+  {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: generate an auth check for authentication purposes, but we will mmigrate from firebase to different method in furture date  
+            */}
+
 export function AuthCheck({
   children,
   requireAuth = true,
