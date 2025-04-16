@@ -1,4 +1,4 @@
-// add-goal-sheet
+// Modified version of your add-completed-task-sheet.tsx
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,18 +13,13 @@ import {
 import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
-import { AddExerciseDialog } from "./add-exercise-dialog"
+import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
 
-interface Exercise {
+interface CompletedExercise {
     exerciseId: number;
-    plannedSets: number;
-    plannedReps: number;
-}
-
-interface Goal {
-    date: string;
-    calories: number;
-    title: string;
+    actualSets: number | null;
+    actualReps: number | null;
+    actualDuration: number | null;
 }
 
 interface ExerciseOption {
@@ -33,21 +28,17 @@ interface ExerciseOption {
     category: string;
 }
 
-interface SheetDemoProps {
-    propAddGoal: (goal: Goal) => void;
+interface AddCompletedTaskSheetProps {
+    propAddCompletedTasks: () => void;
 }
 
-export function SheetDemo({ propAddGoal }: SheetDemoProps) {
+export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTaskSheetProps) {
     const [open, setOpen] = React.useState(false);
     const [date, setDate] = React.useState<Date | undefined>(new Date());
-    const [calories, setCalories] = React.useState('');
     const [isLoading, setIsLoading] = React.useState(false);
     const [title, setTitle] = React.useState('');
-    const [exercises, setExercises] = React.useState<Exercise[]>([]);
+    const [exercises, setExercises] = React.useState<CompletedExercise[]>([]);
     const [exerciseOptions, setExerciseOptions] = React.useState<ExerciseOption[]>([]);
-
-    const maxCalories = 3000;
-    const minCalories = 0;
 
     useEffect(() => {
         if (open) {
@@ -76,11 +67,11 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
         }
     };
 
-    const handleAddExercise = (newExercise: Exercise) => {
+    const handleAddExercise = (newExercise: CompletedExercise) => {
         setExercises([...exercises, newExercise]);
     }
 
-    const handleAddGoal = async () => {
+    const handleAddCompletedWorkout = async () => {
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -105,17 +96,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
             const workoutData = {
                 title: title.trim(),
-                scheduledDate: date.toISOString().split('T')[0],
-                estimatedDuration: 60,
-                targetCalories: calories ? parseInt(calories) : null,
+                completedDate: date.toISOString().split('T')[0],
                 exercises: exercises.map(ex => ({
                     exerciseId: ex.exerciseId,
-                    plannedSets: ex.plannedSets,
-                    plannedReps: ex.plannedReps
+                    actualSets: ex.actualSets,
+                    actualReps: ex.actualReps,
+                    actualDuration: ex.actualDuration
                 }))
             };
 
-            const response = await fetch("http://localhost:5000/api/planned-workouts", {
+            const response = await fetch("http://localhost:5000/api/actual-workouts", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -127,7 +117,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             const responseText = await response.text();
 
             if (!response.ok) {
-                let errorMessage = "Failed to add workout";
+                let errorMessage = "Failed to add completed workout";
                 try {
                     const errorData = JSON.parse(responseText);
                     errorMessage = Array.isArray(errorData.error)
@@ -140,14 +130,8 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             }
 
             const data = JSON.parse(responseText);
-
-            propAddGoal({
-                date: date.toISOString(),
-                calories: Number(calories) || 0,
-                title: title
-            });
-
-            toast.success(data.message || "Workout planned successfully");
+            propAddCompletedTasks();
+            toast.success(data.message || "Workout completed successfully");
             setOpen(false);
             resetForm();
 
@@ -163,7 +147,6 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
     const resetForm = () => {
         setTitle('');
-        setCalories('');
         setExercises([]);
         setDate(new Date());
     }
@@ -181,16 +164,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             <SheetContent>
                 <div className="flex flex-col h-full">
                     <SheetHeader className="mb-6">
-                        <SheetTitle>Add Workout Plan</SheetTitle>
+                        <SheetTitle>Add Completed Workout</SheetTitle>
                         <SheetDescription>
-                            Create a new workout plan with exercises.
+                            Record your completed workout details.
                         </SheetDescription>
                     </SheetHeader>
 
                     <div className="flex-1 overflow-y-auto px-6 pb-8 py-1">
                         <form onSubmit={async (e) => {
                             e.preventDefault();
-                            await handleAddGoal();
+                            await handleAddCompletedWorkout();
                         }}>
                             <div className="space-y-8">
                                 <div className="grid grid-cols-4 items-center gap-4">
@@ -202,28 +185,12 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="ex: Leg day"
+                                        placeholder="ex: Morning Workout"
                                         className="col-span-3"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="calories" className="text-right">
-                                        Calorie
-                                    </Label>
-                                    <Input
-                                        id="calories"
-                                        type="number"
-                                        value={calories}
-                                        onChange={(e) => setCalories(e.target.value)}
-                                        placeholder="ex: 1000"
-                                        className="col-span-3"
-                                        min={minCalories}
-                                        max={maxCalories}
-                                    />
-                                </div>
-
-                                <AddExerciseDialog propAddExercise={handleAddExercise} />
+                                <AddCompletedExerciseDialog propAddExercise={handleAddExercise} />
 
                                 {exercises.length > 0 && (
                                     <ul className="space-y-3">
@@ -237,12 +204,21 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                                         {getExerciseName(exercise.exerciseId)}
                                                     </p>
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-sm text-gray-600">
-                                                            {exercise.plannedReps} reps
-                                                        </span>
-                                                        <span className="text-sm text-gray-600">
-                                                            {exercise.plannedSets} sets
-                                                        </span>
+                                                        {exercise.actualReps !== null && exercise.actualSets !== null && (
+                                                            <>
+                                                                <span className="text-sm text-gray-600">
+                                                                    {exercise.actualReps} reps
+                                                                </span>
+                                                                <span className="text-sm text-gray-600">
+                                                                    {exercise.actualSets} sets
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                        {exercise.actualDuration !== null && (
+                                                            <span className="text-sm text-gray-600">
+                                                                {exercise.actualDuration} min
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </li>
@@ -264,11 +240,11 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
                     <div className="sticky bottom-0 border-t bg-background px-6 py-4 mt-auto">
                         <Button
-                            onClick={handleAddGoal}
+                            onClick={handleAddCompletedWorkout}
                             disabled={isLoading}
                             className="w-full"
                         >
-                            {isLoading ? "Adding..." : "Add Workout Plan"}
+                            {isLoading ? "Adding..." : "Add Completed Workout"}
                         </Button>
                     </div>
                 </div>

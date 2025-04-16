@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react"
+import { useRouter, usePathname } from "next/navigation"
 
 import { SearchForm } from "@/components/search-form"
 import { VersionSwitcher } from "@/components/version-switcher"
@@ -16,7 +17,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { GlowEffect } from "./motion-primitives/glow-effect"
-import { useRouter } from "next/navigation";
 
 // This is sample data.
 const data = {
@@ -29,12 +29,10 @@ const data = {
         {
           title: "Set Goals",
           url: "/dashboard/set-goals",
-          isActive: false, 
         },
         {
           title: "Completed Tasks",
           url: "/dashboard/completed-tasks",
-          isActive: false,
         },
       ],
     },
@@ -64,7 +62,7 @@ const data = {
       items: [
         {
           title: "Statistics",
-          url: "#",
+          url: "/dashboard/statistics",
         },
         {
           title: "Online Competition",
@@ -90,7 +88,6 @@ const data = {
       title: "Coach",
       url: "#",
       items: [
-
         {
           title: "Ask AI",
           url: "#",
@@ -101,8 +98,9 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [active, setIsActive] = React.useState(false);
-  const router = useRouter(); 
+  const router = useRouter()
+  const pathname = usePathname()
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -113,29 +111,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SearchForm />
       </SidebarHeader>
       <SidebarContent>
-        {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
             <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {item.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                {item.items.map((subItem) => (
+                  <SidebarMenuItem key={subItem.title}>
                     <SidebarMenuButton
                       onClick={(e) => {
                         e.preventDefault();
-                        setIsActive(true);  
-                        router.push(item.url);
+                        router.push(subItem.url);
                       }}
-                      asChild
-                      // isActive={active}
-                      className={item.title === 'Ask AI'
-                        ? 'relative bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] transition-all duration-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0'
-                        : ''
-                      }
+                      isActive={pathname === subItem.url}
+                      className={`
+                        ${subItem.title === 'Ask AI'
+                          ? 'relative bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] transition-all duration-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0'
+                          : ''
+                        }
+                      `}
                     >
-                      <a href={item.url} className="relative z-10">
-                        {item.title}
+                      <a href={subItem.url} className="relative z-10">
+                        {subItem.title}
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
