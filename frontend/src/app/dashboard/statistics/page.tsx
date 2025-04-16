@@ -259,9 +259,9 @@ const StatsPage = () => {
             {/* 
                 BarChart displaying Total Workout Session Completed Per Month
             */}
-            {/* <div>
-                <AnnualBarChart chartData={stats?.data?.workoutsByYear || []} />
-            </div> */}
+            <div>
+                <AnnualBarChart chartData={stats?.workoutsByYear || []} />
+            </div>
 
             {/* 
                 Best Records:
