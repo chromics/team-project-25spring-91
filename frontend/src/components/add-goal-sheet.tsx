@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/sheet"
 import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
-import React from "react"
+import React, { useEffect } from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
+import { Plus } from "lucide-react"
 
-// Update interfaces to match AddExerciseDialog
 interface Exercise {
     exerciseId: number;
     plannedSets: number;
@@ -26,6 +26,12 @@ interface Goal {
     date: string;
     calories: number;
     title: string;
+}
+
+interface ExerciseOption {
+    id: number;
+    name: string;
+    category: string;
 }
 
 interface SheetDemoProps {
@@ -39,11 +45,38 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
     const [isLoading, setIsLoading] = React.useState(false);
     const [title, setTitle] = React.useState('');
     const [exercises, setExercises] = React.useState<Exercise[]>([]);
+    const [exerciseOptions, setExerciseOptions] = React.useState<ExerciseOption[]>([]);
 
     const maxCalories = 3000;
     const minCalories = 0;
 
-    // Updated to match the new Exercise interface
+    useEffect(() => {
+        if (open) {
+            handleFetchExercises();
+        }
+    }, [open]);
+
+    const handleFetchExercises = async () => {
+        try {
+            const token = localStorage.getItem('auth-token');
+            if (!token) {
+                toast.error("Authentication token not found");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/api/exercises', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            const data = await response.json();
+            setExerciseOptions(data.data);
+        } catch (error) {
+            console.error('Error fetching exercises:', error);
+            toast.error("Failed to fetch exercises");
+        }
+    };
+
     const handleAddExercise = (newExercise: Exercise) => {
         setExercises([...exercises, newExercise]);
     }
@@ -71,7 +104,6 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                 return;
             }
 
-            
             const workoutData = {
                 title: title.trim(),
                 scheduledDate: date.toISOString().split('T')[0],
@@ -79,12 +111,10 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                 targetCalories: calories ? parseInt(calories) : null,
                 exercises: exercises.map(ex => ({
                     exerciseId: ex.exerciseId,
-                    plannedSets: parseInt(ex.plannedSets.toString()),
-                    plannedReps: parseInt(ex.plannedReps.toString())
+                    plannedSets: ex.plannedSets,
+                    plannedReps: ex.plannedReps
                 }))
             };
-
-            console.log('Sending workout data:', JSON.stringify(workoutData, null, 2));
 
             const response = await fetch("http://localhost:5000/api/planned-workouts", {
                 method: 'POST',
@@ -96,20 +126,14 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             });
 
             const responseText = await response.text();
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers));
-            console.log('Response body:', responseText);
 
             if (!response.ok) {
                 let errorMessage = "Failed to add workout";
                 try {
                     const errorData = JSON.parse(responseText);
-                    if (errorData.error && Array.isArray(errorData.error)) {
-                        
-                        errorMessage = errorData.error.map((err: any) => err.message).join('\n');
-                    } else {
-                        errorMessage = errorData.message || errorData.error || errorMessage;
-                    }
+                    errorMessage = Array.isArray(errorData.error)
+                        ? errorData.error.map((err: any) => err.message).join('\n')
+                        : errorData.message || errorData.error || errorMessage;
                 } catch {
                     errorMessage = responseText || errorMessage;
                 }
@@ -129,17 +153,15 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             resetForm();
 
         } catch (error: unknown) {
-            console.error('Error details:', error);
-
             const errorMessage = error instanceof Error
                 ? error.message
                 : 'An unexpected error occurred';
-
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
     }
+
     const resetForm = () => {
         setTitle('');
         setCalories('');
@@ -147,22 +169,21 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
         setDate(new Date());
     }
 
-    // Helper function to get exercise name from ID
     const getExerciseName = (exerciseId: number): string => {
-        // This should match your exerciseOptions from AddExerciseDialog
-        const exerciseMap: { [key: number]: string } = {
-            1: "Bench Press",
-            2: "Squats",
-            3: "Deadlift",
-            // ... add all your exercises here
-        };
-        return exerciseMap[exerciseId] || "Unknown Exercise";
+        const exercise = exerciseOptions.find(ex => ex.id === exerciseId);
+        return exercise?.name || "Unknown Exercise";
     };
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-2 mt-2 w-8 h-8 rounded-full">+</Button>
+                <Button
+                    variant="ghost"
+                    className="w-full flex items-center justify-center py-6 px-20 my-2 rounded-lg "
+                >
+                    <Plus className="h-6 w-6" />
+                    <span className="ml-2">Add New Workout Plan</span>
+                </Button>
             </SheetTrigger>
             <SheetContent>
                 <div className="flex flex-col h-full">
@@ -193,7 +214,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
+                                {/* <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="calories" className="text-right">
                                         Calorie
                                     </Label>
@@ -207,7 +228,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                         min={minCalories}
                                         max={maxCalories}
                                     />
-                                </div>
+                                </div> */}
 
                                 <AddExerciseDialog propAddExercise={handleAddExercise} />
 
