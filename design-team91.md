@@ -1,6 +1,6 @@
 1. #### Architectural Design
 
-​  ![ArchitectureDesign](images/ArchiDesign.png)
+​  ![ArchitectureDesign](images/AlgorithmDesign.png)
 
 
 
