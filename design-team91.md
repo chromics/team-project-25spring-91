@@ -1,6 +1,16 @@
+#### 
+
+#### CS304 First Sprint Report: Personal  Health Assistant 
+
+**Team Members**: Charissa Deanna Angelicha (12310948), Sean Sovann (12312526), Kevin Evan Ko  (12310501), Wai Yan Kyaw (12312638)
+
+---
+
+
+
 1. #### Architectural Design
 
-​  ![ArchitectureDesign](images/AlgorithmDesign.png)
+  ![ArchitectureDesign](images/AlgorithmDesign.png)
 
 
 
