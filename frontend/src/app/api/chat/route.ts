@@ -1,4 +1,4 @@
-// app/api/chat/route.ts
+// app/api/chat/route.ts (cohere api)
 import { NextRequest, NextResponse } from 'next/server';
 import { CohereClient } from 'cohere-ai';
 

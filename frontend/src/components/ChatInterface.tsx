@@ -57,14 +57,14 @@ export default function ChatInterface() {
   return (
     <Card className="w-full max-w-md mx-auto h-[600px] flex flex-col">
       <CardHeader>
-        <CardTitle>Health Assistant</CardTitle>
+        <CardTitle>Personal Health Assistant</CardTitle>
       </CardHeader>
       
       <CardContent className="flex-grow overflow-hidden">
         <ScrollArea className="h-[400px] pr-4">
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-6">
-              Ask me anything about your health goals!
+
             </div>
           ) : (
             <div className="space-y-4">
@@ -116,7 +116,7 @@ export default function ChatInterface() {
       <CardFooter className="border-t p-4">
         <div className="flex w-full items-center space-x-2">
           <Textarea 
-            placeholder="Ask me anything about your health..."
+            placeholder="Ask about health/diet goals..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className="flex-1"
