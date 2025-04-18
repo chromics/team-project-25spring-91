@@ -3,9 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 // import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { Header } from "@/components/layout/header";
+// import { Header } from "@/components/layout/header";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/context/auth-context";
+// import { AuthProvider } from "@/context/auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <AuthProvider>
+      {/* <AuthProvider> */}
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning
         >
@@ -44,7 +44,7 @@ export default function RootLayout({
           </ThemeProvider>
           <Toaster position="bottom-right" />
         </body>
-      </AuthProvider>
+      {/* </AuthProvider> */}
     </html >
   );
 }

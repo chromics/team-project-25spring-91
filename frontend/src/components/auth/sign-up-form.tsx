@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
+// import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export function SignUpForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp, signInWithGoogle, signInWithGithub } = useAuth();
+  // const { signUp, signInWithGoogle, signInWithGithub } = useAuth();
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -31,7 +31,7 @@ export function SignUpForm() {
     setIsLoading(true);
     
     try {
-      await signUp(email, password);
+      // await signUp(email, password);
       toast.success("Account created!", {
         description: "You've successfully created an account."
       });
@@ -46,7 +46,7 @@ export function SignUpForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      // await signInWithGoogle();
       router.push("/dashboard");
     } catch (error) {
       // Error is handled in the auth context
@@ -58,7 +58,7 @@ export function SignUpForm() {
   const handleGithubSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGithub();
+      // await signInWithGithub();
       router.push("/dashboard");
     } catch (error) {
       // Error is handled in the auth context

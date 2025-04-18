@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
+// import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import Cookies from 'js-cookie';
 
@@ -18,7 +18,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
+  // const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
   // const { signIn } = useAuth();
   const router = useRouter();
   
@@ -73,7 +73,7 @@ export function LoginForm({
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
+      // await signIn(email, password);
       toast.success("Welcome back!", {
         description: "You've successfully signed in."
       });
@@ -89,7 +89,7 @@ export function LoginForm({
   const handleGithubSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGithub();
+      // await signInWithGithub();
       router.push("/dashboard");
     } catch (error) {
       // Error is handled in the auth context
@@ -101,7 +101,7 @@ export function LoginForm({
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      // await signInWithGoogle();
       router.push("/dashboard");
     } catch (error) {
       // Error is handled in the auth context
