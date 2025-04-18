@@ -141,6 +141,13 @@ const CompletedWorkoutsPage = () => {
         }
     };
 
+    /**
+     * AI generated code 
+     * tool: Grok 3
+     * version: 3
+     * usage: i just use it make sure i filter it correctly by date, and sorted by so that 'today' is always on the top  
+     */
+
     const groupWorkouts = (workouts: CompletedWorkout[]) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -172,6 +179,12 @@ const CompletedWorkoutsPage = () => {
         return workouts.slice(start, start + ITEMS_PER_PAGE);
     };
 
+    /**
+     * AI generated code 
+     * tool: chat-gpt 
+     * version: o3 mini high
+     * usage: actually the pagination is from a library called ShadCN, but i want it to render the page properly, like 10 items per page    
+     */
     const renderPagination = (total: number, currentPage: number, section: keyof typeof currentPages) => {
         const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
         if (totalPages <= 1) return null;

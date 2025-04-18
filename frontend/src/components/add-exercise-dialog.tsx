@@ -129,6 +129,12 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
         }
         return '';
     }
+    /**
+     * AI generated code 
+     * tool: chat-gpt 
+     * version: o3 mini high
+     * usage: because of the json struture from backend is a bit linear, i use to AI to help me group the exercises by category first before map it to frontend    
+     */
     const groupExercisesByCategory = (exercises: ExerciseOption[]) => {
         const groups: Record<string, ExerciseOption[]> = {};
         
@@ -169,6 +175,12 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
+                                {/**
+                                * AI generated code 
+                                * tool: chat-gpt 
+                                * version: o3 mini high
+                                * usage: the mapping is a bit complex, i need some help to correct the tsx syntax 
+                                 */}
                                 {Object.entries(groupExercisesByCategory(exerciseOptions)).map(([category, exercises]) => (
                                     <SelectGroup key={category}>
                                         <SelectLabel className="capitalize">

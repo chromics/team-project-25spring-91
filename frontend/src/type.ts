@@ -1,4 +1,11 @@
-// Common interfaces (you can put these in a separate file)
+
+  {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: this was for testing only, we dont use it anymore, will delete after everything is finished
+            */}
+
 interface Exercise {
     plannedDuration: React.JSX.Element;
     exerciseId: number;
@@ -12,5 +19,5 @@ interface PlannedWorkout {
     scheduledDate: string;
     estimatedDuration: number;
     plannedExercises: Exercise[];
-    targetCalories?: number; // Optional if you want to keep tracking calories
+    targetCalories?: number;
 }

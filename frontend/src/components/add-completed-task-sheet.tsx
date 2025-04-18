@@ -139,6 +139,12 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
             setOpen(false);
             resetForm();
 
+            {/**
+            * AI generated code 
+             tool: chat-gpt 
+             version: o3 mini high
+             usage: typescript is a bit strict with type, i use it to correct the syntax and more robust error checking  
+            */}
         } catch (error: unknown) {
             const errorMessage = error instanceof Error
                 ? error.message

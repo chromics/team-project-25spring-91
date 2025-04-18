@@ -60,7 +60,7 @@
 
 //     return () => unsubscribe();
 //   }, []);
-  
+
 //   const signUp = async (email: string, password: string) => {
 //     try {
 //       return await createUserWithEmailAndPassword(auth, email, password); // return in userCredential object (contain user info)
@@ -226,7 +226,7 @@ type User = {
 }
 
 type AuthContextType = {
-  user: User | null; 
+  user: User | null;
   loading: boolean;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
@@ -266,16 +266,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const { data } = await api.post('/auth/login', { email, password });
-      
+
       const newToken = data.data.token;
-      
+
       // Set cookie first
-      Cookies.set('token', newToken, { 
+      Cookies.set('token', newToken, {
         expires: 7,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
-      
+
       // Then set token - this will trigger the useEffect to fetch the profile
       setToken(newToken);
     } catch (error) {

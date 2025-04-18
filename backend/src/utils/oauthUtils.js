@@ -1,4 +1,3 @@
-// src/utils/oauthUtils.js
 const jwt = require('jsonwebtoken');
 
 const generateTokenForOAuthUser = (user) => {
