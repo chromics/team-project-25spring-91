@@ -122,14 +122,14 @@ const StatsPage = () => {
         },
         longestStreak: {
             value: stats?.longestStreak || 0,
-            unit: "day",
-            unitPlural: "days",
+            unit: "week",
+            unitPlural: "weeks",
             description: "Longest streak",
         },
         currentStreak: {
             value: stats?.currentStreak || 0,
-            unit: "day",
-            unitPlural: "days",
+            unit: "week",
+            unitPlural: "weeks",
             description: "Current streak",
         },
         TotalCompletion: {
