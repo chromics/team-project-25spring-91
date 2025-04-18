@@ -30,16 +30,13 @@ export function LoginForm({
     setIsLoading(true);
 
     try {
-        const { data } = await api.post('/auth/login', { email, password });
+      await login(email, password);
         
-        // Just save token to cookies - that's enough
-        Cookies.set('token', data.data.token, { expires: 7 });
-        
-        toast.success("Login successful", {
-            description: "Welcome back!"
-        });
+      toast.success("Login successful", {
+          description: "Welcome back!"
+      });
 
-        router.push('/dashboard');
+      router.push('/dashboard');
 
     } catch (error) {
         toast.error("Login failed", {
