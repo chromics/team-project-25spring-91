@@ -3,6 +3,7 @@ import { AnnualLineChart } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
+import api from '@/utils/api';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -79,16 +80,17 @@ const StatsPage = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`
+            //     }
+            // });
 
-            if (!response.ok) throw new Error('Failed to fetch statistics');
-
-            const data = await response.json();
+            // if (!response.ok) throw new Error('Failed to fetch statistics');
+            
+            // const data = await response.json();
+            const { data } = await api.get('/statistics/dashboard'); 
             setStats(data.data);
         } catch (error) {
             toast.error("Failed to load statistics");

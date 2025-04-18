@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { error } from "console"
+import api from "@/utils/api"
 
 interface Exercise {
     exerciseId: number;
@@ -84,23 +85,24 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
 
     const handleFetchExercises = async () => {
         try {
-            const token = localStorage.getItem('auth-token');
+            // const token = localStorage.getItem('auth-token');
 
-            if (!token) {
-                toast.error("Authentication token not found. Please login again.");
-                return;
-            }
-            const response = await fetch('http://localhost:5000/api/exercises', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) {
-                throw new Error("cannot fetch exercises");
-            }
-            const data = await response.json();
+            // if (!token) {
+            //     toast.error("Authentication token not found. Please login again.");
+            //     return;
+            // }
+            // const response = await fetch('http://localhost:5000/api/exercises', {
+            //     method: 'GET',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': `Bearer ${token}`,
+            //     },
+            // });
+            // if (!response.ok) {
+            //     throw new Error("cannot fetch exercises");
+            // }
+            // const data = await response.json();
+            const { data } = await api.get('/exercises'); 
             const options = data.data.map((exercise: any) => ({
                 id: exercise.id.toString(),
                 name: exercise.name,

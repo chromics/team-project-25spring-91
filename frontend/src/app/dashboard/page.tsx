@@ -1,8 +1,8 @@
 //app/dashboard/page
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { AuthCheck } from "@/components/auth/auth-check"
-import { Header } from "@/components/layout/header"
+// import { AuthCheck } from "@/components/auth/auth-check"
+// import { Header } from "@/components/layout/header"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -59,6 +59,6 @@ export default function Page() {
           </div>
         </SidebarInset>
       </SidebarProvider>
-    // </AuthCheck>
+    // {/*  </AuthCheck> */}
   )
 }

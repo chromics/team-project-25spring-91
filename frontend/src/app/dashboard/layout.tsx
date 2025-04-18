@@ -1,6 +1,6 @@
 // app/dashboard/layout.tsx
 import { AppSidebar } from "@/components/app-sidebar"
-// import { Header } from "@/components/layout/header"
+import { Header } from "@/components/layout/header"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -18,7 +18,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-      {/* <Header /> */}
+      <Header />
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator

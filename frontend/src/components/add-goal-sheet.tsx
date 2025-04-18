@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import React, { useEffect } from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
 import { Plus } from "lucide-react"
+import api from "@/utils/api"
 
 interface Exercise {
     exerciseId: number;
@@ -58,18 +59,19 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
     const handleFetchExercises = async () => {
         try {
-            const token = localStorage.getItem('auth-token');
-            if (!token) {
-                toast.error("Authentication token not found");
-                return;
-            }
+            // const token = localStorage.getItem('auth-token');
+            // if (!token) {
+            //     toast.error("Authentication token not found");
+            //     return;
+            // }
 
-            const response = await fetch('http://localhost:5000/api/exercises', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-            const data = await response.json();
+            // const response = await fetch('http://localhost:5000/api/exercises', {
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //     }
+            // });
+            // const data = await response.json();
+            const { data } = await api.get('exercises'); 
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
@@ -97,12 +99,12 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('auth-token');
+            // const token = localStorage.getItem('auth-token');
 
-            if (!token) {
-                toast.error("Authentication token not found. Please login again.");
-                return;
-            }
+            // if (!token) {
+            //     toast.error("Authentication token not found. Please login again.");
+            //     return;
+            // }
 
             const workoutData = {
                 title: title.trim(),
@@ -116,31 +118,32 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                 }))
             };
 
-            const response = await fetch("http://localhost:5000/api/planned-workouts", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(workoutData),
-            });
+            // const response = await fetch("http://localhost:5000/api/planned-workouts", {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': `Bearer ${token}`,
+            //     },
+            //     body: JSON.stringify(workoutData),
+            // });
 
-            const responseText = await response.text();
+            // const responseText = await response.text();
 
-            if (!response.ok) {
-                let errorMessage = "Failed to add workout";
-                try {
-                    const errorData = JSON.parse(responseText);
-                    errorMessage = Array.isArray(errorData.error)
-                        ? errorData.error.map((err: any) => err.message).join('\n')
-                        : errorData.message || errorData.error || errorMessage;
-                } catch {
-                    errorMessage = responseText || errorMessage;
-                }
-                throw new Error(errorMessage);
-            }
+            // if (!response.ok) {
+            //     let errorMessage = "Failed to add workout";
+            //     try {
+            //         const errorData = JSON.parse(responseText);
+            //         errorMessage = Array.isArray(errorData.error)
+            //             ? errorData.error.map((err: any) => err.message).join('\n')
+            //             : errorData.message || errorData.error || errorMessage;
+            //     } catch {
+            //         errorMessage = responseText || errorMessage;
+            //     }
+            //     throw new Error(errorMessage);
+            // }
 
-            const data = JSON.parse(responseText);
+            // const data = JSON.parse(responseText);
+            const { data } = await api.post('planned-workouts', workoutData); 
 
             propAddGoal({
                 date: date.toISOString(),

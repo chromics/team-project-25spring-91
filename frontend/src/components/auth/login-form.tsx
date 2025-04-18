@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 // import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import Cookies from 'js-cookie';
+import { useAuth } from "@/context/auth-context";
+import api from "@/utils/api";
 
 export function LoginForm({
   className,
@@ -21,7 +23,33 @@ export function LoginForm({
   // const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
   // const { signIn } = useAuth();
   const router = useRouter();
-  
+  const { login } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+        const { data } = await api.post('/auth/login', { email, password });
+        
+        // Just save token to cookies - that's enough
+        Cookies.set('token', data.data.token, { expires: 7 });
+        
+        toast.success("Login successful", {
+            description: "Welcome back!"
+        });
+
+        router.push('/dashboard');
+
+    } catch (error) {
+        toast.error("Login failed", {
+            description: error instanceof Error ? error.message : "Something went wrong"
+        });
+    } finally {
+        setIsLoading(false);
+    }
+};
+
   const handleManualSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -111,7 +139,7 @@ export function LoginForm({
   };
 
   return (
-    <form onSubmit={handleManualSignIn} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-sm text-balance">

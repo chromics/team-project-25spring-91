@@ -14,7 +14,8 @@ import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
 import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
-import { Plus } from "lucide-react"
+import { AArrowDown, Plus } from "lucide-react"
+import api from "@/utils/api"
 
 interface CompletedExercise {
     exerciseId: number;
@@ -49,18 +50,19 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
 
     const handleFetchExercises = async () => {
         try {
-            const token = localStorage.getItem('auth-token');
-            if (!token) {
-                toast.error("Authentication token not found");
-                return;
-            }
+            // const token = localStorage.getItem('auth-token');
+            // if (!token) {
+            //     toast.error("Authentication token not found");
+            //     return;
+            // }
 
-            const response = await fetch('http://localhost:5000/api/exercises', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-            const data = await response.json();
+            // const response = await fetch('http://localhost:5000/api/exercises', {
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //     }
+            // });
+            // const data = await response.json();
+            const { data } = await api.get('/exercises'); 
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
@@ -88,12 +90,12 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
 
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('auth-token');
+            // const token = localStorage.getItem('auth-token');
 
-            if (!token) {
-                toast.error("Authentication token not found. Please login again.");
-                return;
-            }
+            // if (!token) {
+            //     toast.error("Authentication token not found. Please login again.");
+            //     return;
+            // }
 
             const workoutData = {
                 title: title.trim(),
@@ -106,31 +108,32 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                 }))
             };
 
-            const response = await fetch("http://localhost:5000/api/actual-workouts", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(workoutData),
-            });
+            // const response = await fetch("http://localhost:5000/api/actual-workouts", {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': `Bearer ${token}`,
+            //     },
+            //     body: JSON.stringify(workoutData),
+            // });
 
-            const responseText = await response.text();
+            // const responseText = await response.text();
 
-            if (!response.ok) {
-                let errorMessage = "Failed to add completed workout";
-                try {
-                    const errorData = JSON.parse(responseText);
-                    errorMessage = Array.isArray(errorData.error)
-                        ? errorData.error.map((err: any) => err.message).join('\n')
-                        : errorData.message || errorData.error || errorMessage;
-                } catch {
-                    errorMessage = responseText || errorMessage;
-                }
-                throw new Error(errorMessage);
-            }
+            // if (!response.ok) {
+            //     let errorMessage = "Failed to add completed workout";
+            //     try {
+            //         const errorData = JSON.parse(responseText);
+            //         errorMessage = Array.isArray(errorData.error)
+            //             ? errorData.error.map((err: any) => err.message).join('\n')
+            //             : errorData.message || errorData.error || errorMessage;
+            //     } catch {
+            //         errorMessage = responseText || errorMessage;
+            //     }
+            //     throw new Error(errorMessage);
+            // }
 
-            const data = JSON.parse(responseText);
+            // const data = JSON.parse(responseText);
+            const { data } = await api.post('/actual-workouts', workoutData); 
             propAddCompletedTasks();
             toast.success(data.message || "Workout completed successfully");
             setOpen(false);

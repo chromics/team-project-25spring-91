@@ -14,6 +14,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import api from '@/utils/api';
 
 interface CompletedWorkout {
     id: number;
@@ -62,13 +63,14 @@ const CompletedWorkoutsPage = () => {
     const fetchCompletedWorkouts = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/actual-workouts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch('http://localhost:5000/api/actual-workouts', {
+            //     headers: { 'Authorization': `Bearer ${token}` }
+            // });
 
-            if (!response.ok) throw new Error('Failed to fetch workouts');
-            const data = await response.json();
+            // if (!response.ok) throw new Error('Failed to fetch workouts');
+            // const data = await response.json();
+            const { data } = await api.get('/actual-workouts');
             setWorkouts(data.data);
         } catch (error) {
             toast.error("Failed to load workouts");
@@ -84,14 +86,14 @@ const CompletedWorkoutsPage = () => {
     const handleDeleteGoal = async (id: number) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/actual-workouts/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch(`http://localhost:5000/api/actual-workouts/${id}`, {
+            //     method: 'DELETE',
+            //     headers: { 'Authorization': `Bearer ${token}` }
+            // });
 
-            if (!response.ok) throw new Error('Failed to delete workout');
-            
+            // if (!response.ok) throw new Error('Failed to delete workout');
+            await api.delete(`/actual-workouts/${id}`);
             await fetchCompletedWorkouts();
             toast.success('Workout deleted successfully');
         } catch (error) {
@@ -103,25 +105,34 @@ const CompletedWorkoutsPage = () => {
 
     const handleEditGoal = async (workout: CompletedWorkout) => {
         try {
-            setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/actual-workouts/${workout.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: workout.title,
-                    completedDate: workout.completedDate,
-                    actualDuration: workout.actualDuration,
-                    actualExercises: workout.actualExercises
-                })
-            });
+            // setLoading(true);
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch(`http://localhost:5000/api/actual-workouts/${workout.id}`, {
+            //     method: 'PUT',
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify({
+            //         title: workout.title,
+            //         completedDate: workout.completedDate,
+            //         actualDuration: workout.actualDuration,
+            //         actualExercises: workout.actualExercises
+            //     })
+            // });
 
-            if (!response.ok) throw new Error('Failed to update workout');
-            
+            // if (!response.ok) throw new Error('Failed to update workout');
+
+            const updatedData = {
+                title: workout.title,
+                completedDate: workout.completedDate,
+                actualDuration: workout.actualDuration,
+                actualExercises: workout.actualExercises
+            }
+            await api.put(`/actual-workouts/${workout.id}`, updatedData);
+
             await fetchCompletedWorkouts();
+
             toast.success('Workout updated successfully');
         } catch (error) {
             toast.error("Failed to update workout");
@@ -168,10 +179,10 @@ const CompletedWorkoutsPage = () => {
         const renderPageNumbers = () => {
             const pages = [];
             const maxVisiblePages = 5;
-            
+
             let start = Math.max(1, currentPage - 2);
             let end = Math.min(totalPages, start + maxVisiblePages - 1);
-            
+
             if (end === totalPages) {
                 start = Math.max(1, end - maxVisiblePages + 1);
             }
@@ -237,7 +248,7 @@ const CompletedWorkoutsPage = () => {
             <Pagination className="mt-4">
                 <PaginationContent className="flex flex-wrap gap-1">
                     <PaginationItem>
-                        <PaginationPrevious 
+                        <PaginationPrevious
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.max(1, prev[section] - 1)
@@ -247,7 +258,7 @@ const CompletedWorkoutsPage = () => {
                     </PaginationItem>
                     {renderPageNumbers()}
                     <PaginationItem>
-                        <PaginationNext 
+                        <PaginationNext
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.min(totalPages, prev[section] + 1)

@@ -206,3 +206,99 @@
 //   }
 //   return context;
 // }
+
+
+// context/auth-context.tsx
+"use client";
+import { createContext, useContext, useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import api from '@/utils/api';
+
+type User = {
+  id: number;
+  email: string;
+  displayName: string;
+  dateOfBirth: string;
+  gender: string;
+  heightCm: number;
+  weightKg: string;
+  createdAt: string;
+}
+
+type AuthContextType = {
+  user: User | null; 
+  loading: boolean;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+};
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(Cookies.get('token') || null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (token) {
+        try {
+          setLoading(true);
+          const { data } = await api.get('/users/profile');
+          console.log('Profile Data:', data);
+          setUser(data.data);
+        } catch (error) {
+          console.error('Failed to fetch user profile');
+          logout();
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]); // This dependency is important
+
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const { data } = await api.post('/auth/login', { email, password });
+      
+      const newToken = data.data.token;
+      
+      // Set cookie first
+      Cookies.set('token', newToken, { 
+        expires: 7,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
+      // Then set token - this will trigger the useEffect to fetch the profile
+      setToken(newToken);
+    } catch (error) {
+      console.error('Login Error:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    Cookies.remove('token');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+};
