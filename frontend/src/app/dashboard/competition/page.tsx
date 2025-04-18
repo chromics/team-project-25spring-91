@@ -752,9 +752,6 @@ const CompetitionPage = () => {
                                 tabType="volume"
                             />
                         </CardContent>
-                        <CardFooter>
-                            <p>Card Footer</p>
-                        </CardFooter>
                     </Card>
                 </TabsContent>
                 <TabsContent value="streak">
@@ -770,9 +767,6 @@ const CompetitionPage = () => {
                                 tabType="streak"
                             />
                         </CardContent>
-                        <CardFooter>
-                            <p>Card Footer</p>
-                        </CardFooter>
                     </Card>
                 </TabsContent>
             </Tabs>
