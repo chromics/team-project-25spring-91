@@ -213,6 +213,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/utils/api';
+import { useRouter } from 'next/navigation';
 
 type User = {
   id: number;
@@ -225,11 +226,14 @@ type User = {
   createdAt: string;
 }
 
+type OAuthProvider = 'google' | 'github';
+
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithOAuth: (provider: OAuthProvider) => void;
   logout: () => void;
 };
 
@@ -239,6 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(Cookies.get('token') || null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -261,6 +266,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     fetchUserProfile();
   }, [token]); // This dependency is important
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (token) {
+      // Clear the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Set the token
+      Cookies.set('token', token, {
+        expires: 7,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      setToken(token);
+      
+      // Redirect to dashboard
+      router.push('/dashboard');
+    }
+  }, [router]);
+
+  const loginWithOAuth = (provider: 'google' | 'github') => {
+    // Redirect to OAuth endpoint
+    window.location.href = `http://localhost:5000/api/auth/${provider}`;
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -291,7 +320,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, token, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, token, login, logout, loginWithOAuth }}>
       {children}
     </AuthContext.Provider>
   );

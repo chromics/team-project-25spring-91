@@ -21,13 +21,26 @@ const app = express();
 const PORT = 5000;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Add this to fix CORP error
+  crossOriginOpenerPolicy: false   // Add this if needed
+}));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
+  origin: ['http://localhost:3000', 'http://localhost:5000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Session configuration
 app.use(session({
@@ -38,7 +51,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+  },
+  proxy: true
 }));
 
 // Setup OAuth with Passport

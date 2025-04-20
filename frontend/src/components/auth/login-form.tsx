@@ -23,7 +23,7 @@ export function LoginForm({
   // const { signIn, signInWithGoogle, signInWithGithub } = useAuth();
   // const { signIn } = useAuth();
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, loginWithOAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +45,19 @@ export function LoginForm({
     } finally {
         setIsLoading(false);
     }
+};
+
+const handleOAuthSignIn = (provider: 'google' | 'github') => {
+  setIsLoading(true);
+  try {
+    loginWithOAuth(provider);
+    // No need for success toast here as we're redirecting
+  } catch (error) {
+    setIsLoading(false);
+    toast.error(`${provider} login failed`, {
+      description: error instanceof Error ? error.message : "Something went wrong"
+    });
+  }
 };
 
   const handleManualSignIn = async (e: React.FormEvent) => {
@@ -192,7 +205,7 @@ export function LoginForm({
             variant="outline"
             className="w-full"
             type="button"
-            // onClick={handleGoogleSignIn}
+            onClick={() => handleOAuthSignIn('google')}
             disabled={isLoading}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -219,7 +232,7 @@ export function LoginForm({
             variant="outline"
             className="w-full"
             type="button"
-            // onClick={handleGithubSignIn}
+            onClick={() => handleOAuthSignIn('github')}
             disabled={isLoading}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 mr-2">
