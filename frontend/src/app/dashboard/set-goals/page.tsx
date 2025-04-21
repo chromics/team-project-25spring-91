@@ -378,7 +378,7 @@ const SetGoalPage = () => {
 
     const renderWorkoutList = (workouts: PlannedWorkout[]) => {
         return workouts.map(workout => {
-            const exercisesToShow = isExpanded ? workout.plannedExercises : workout.plannedExercises.slice(0, 3);
+            const exercisesToShow = isExpanded ? workout.plannedExercises : workout.plannedExercises.slice(0, 1);
 
             return (
                 <li key={workout.id} className="bg-card text-card-foreground px-4 py-3 rounded-lg border border-border/60 hover:border-border/80 transition-colors">
@@ -452,14 +452,14 @@ const SetGoalPage = () => {
                                     )}
                                 </div>
                             ))}
-                            {workout.plannedExercises.length > 3 && (
+                            {workout.plannedExercises.length > 1 && (
                                 <button
                                     onClick={() => setIsExpanded(!isExpanded)}
                                     className="text-sm text-primary hover:underline focus:outline-none mt-1"
                                 >
                                     {isExpanded
                                         ? 'Show less'
-                                        : `+${workout.plannedExercises.length - 3} more exercises`
+                                        : `+${workout.plannedExercises.length - 1} more exercises`
                                     }
                                 </button>
                             )}
