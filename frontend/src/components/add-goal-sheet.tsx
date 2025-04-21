@@ -14,7 +14,7 @@ import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
-import { Plus } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import api from "@/utils/api"
 import axios from "axios"
 
@@ -72,7 +72,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             //     }
             // });
             // const data = await response.json();
-            const { data } = await api.get('exercises'); 
+            const { data } = await api.get('exercises');
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
@@ -90,7 +90,26 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
     };
 
     const handleAddExercise = (newExercise: Exercise) => {
+        const duplicated = exercises.find((exercise) => exercise.exerciseId === newExercise.exerciseId);
+        if (duplicated) {
+            let exerciseName = '';
+            exerciseOptions.forEach(exerciseOption => {
+                if (exerciseOption.id === newExercise.exerciseId) {
+                    exerciseName = exerciseOption.name;
+                }
+            });
+            toast.error(`${exerciseName} was already added`, {
+                description: 'Please choose a new exercise',
+            });
+            return;
+        }
         setExercises([...exercises, newExercise]);
+        toast.success("Exercise added successfully");
+    }
+
+    const handleDeleteExercise = (id: number) => {
+        const updatedExercises = exercises.filter(exercise => exercise.exerciseId !== id);
+        setExercises(updatedExercises);
     }
 
     const handleAddGoal = async () => {
@@ -153,7 +172,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             // }
 
             // const data = JSON.parse(responseText);
-            const { data } = await api.post('planned-workouts', workoutData); 
+            const { data } = await api.post('planned-workouts', workoutData);
 
             propAddGoal({
                 date: date.toISOString(),
@@ -269,6 +288,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                                         <span className="text-sm text-gray-600">
                                                             {exercise.plannedSets} sets
                                                         </span>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            type="button"
+                                                            onClick={() => handleDeleteExercise(exercise.exerciseId)}
+                                                            aria-label="Delete workout"
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </li>
