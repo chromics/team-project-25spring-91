@@ -16,6 +16,7 @@ import React, { useEffect } from "react"
 import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
 import { AArrowDown, Plus } from "lucide-react"
 import api from "@/utils/api"
+import axios from "axios"
 
 interface CompletedExercise {
     exerciseId: number;
@@ -66,7 +67,16 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
-            toast.error("Failed to fetch exercises");
+            let errorMessage = 'Failed to load exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     };
 
@@ -146,9 +156,15 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
              usage: typescript is a bit strict with type, i use it to correct the syntax and more robust error checking  
             */}
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred';
+            let errorMessage = 'Failed to add workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);

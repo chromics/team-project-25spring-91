@@ -15,6 +15,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings, Loader2 } from "lucide-react";
 import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export function UserMenu() {
   const { user, logout, loading } = useAuth();
@@ -43,7 +45,16 @@ export function UserMenu() {
       // Force a reload after logout
       window.location.reload();
     } catch (error) {
-      console.error("Error signing out:", error);
+      let errorMessage = 'Failed to load workouts';
+
+      if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsSigningOut(false);
     }
@@ -85,7 +96,7 @@ export function UserMenu() {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={handleSignOut}
           disabled={isSigningOut}
         >

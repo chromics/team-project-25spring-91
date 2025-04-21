@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-context";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 
 export function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -57,25 +57,16 @@ export function SignUpForm() {
       router.push('/dashboard/statistics');
 
     } catch (error) {
-      console.error("Caught signup error in component:", error); 
+      let errorMessage = 'Failed to sign up';
 
-      let errorMessage = "An unexpected error occurred."; 
+      if (axios.isAxiosError(error) && error.response && error.response.data) {
 
-      if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 409) {
-          errorMessage = "An account with this email already exists.";
-        } else if (error.response.data && typeof error.response.data.message === 'string') {
-          errorMessage = error.response.data.message;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
+          errorMessage = error.response.data.message || errorMessage;
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+          errorMessage = error.message;
       }
 
-      toast.error("Sign up failed", {
-        description: errorMessage
-      });
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

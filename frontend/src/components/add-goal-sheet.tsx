@@ -16,6 +16,7 @@ import React, { useEffect } from "react"
 import { AddExerciseDialog } from "./add-exercise-dialog"
 import { Plus } from "lucide-react"
 import api from "@/utils/api"
+import axios from "axios"
 
 interface Exercise {
     exerciseId: number;
@@ -75,7 +76,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
-            toast.error("Failed to fetch exercises");
+            let errorMessage = 'Failed to load exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     };
 
@@ -156,9 +166,15 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             resetForm();
 
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred';
+            let errorMessage = 'Failed to add workout plan';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);

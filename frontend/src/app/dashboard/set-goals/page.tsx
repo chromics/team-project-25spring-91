@@ -83,7 +83,17 @@ const SetGoalPage = () => {
             const { data } = await api.get('/planned-workouts');
             setWorkouts(data.data);
         } catch (error) {
-            toast.error("Failed to load workouts");
+
+            let errorMessage = 'Failed to load workouts';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -152,7 +162,18 @@ const SetGoalPage = () => {
             await fetchWorkouts();
             toast.success('Workout updated successfully');
         } catch (error) {
-            toast.error("Failed to update workout");
+            // console.error('Error marking workout:', error); 
+
+            let errorMessage = 'Failed to update workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

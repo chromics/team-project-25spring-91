@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import Cookies from 'js-cookie';
 import { useAuth } from "@/context/auth-context";
 import api from "@/utils/api";
+import axios from "axios";
 
 export function LoginForm({
   className,
@@ -39,9 +40,16 @@ export function LoginForm({
       router.push('/dashboard/statistics');
 
     } catch (error) {
-      toast.error("Login failed", {
-        description: error instanceof Error ? error.message : "Something went wrong"
-      });
+      let errorMessage = 'Failed to sign in';
+
+      if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -51,12 +59,19 @@ export function LoginForm({
     setIsLoading(true);
     try {
       loginWithOAuth(provider);
-      
+
     } catch (error) {
       setIsLoading(false);
-      toast.error(`${provider} login failed`, {
-        description: error instanceof Error ? error.message : "Something went wrong"
-      });
+      let errorMessage = 'Log in fail';
+
+      if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 

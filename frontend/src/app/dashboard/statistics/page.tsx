@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 import api from '@/utils/api';
 import ButterflyLoader from '@/components/butterfly-loader';
+import axios from 'axios';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -94,7 +95,16 @@ const StatsPage = () => {
             const { data } = await api.get('/statistics/dashboard'); 
             setStats(data.data);
         } catch (error) {
-            toast.error("Failed to load statistics");
+            let errorMessage = 'Failed to load data';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

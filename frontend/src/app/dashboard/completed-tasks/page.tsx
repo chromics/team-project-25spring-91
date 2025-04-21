@@ -15,6 +15,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import api from '@/utils/api';
+import axios from 'axios';
 
 interface CompletedWorkout {
     id: number;
@@ -73,7 +74,16 @@ const CompletedWorkoutsPage = () => {
             const { data } = await api.get('/actual-workouts');
             setWorkouts(data.data);
         } catch (error) {
-            toast.error("Failed to load workouts");
+            let errorMessage = 'Failed to load workouts';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -97,7 +107,16 @@ const CompletedWorkoutsPage = () => {
             await fetchCompletedWorkouts();
             toast.success('Workout deleted successfully');
         } catch (error) {
-            toast.error("Failed to delete workout");
+            let errorMessage = 'Failed to delete workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -135,7 +154,16 @@ const CompletedWorkoutsPage = () => {
 
             toast.success('Workout updated successfully');
         } catch (error) {
-            toast.error("Failed to update workout");
+            let errorMessage = 'Failed to update workouts';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

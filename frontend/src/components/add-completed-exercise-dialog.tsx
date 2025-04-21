@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import api from "@/utils/api"
+import axios from "axios"
 
 interface CompletedExercise {
     exerciseId: number;
@@ -81,8 +82,17 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
 
             toast.success("Exercise added successfully");
         } catch (error) {
-            console.error("Error saving exercise:", error);
-            toast.error("Failed to add exercise");
+            console.error("Error saving workout:", error);
+            let errorMessage = 'Failed to add exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     }
 
@@ -116,9 +126,14 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
         } catch (error: unknown) {
             console.error('Error details:', error);
 
-            const errorMessage = error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred';
+            let errorMessage = 'Failed to load exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
 
             toast.error(errorMessage);
         }
