@@ -44,7 +44,7 @@ export default function RootLayout({
             <div className="flex-1">{children}</div>
 
           </ThemeProvider>
-          <Toaster position="top-right" />
+          <Toaster position="top-center" />
         </body>
       {/* </AuthProvider> */}
       </AuthProvider>

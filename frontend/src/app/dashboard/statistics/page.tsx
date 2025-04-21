@@ -4,6 +4,7 @@ import AnnualBarChart from '@/components/bar-chart';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 import api from '@/utils/api';
+import ButterflyLoader from '@/components/butterfly-loader';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -102,7 +103,7 @@ const StatsPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <ButterflyLoader />
             </div>
         );
     }

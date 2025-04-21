@@ -285,12 +285,13 @@ const CompletedWorkoutsPage = () => {
     };
 
     const renderWorkout = (workout: CompletedWorkout) => (
-        <li key={workout.id} className="px-4 py-3 rounded-lg border shadow-sm">
+        <li key={workout.id} className="bg-card text-card-foreground px-4 py-3 rounded-lg border border-border shadow-sm">
+
             <div className="flex flex-col">
                 <div className="flex justify-between items-start">
                     <div className="space-y-2">
                         <h3 className="font-bold text-lg">{workout.title}</h3>
-                        <div className="flex items-center text-gray-600 text-sm">
+                        <div className="flex items-center text-muted-foreground text-sm">
                             <Calendar className="w-4 h-4 mr-1" />
                             <span>{new Date(workout.completedDate).toLocaleDateString()}</span>
                             {workout.actualDuration && (
@@ -302,7 +303,7 @@ const CompletedWorkoutsPage = () => {
                         </div>
                         <div className="space-y-1">
                             {workout.actualExercises.map((exercise) => (
-                                <div key={exercise.id} className="flex items-center text-sm text-gray-700">
+                                <div key={exercise.id} className="flex items-center text-sm text-muted-foreground">
                                     <Dumbbell className="w-3 h-3 mr-1" />
                                     <span>{exercise.exercise.name}</span>
                                     {exercise.actualSets && exercise.actualReps && (
@@ -317,7 +318,7 @@ const CompletedWorkoutsPage = () => {
                             ))}
                         </div>
                     </div>
-                    <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-blue-500 text-blue-600 bg-blue-50">
+                    <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-[oklch(0.7_0.1_235)] text-[oklch(0.5_0.1_235)] bg-[oklch(0.95_0.03_235)]">
                         Completed
                     </div>
                 </div>
@@ -327,16 +328,17 @@ const CompletedWorkoutsPage = () => {
                             setSelectedWorkout(workout);
                             setEditDialogOpen(true);
                         }}
-                        className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                        className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-accent"
                     >
                         <Edit className="w-5 h-5" />
                     </button>
                     <button
                         onClick={() => handleDeleteGoal(workout.id)}
-                        className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-accent"
                     >
                         <Trash2 className="w-5 h-5" />
                     </button>
+
                 </div>
             </div>
         </li>
@@ -345,8 +347,9 @@ const CompletedWorkoutsPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
+
         );
     }
 
@@ -396,7 +399,7 @@ const CompletedWorkoutsPage = () => {
                     )}
 
                     {workouts.length === 0 && (
-                        <p className="text-center text-gray-500">
+                        <p className="text-center text-muted-foreground">
                             No completed workouts yet. Complete your first workout!
                         </p>
                     )}
