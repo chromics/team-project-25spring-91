@@ -44,6 +44,24 @@ router.get(
   asyncHandler(authController.oauthCallback)
 );
 
+// Microsoft OAuth routes
+router.get(
+  '/microsoft',
+  passport.authenticate('microsoft', {
+    scope: ['user.read', 'openid', 'profile', 'email']
+  })
+);
+
+router.get(
+  '/microsoft/callback',
+  passport.authenticate('microsoft', {
+    failureRedirect: '/api/auth/login-failed',
+    session: false
+  }),
+  asyncHandler(authController.oauthCallback)
+);
+
+
 // Add a failure route for testing
 router.get('/login-failed', (req, res) => {
   res.status(401).json({

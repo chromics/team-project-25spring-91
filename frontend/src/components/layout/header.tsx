@@ -2,11 +2,12 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/context/auth-context";
+// import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { UserMenu } from "@/components/auth/user-menu";
 import { ModeToggle } from "../theme/mode-toggle";
+import { useAuth } from "@/context/auth-context";
 
 export function Header() {
   const { user, loading } = useAuth();

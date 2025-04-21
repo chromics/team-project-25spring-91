@@ -14,6 +14,10 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import api from '@/utils/api';
+import ButterflyLoader from '@/components/butterfly-loader';
+import axios from 'axios';
+import { Button } from '@/components/ui/button';
 
 interface PlannedExercise {
     id: number;
@@ -60,6 +64,7 @@ const SetGoalPage = () => {
         lastWeek: 1,
         past: 1
     });
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         fetchWorkouts();
@@ -68,16 +73,27 @@ const SetGoalPage = () => {
     const fetchWorkouts = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/planned-workouts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch('http://localhost:5000/api/planned-workouts', {
+            //     headers: { 'Authorization': `Bearer ${token}` }
+            // });
 
-            if (!response.ok) throw new Error('Failed to fetch workouts');
-            const data = await response.json();
+            // if (!response.ok) throw new Error('Failed to fetch workouts');
+            // const data = await response.json();
+            const { data } = await api.get('/planned-workouts');
             setWorkouts(data.data);
         } catch (error) {
-            toast.error("Failed to load workouts");
+
+            let errorMessage = 'Failed to load workouts';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -90,18 +106,27 @@ const SetGoalPage = () => {
     const handleDeleteGoal = async (id: number) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/planned-workouts/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch(`http://localhost:5000/api/planned-workouts/${id}`, {
+            //     method: 'DELETE',
+            //     headers: { 'Authorization': `Bearer ${token}` }
+            // });
 
-            if (!response.ok) throw new Error('Failed to delete workout');
-            
+            // if (!response.ok) throw new Error('Failed to delete workout');
+            await api.delete(`/planned-workouts/${id}`);
             await fetchWorkouts();
             toast.success('Workout deleted successfully');
         } catch (error) {
-            toast.error("Failed to delete workout");
+            let errorMessage = 'Failed to delete workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -110,27 +135,45 @@ const SetGoalPage = () => {
     const handleEditGoal = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/planned-workouts/${workout.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: workout.title,
-                    scheduledDate: workout.scheduledDate,
-                    estimatedDuration: workout.estimatedDuration,
-                    plannedExercises: workout.plannedExercises
-                })
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch(`http://localhost:5000/api/planned-workouts/${workout.id}`, {
+            //     method: 'PUT',
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify({
+            //         title: workout.title,
+            //         scheduledDate: workout.scheduledDate,
+            //         estimatedDuration: workout.estimatedDuration,
+            //         plannedExercises: workout.plannedExercises
+            //     })
+            // });
 
-            if (!response.ok) throw new Error('Failed to update workout');
-            
+            // if (!response.ok) throw new Error('Failed to update workout');
+
+            const updatedData = {
+                title: workout.title,
+                scheduledDate: workout.scheduledDate,
+                estimatedDuration: workout.estimatedDuration,
+                plannedExercises: workout.plannedExercises
+            }
+            await api.put(`/planned-workouts/${workout.id}`, updatedData);
             await fetchWorkouts();
             toast.success('Workout updated successfully');
         } catch (error) {
-            toast.error("Failed to update workout");
+            // console.error('Error marking workout:', error); 
+
+            let errorMessage = 'Failed to update workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -139,30 +182,47 @@ const SetGoalPage = () => {
     const markAsCompleted = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: workout.title,
-                    completedDate: workout.scheduledDate,
-                    actualDuration: workout.estimatedDuration,
-                    actualExercises: workout.plannedExercises
-                })
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
+            //     method: 'POST',
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`,
+            //         'Content-Type': 'application/json'
+            //     },
+            //     body: JSON.stringify({
+            //         title: workout.title,
+            //         completedDate: workout.scheduledDate,
+            //         actualDuration: workout.estimatedDuration,
+            //         actualExercises: workout.plannedExercises
+            //     })
+            // });
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to mark workout as completed');
+            // if (!response.ok) {
+            //     const data = await response.json();
+            //     throw new Error(data.message || 'Failed to mark workout as completed');
+            // }
+            const updatedData = {
+                title: workout.title,
+                completedDate: workout.scheduledDate,
+                actualDuration: workout.estimatedDuration,
+                actualExercises: workout.plannedExercises
             }
-
+            await api.post(`/actual-workouts/from-planned/${workout.id}`, updatedData);
             await fetchWorkouts();
             toast.success('Workout marked as completed');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Failed to mark workout as completed");
+            // console.error('Error marking workout:', error); 
+
+            let errorMessage = 'Failed to mark workout as completed';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -214,19 +274,19 @@ const SetGoalPage = () => {
     const renderPagination = (total: number, currentPage: number, section: keyof typeof currentPages) => {
         const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
         if (totalPages <= 1) return null;
-    
+
         const renderPageNumbers = () => {
             const pages = [];
             const maxVisiblePages = 5; // Show max 5 page numbers at a time
-            
+
             let start = Math.max(1, currentPage - 2);
             let end = Math.min(totalPages, start + maxVisiblePages - 1);
-            
+
             // Adjust start if we're near the end
             if (end === totalPages) {
                 start = Math.max(1, end - maxVisiblePages + 1);
             }
-    
+
             // Add first page
             if (start > 1) {
                 pages.push(
@@ -247,7 +307,7 @@ const SetGoalPage = () => {
                     );
                 }
             }
-    
+
             // Add visible page numbers
             for (let i = start; i <= end; i++) {
                 pages.push(
@@ -262,7 +322,7 @@ const SetGoalPage = () => {
                     </PaginationItem>
                 );
             }
-    
+
             // Add last page
             if (end < totalPages) {
                 if (end < totalPages - 1) {
@@ -283,15 +343,15 @@ const SetGoalPage = () => {
                     </PaginationItem>
                 );
             }
-    
+
             return pages;
         };
-    
+
         return (
             <Pagination className="mt-4">
                 <PaginationContent className="flex flex-wrap gap-1">
                     <PaginationItem>
-                        <PaginationPrevious 
+                        <PaginationPrevious
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.max(1, prev[section] - 1)
@@ -299,11 +359,11 @@ const SetGoalPage = () => {
                             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                     </PaginationItem>
-                    
+
                     {renderPageNumbers()}
-                    
+
                     <PaginationItem>
-                        <PaginationNext 
+                        <PaginationNext
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.min(totalPages, prev[section] + 1)
@@ -317,71 +377,107 @@ const SetGoalPage = () => {
     };
 
     const renderWorkoutList = (workouts: PlannedWorkout[]) => {
-        return workouts.map(workout => (
-            <li key={workout.id} className="px-4 py-3 rounded-lg border shadow-sm">
-                <div className="flex flex-col">
-                    <div className="flex justify-between items-start">
-                        <div className="space-y-2">
+        return workouts.map(workout => {
+            const exercisesToShow = isExpanded ? workout.plannedExercises : workout.plannedExercises.slice(0, 3);
+
+            return (
+                <li key={workout.id} className="bg-card text-card-foreground px-4 py-3 rounded-lg border border-border/60 hover:border-border/80 transition-colors">
+                    <div className="flex flex-col">
+                        <div className="flex justify-between items-start">
                             <h3 className="font-bold text-lg">{workout.title}</h3>
-                            <div className="flex items-center text-gray-600 text-sm">
-                                <Calendar className="w-4 h-4 mr-1" />
-                                <span>{new Date(workout.scheduledDate).toLocaleDateString()}</span>
-                                <Clock className="w-4 h-4 ml-3 mr-1" />
-                                <span>{workout.estimatedDuration} min</span>
-                            </div>
-                            <div className="space-y-1">
-                                {workout.plannedExercises.map((exercise) => (
-                                    <div key={exercise.id} className="flex items-center text-sm text-gray-700">
-                                        <Dumbbell className="w-3 h-3 mr-1" />
-                                        <span>{exercise.exercise.name}</span>
-                                        {exercise.plannedSets && exercise.plannedReps && (
-                                            <span className="ml-2">
-                                                ({exercise.plannedSets} × {exercise.plannedReps})
-                                            </span>
-                                        )}
-                                        {exercise.plannedDuration && (
-                                            <span className="ml-2">({exercise.plannedDuration} min)</span>
-                                        )}
-                                    </div>
-                                ))}
+                            <div className="flex items-center gap-2">
+                                <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-[#C5D8E5] text-[#8BA6B9] bg-[#F8FAFF]">
+                                    Planned
+                                </div>
+                                <div className="flex items-center gap-1"> {/* items-center helps vertically align */}
+                                    {/* Mark as Completed Button */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => markAsCompleted(workout)}
+                                        aria-label="Mark as completed"
+                                        className="cursor-pointer"
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                    </Button>
+
+                                    {/* Edit Button - Changed size to "sm" */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm" // Use "sm" or "default" instead of "icon"
+                                        onClick={() => {
+                                            setSelectedWorkout(workout);
+                                            setEditDialogOpen(true);
+                                        }}
+                                        // aria-label is less critical now text is visible, but good practice
+                                        aria-label="Edit workout"
+                                        className="cursor-pointer"
+                                    >
+                                        {/* Add margin-left to the icon for spacing */}
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Edit Workout
+                                    </Button>
+
+                                    {/* Delete Button */}
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => handleDeleteGoal(workout.id)}
+                                        aria-label="Delete workout"
+                                        className="cursor-pointer"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                        <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-green-500 text-green-600 bg-green-50">
-                            Planned
+                        <div className="flex items-center text-muted-foreground text-sm mt-2">
+                            <Calendar className="w-3.5 h-3.5 mr-1" />
+                            <span>{new Date(workout.scheduledDate).toLocaleDateString()}</span>
+                            <Clock className="w-3.5 h-3.5 ml-3 mr-1" />
+                            <span>{workout.estimatedDuration} min</span>
+                        </div>
+                        <div className="space-y-0.5 mt-2">
+                            {exercisesToShow.map((exercise) => (
+                                <div key={exercise.id} className="flex items-center text-sm text-muted-foreground">
+                                    <Dumbbell className="w-3 h-3 mr-1 text-muted-foreground/70" />
+                                    <span>{exercise.exercise.name}</span>
+                                    {exercise.plannedSets && exercise.plannedReps && (
+                                        <span className="ml-2 text-muted-foreground/80">
+                                            ({exercise.plannedSets} × {exercise.plannedReps})
+                                        </span>
+                                    )}
+                                    {exercise.plannedDuration && (
+                                        <span className="ml-2 text-muted-foreground/80">({exercise.plannedDuration} min)</span>
+                                    )}
+                                </div>
+                            ))}
+                            {workout.plannedExercises.length > 3 && (
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="text-sm text-primary hover:underline focus:outline-none mt-1"
+                                >
+                                    {isExpanded
+                                        ? 'Show less'
+                                        : `+${workout.plannedExercises.length - 3} more exercises`
+                                    }
+                                </button>
+                            )}
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 mt-3">
-                        <button
-                            onClick={() => markAsCompleted(workout)}
-                            className="p-2 text-gray-600 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
-                        >
-                            <CheckCircle className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => {
-                                setSelectedWorkout(workout);
-                                setEditDialogOpen(true);
-                            }}
-                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                        >
-                            <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => handleDeleteGoal(workout.id)}
-                            className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </li>
-        ));
+                </li>
+
+
+            );
+        });
     };
+
+
 
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <ButterflyLoader />
             </div>
         );
     }
@@ -442,7 +538,7 @@ const SetGoalPage = () => {
                     )}
 
                     {workouts.length === 0 && (
-                        <p className="text-center text-gray-500">
+                        <p className="text-center text-muted-foreground">
                             No workouts planned yet. Add your first workout!
                         </p>
                     )}

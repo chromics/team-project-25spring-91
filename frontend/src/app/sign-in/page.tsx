@@ -1,12 +1,12 @@
 import { GalleryVerticalEnd } from "lucide-react"
 
 import { LoginForm } from "@/components/auth/login-form"
-import { AuthCheck } from "@/components/auth/auth-check";
+// import { AuthCheck } from "@/components/auth/auth-check";
 
 
 export default function LoginPage() {
   return (
-    <AuthCheck requireAuth={false}>
+    // <AuthCheck requireAuth={false}>
       <div className="grid min-h-svh lg:grid-cols-2">
         <div className="flex flex-col gap-4 p-6 md:p-10">
           <div className="flex justify-center gap-2 md:justify-start">
@@ -31,6 +31,6 @@ export default function LoginPage() {
           />
         </div>
       </div>
-    </AuthCheck>
+    // </AuthCheck>
   )
 }

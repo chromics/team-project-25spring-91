@@ -3,6 +3,9 @@ import { AnnualLineChart } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
+import api from '@/utils/api';
+import ButterflyLoader from '@/components/butterfly-loader';
+import axios from 'axios';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -79,19 +82,29 @@ const StatsPage = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`
+            //     }
+            // });
 
-            if (!response.ok) throw new Error('Failed to fetch statistics');
-
-            const data = await response.json();
+            // if (!response.ok) throw new Error('Failed to fetch statistics');
+            
+            // const data = await response.json();
+            const { data } = await api.get('/statistics/dashboard'); 
             setStats(data.data);
         } catch (error) {
-            toast.error("Failed to load statistics");
+            let errorMessage = 'Failed to load data';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -100,7 +113,7 @@ const StatsPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <ButterflyLoader />
             </div>
         );
     }

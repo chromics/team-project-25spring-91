@@ -23,6 +23,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { error } from "console"
+import api from "@/utils/api"
+import axios from "axios"
 
 interface Exercise {
     exerciseId: number;
@@ -78,29 +80,39 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
             toast.success("Exercise added successfully");
         } catch (error) {
             console.error("Error saving exercise:", error);
-            toast.error("Failed to add exercise");
+            let errorMessage = 'Failed to add exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     }
 
     const handleFetchExercises = async () => {
         try {
-            const token = localStorage.getItem('auth-token');
+            // const token = localStorage.getItem('auth-token');
 
-            if (!token) {
-                toast.error("Authentication token not found. Please login again.");
-                return;
-            }
-            const response = await fetch('http://localhost:5000/api/exercises', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) {
-                throw new Error("cannot fetch exercises");
-            }
-            const data = await response.json();
+            // if (!token) {
+            //     toast.error("Authentication token not found. Please login again.");
+            //     return;
+            // }
+            // const response = await fetch('http://localhost:5000/api/exercises', {
+            //     method: 'GET',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'Authorization': `Bearer ${token}`,
+            //     },
+            // });
+            // if (!response.ok) {
+            //     throw new Error("cannot fetch exercises");
+            // }
+            // const data = await response.json();
+            const { data } = await api.get('/exercises'); 
             const options = data.data.map((exercise: any) => ({
                 id: exercise.id.toString(),
                 name: exercise.name,
@@ -111,9 +123,14 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
         } catch (error: unknown) {
             console.error('Error details:', error);
 
-            const errorMessage = error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred';
+            let errorMessage = 'Failed to load exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
 
             toast.error(errorMessage);
         }

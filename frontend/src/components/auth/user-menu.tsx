@@ -13,29 +13,52 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, Loader2 } from "lucide-react";
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  if (loading) {
+    return (
+      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Avatar>
+          <AvatarFallback>
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </AvatarFallback>
+        </Avatar>
+      </Button>
+    );
+  }
 
   if (!user) return null;
 
   const handleSignOut = async () => {
     try {
-      await logout();
-      router.push("/sign-in");
+      setIsSigningOut(true);
+      logout();
+      router.push("/");
+      // Force a reload after logout
+      window.location.reload();
     } catch (error) {
-      console.error("Error signing out:", error);
+      let errorMessage = 'Failed to load workouts';
+
+      if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsSigningOut(false);
     }
   };
-  {/**
-            * AI generated code 
-             tool: chat-gpt 
-             version: o3 mini high
-             usage: generate a helper method  
-            */}
-
   const getInitials = () => {
     if (user.displayName) {
       return user.displayName
@@ -51,7 +74,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar>
-            <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+            <AvatarImage src={''} alt={user.displayName || 'User'} />
             <AvatarFallback>{getInitials()}</AvatarFallback>
           </Avatar>
         </Button>
@@ -73,8 +96,15 @@ export function UserMenu() {
           <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="mr-2 h-4 w-4" />
+          )}
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
