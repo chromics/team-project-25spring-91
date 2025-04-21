@@ -36,7 +36,7 @@ export function LoginForm({
         description: "Welcome back!"
       });
 
-      router.push('/dashboard');
+      router.push('/dashboard/statistics');
 
     } catch (error) {
       toast.error("Login failed", {
@@ -51,7 +51,7 @@ export function LoginForm({
     setIsLoading(true);
     try {
       loginWithOAuth(provider);
-      // No need for success toast here as we're redirecting
+      
     } catch (error) {
       setIsLoading(false);
       toast.error(`${provider} login failed`, {
@@ -98,51 +98,6 @@ export function LoginForm({
       toast.error("Login failed", {
         description: error instanceof Error ? error.message : "Something went wrong"
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // await signIn(email, password);
-      toast.success("Welcome back!", {
-        description: "You've successfully signed in."
-      });
-      // toast("Welcome back" + email); 
-      router.push("/dashboard");
-    } catch (error) {
-      // Error is handled in the auth context
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGithubSignIn = async () => {
-    setIsLoading(true);
-    try {
-      // await signInWithGithub();
-      router.push("/dashboard");
-    } catch (error) {
-      // Error is handled in the auth context
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      // await signInWithGoogle();
-      router.push("/dashboard");
-    } catch (error) {
-      // Error is handled in the auth context
     } finally {
       setIsLoading(false);
     }

@@ -10,13 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-context";
+import { AxiosError } from "axios";
 
 export function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithOAuth } = useAuth();
+  const { loginWithOAuth, signUp } = useAuth();
   const router = useRouter();
 
 
@@ -32,27 +34,48 @@ export function SignUpForm() {
       });
     }
   };
-  
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      toast.error("Passwords don't match", {
-        description: "Please make sure your passwords match."
-      });
-      return;
-    }
-    
     setIsLoading(true);
-    
+
     try {
-      // await signUp(email, password);
-      toast.success("Account created!", {
-        description: "You've successfully created an account."
+      const trimPassword = password.trim();
+      const trimConfirmPassword = confirmPassword.trim();
+
+      if (trimPassword != trimConfirmPassword) {
+        toast.error("Password does not match the confirmed password");
+        return;
+      }
+
+      await signUp(email, password, displayName);
+
+      toast.success("Sign up successful!", {
+        description: "Welcome! Your account has been created." 
       });
-      router.push("/dashboard");
+
+      router.push('/dashboard/statistics');
+
     } catch (error) {
-      // Error is handled in the auth context
+      console.error("Caught signup error in component:", error); 
+
+      let errorMessage = "An unexpected error occurred."; 
+
+      if (error instanceof AxiosError && error.response) {
+        if (error.response.status === 409) {
+          errorMessage = "An account with this email already exists.";
+        } else if (error.response.data && typeof error.response.data.message === 'string') {
+          errorMessage = error.response.data.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast.error("Sign up failed", {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +91,20 @@ export function SignUpForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSignUp} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="displayName" className="text-sm font-medium">
+              Display Name
+            </label>
+            <Input
+              id="displayName"
+              type="text"
+              placeholder="Jakeman"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -135,13 +172,13 @@ export function SignUpForm() {
               disabled={isLoading}
               className="flex items-center justify-center"
             >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 21 21">
-              <title>Microsoft</title>
-              <rect x="1" y="1" width="9" height="9" fill="#f25022" />
-              <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
-              <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
-              <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
-            </svg>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 21 21">
+                <title>Microsoft</title>
+                <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+              </svg>
               Microsoft
             </Button>
             <Button

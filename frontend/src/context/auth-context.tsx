@@ -22,6 +22,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   token: string | null;
+  signUp: (email: string, password: string, displayName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithOAuth: (provider: OAuthProvider) => void;
   logout: () => void;
@@ -62,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) {
       // Clear the URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
+
       // Set the token
       Cookies.set('token', token, {
         expires: 7,
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sameSite: 'strict'
       });
       setToken(token);
-      
+
       // Redirect to dashboard
       router.push('/dashboard');
     }
@@ -80,6 +81,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Redirect to OAuth endpoint
     window.location.href = `http://localhost:5000/api/auth/${provider}`;
   };
+
+  const signUp = async (email: string, password: string, displayName: string) => {
+    try {
+      setLoading(true);
+      const { data } = await api.post('/auth/register', { email, password, displayName });
+
+      const newToken = data.data.token;
+
+      Cookies.set('token', newToken, {
+        expires: 7, // Set cookie expiration (e.g., 7 days)
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'strict' // Helps prevent CSRF attacks
+      });
+      setToken(newToken);
+
+
+    } catch (error) {
+      console.error('Login Error:', error);
+      throw error;
+    }
+  }
 
   const login = async (email: string, password: string) => {
     try {
@@ -110,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, token, login, logout, loginWithOAuth }}>
+    <AuthContext.Provider value={{ user, loading, token, login, logout, loginWithOAuth, signUp }}>
       {children}
     </AuthContext.Provider>
   );

@@ -186,7 +186,7 @@ const SetGoalPage = () => {
                 actualDuration: workout.estimatedDuration,
                 actualExercises: workout.plannedExercises
             }
-            const response = await api.post(`/actual-workouts/from-planned/${workout.id}`, updatedData);
+            await api.post(`/actual-workouts/from-planned/${workout.id}`, updatedData);
             await fetchWorkouts();
             toast.success('Workout marked as completed');
         } catch (error) {
