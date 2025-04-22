@@ -122,28 +122,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
              version: o3 mini high
              usage: i want a colorful button for 'ask ai' feature, i use ai to help me generate the gradient color   
             */}
-                {item.items.map((subItem) => (
-                  <SidebarMenuItem key={subItem.title}>
-                    <SidebarMenuButton
-                      onClick={(e) => {
-                        e.preventDefault();
-                        router.push(subItem.url);
-                      }}
-                      isActive={pathname === subItem.url}
-                                  
-                      className={`
-                        ${subItem.title === 'Ask AI'
-                          ? 'relative bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] transition-all duration-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0'
-                          : ''
-                        }
-                      `}
-                    >
-                      <a href={subItem.url} className="relative z-10">
-                        {subItem.title}
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {item.items.map((subItem) => {
+                  const isActive = pathname === subItem.url;
+                  const isAskAI = subItem.title === 'Ask AI';
+
+                  let buttonClasses = 'cursor-pointer';
+
+                  if (isAskAI) {
+                    buttonClasses += ' relative transition-all duration-500 border';
+
+                    if (isActive) {
+                      buttonClasses += ' bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30 border-pink-400 hover:border-pink-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.45] before:blur-lg before:-z-10';
+                    } else {
+                      buttonClasses += ' bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0';
+                    }
+                  } else {
+                    if (isActive) {
+                      buttonClasses +=
+                        ' !bg-[var(--primary)] !text-[var(--primary-foreground)]';
+                    } else {
+                      buttonClasses +=
+                        ' bg-transparent text-[var(--sidebar-foreground)]' +
+                        ' hover:bg-[var(--sidebar-hover)]';
+                    }
+                  }
+
+                  return ((
+                    <SidebarMenuItem key={subItem.title}>
+                      <SidebarMenuButton
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (subItem.url && subItem.url !== "#") {
+                             router.push(subItem.url);
+                          }
+                        }}
+                        isActive={isActive}
+                        className={buttonClasses}
+                      >
+                        <a
+                          href={subItem.url}
+                          onClick={(e) => { if (subItem.url === "#") e.preventDefault(); }}
+                          className="relative z-10" // Ensure text is above pseudo-elements
+                        >
+                          {subItem.title}
+                        </a>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))
+                }
+                 )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

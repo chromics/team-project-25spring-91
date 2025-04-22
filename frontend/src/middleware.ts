@@ -60,7 +60,7 @@ export function middleware(request: NextRequest) {
   // Prevent authenticated users from accessing login
   if (request.nextUrl.pathname.startsWith('/sign-in')) {
     if (token) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL('/dashboard/statistics', request.url))
     }
   }
 

@@ -77,7 +77,7 @@ export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
             setSets('');
             setOpen(false);
 
-            toast.success("Exercise added successfully");
+            
         } catch (error) {
             console.error("Error saving exercise:", error);
             let errorMessage = 'Failed to add exercises';

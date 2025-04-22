@@ -161,7 +161,7 @@ export function EditCompletedWorkoutDialog({
 
             <div className="grid grid-cols-4 items-start gap-4">
               <Label className="text-right pt-2">Exercises</Label>
-              <div className="col-span-3 space-y-2">
+              <div className="col-span-3 space-y-2 h-64 overflow-y-auto">
                 {/**
             * AI generated code 
              tool: chat-gpt 

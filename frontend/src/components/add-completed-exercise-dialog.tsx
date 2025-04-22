@@ -80,7 +80,7 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
             setDuration('0');
             setOpen(false);
 
-            toast.success("Exercise added successfully");
+            
         } catch (error) {
             console.error("Error saving workout:", error);
             let errorMessage = 'Failed to add exercises';

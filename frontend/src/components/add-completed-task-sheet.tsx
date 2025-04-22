@@ -14,9 +14,10 @@ import { Calendar } from "./ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
 import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
-import { AArrowDown, Plus } from "lucide-react"
+import { AArrowDown, Plus, Trash2 } from "lucide-react"
 import api from "@/utils/api"
 import axios from "axios"
+import { CompletedWorkout } from "@/app/dashboard/completed-tasks/page"
 
 interface CompletedExercise {
     exerciseId: number;
@@ -33,9 +34,10 @@ interface ExerciseOption {
 
 interface AddCompletedTaskSheetProps {
     propAddCompletedTasks: () => void;
+    workouts: CompletedWorkout[];
 }
 
-export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTaskSheetProps) {
+export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCompletedTaskSheetProps) {
     const [open, setOpen] = React.useState(false);
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [isLoading, setIsLoading] = React.useState(false);
@@ -51,19 +53,7 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
 
     const handleFetchExercises = async () => {
         try {
-            // const token = localStorage.getItem('auth-token');
-            // if (!token) {
-            //     toast.error("Authentication token not found");
-            //     return;
-            // }
-
-            // const response = await fetch('http://localhost:5000/api/exercises', {
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //     }
-            // });
-            // const data = await response.json();
-            const { data } = await api.get('/exercises'); 
+            const { data } = await api.get('/exercises');
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
@@ -81,7 +71,26 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
     };
 
     const handleAddExercise = (newExercise: CompletedExercise) => {
+        const duplicated = exercises.find((exercise) => exercise.exerciseId === newExercise.exerciseId);
+        if (duplicated) {
+            let exerciseName = '';
+            exerciseOptions.forEach(exerciseOption => {
+                if (exerciseOption.id === newExercise.exerciseId) {
+                    exerciseName = exerciseOption.name;
+                }
+            });
+            toast.error(`${exerciseName} was already added`, {
+                description: 'Please choose a new exercise',
+            });
+            return;
+        }
         setExercises([...exercises, newExercise]);
+        toast.success("Exercise added successfully");
+    }
+
+    const handleDeleteExercise = (id: number) => {
+        const updatedExercises = exercises.filter(exercise => exercise.exerciseId !== id);
+        setExercises(updatedExercises);
     }
 
     const handleAddCompletedWorkout = async () => {
@@ -100,12 +109,17 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
 
         try {
             setIsLoading(true);
-            // const token = localStorage.getItem('auth-token');
+            const newDate = date.toISOString().split('T')[0]; 
+            const duplicatedDate = workouts.find(workout => 
+                 newDate === workout.completedDate.split('T')[0] 
+            );
 
-            // if (!token) {
-            //     toast.error("Authentication token not found. Please login again.");
-            //     return;
-            // }
+            if (duplicatedDate) {
+                toast.error(`${newDate} was already existed`, {
+                    description: 'Please choose a new date',
+                });
+                return;
+            }
 
             const workoutData = {
                 title: title.trim(),
@@ -118,32 +132,7 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                 }))
             };
 
-            // const response = await fetch("http://localhost:5000/api/actual-workouts", {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': `Bearer ${token}`,
-            //     },
-            //     body: JSON.stringify(workoutData),
-            // });
-
-            // const responseText = await response.text();
-
-            // if (!response.ok) {
-            //     let errorMessage = "Failed to add completed workout";
-            //     try {
-            //         const errorData = JSON.parse(responseText);
-            //         errorMessage = Array.isArray(errorData.error)
-            //             ? errorData.error.map((err: any) => err.message).join('\n')
-            //             : errorData.message || errorData.error || errorMessage;
-            //     } catch {
-            //         errorMessage = responseText || errorMessage;
-            //     }
-            //     throw new Error(errorMessage);
-            // }
-
-            // const data = JSON.parse(responseText);
-            const { data } = await api.post('/actual-workouts', workoutData); 
+            const { data } = await api.post('/actual-workouts', workoutData);
             propAddCompletedTasks();
             toast.success(data.message || "Workout completed successfully");
             setOpen(false);
@@ -244,6 +233,7 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                                                                 <span className="text-sm text-gray-600">
                                                                     {exercise.actualSets} sets
                                                                 </span>
+
                                                             </>
                                                         )}
                                                         {exercise.actualDuration !== null && (
@@ -251,6 +241,16 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks }: AddCompletedTas
                                                                 {exercise.actualDuration} min
                                                             </span>
                                                         )}
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            type="button"
+                                                            onClick={() => handleDeleteExercise(exercise.exerciseId)}
+                                                            aria-label="Delete workout"
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </li>

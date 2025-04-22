@@ -1,4 +1,5 @@
 // import { Header } from "@/components/layout/header";
+import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { ChevronsRight } from "lucide-react";
 import { Activity } from "lucide-react";
@@ -9,7 +10,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* <Header /> */}
+      <Header />
       
       <main className="flex-1 flex flex-col">
         {/* Hero Section with Background Image */}
@@ -68,7 +69,7 @@ export default function Home() {
                     dark:backdrop-blur-sm 
                     dark:border-white/30"
                 >
-                <Link href="/sign-up" className="text-white hover:text-white">
+                <Link href="/sign-in" className="text-white hover:text-white">
                     <span className="relative top-[-2px]">Start tracking</span>
                     <ChevronsRight className="w-5 h-5 ml-1" />
                 </Link>
