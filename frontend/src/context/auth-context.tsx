@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(token);
 
       // Redirect to dashboard
-      router.push('/dashboard');
+      router.push('/dashboard/statistics');
     }
   }, [router]);
 

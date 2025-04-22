@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/pagination";
 import api from '@/utils/api';
 import axios from 'axios';
+import ButterflyLoader from '@/components/butterfly-loader';
 
-interface CompletedWorkout {
+export interface CompletedWorkout {
     id: number;
     title: string;
     completedDate: string;
@@ -375,7 +376,7 @@ const CompletedWorkoutsPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <ButterflyLoader />
             </div>
 
         );
@@ -391,7 +392,10 @@ const CompletedWorkoutsPage = () => {
                 onOpenChange={setEditDialogOpen}
                 onSave={handleEditGoal}
             />
-            <AddCompletedTaskSheet propAddCompletedTasks={handleAddCompletedTasks} />
+            <AddCompletedTaskSheet 
+            propAddCompletedTasks={handleAddCompletedTasks} 
+            workouts={workouts}
+            />
 
             <div className="mt-8 max-w mx-auto px-20">
                 <h2 className="text-xl font-semibold mb-4">Your Completed Workouts</h2>

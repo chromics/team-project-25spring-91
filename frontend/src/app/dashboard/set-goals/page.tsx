@@ -19,7 +19,7 @@ import ButterflyLoader from '@/components/butterfly-loader';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 
-interface PlannedExercise {
+export interface PlannedExercise {
     id: number;
     exercise: {
         name: string;
@@ -30,7 +30,7 @@ interface PlannedExercise {
     plannedDuration: number | null;
 }
 
-interface PlannedWorkout {
+export interface PlannedWorkout {
     id: number;
     title: string;
     scheduledDate: string;
@@ -73,13 +73,6 @@ const SetGoalPage = () => {
     const fetchWorkouts = async () => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch('http://localhost:5000/api/planned-workouts', {
-            //     headers: { 'Authorization': `Bearer ${token}` }
-            // });
-
-            // if (!response.ok) throw new Error('Failed to fetch workouts');
-            // const data = await response.json();
             const { data } = await api.get('/planned-workouts');
             setWorkouts(data.data);
         } catch (error) {
@@ -106,13 +99,6 @@ const SetGoalPage = () => {
     const handleDeleteGoal = async (id: number) => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch(`http://localhost:5000/api/planned-workouts/${id}`, {
-            //     method: 'DELETE',
-            //     headers: { 'Authorization': `Bearer ${token}` }
-            // });
-
-            // if (!response.ok) throw new Error('Failed to delete workout');
             await api.delete(`/planned-workouts/${id}`);
             await fetchWorkouts();
             toast.success('Workout deleted successfully');
@@ -135,23 +121,6 @@ const SetGoalPage = () => {
     const handleEditGoal = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch(`http://localhost:5000/api/planned-workouts/${workout.id}`, {
-            //     method: 'PUT',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({
-            //         title: workout.title,
-            //         scheduledDate: workout.scheduledDate,
-            //         estimatedDuration: workout.estimatedDuration,
-            //         plannedExercises: workout.plannedExercises
-            //     })
-            // });
-
-            // if (!response.ok) throw new Error('Failed to update workout');
-
             const updatedData = {
                 title: workout.title,
                 scheduledDate: workout.scheduledDate,
@@ -182,25 +151,7 @@ const SetGoalPage = () => {
     const markAsCompleted = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({
-            //         title: workout.title,
-            //         completedDate: workout.scheduledDate,
-            //         actualDuration: workout.estimatedDuration,
-            //         actualExercises: workout.plannedExercises
-            //     })
-            // });
 
-            // if (!response.ok) {
-            //     const data = await response.json();
-            //     throw new Error(data.message || 'Failed to mark workout as completed');
-            // }
             const updatedData = {
                 title: workout.title,
                 completedDate: workout.scheduledDate,
@@ -386,7 +337,7 @@ const SetGoalPage = () => {
                         <div className="flex justify-between items-start">
                             <h3 className="font-bold text-lg">{workout.title}</h3>
                             <div className="flex items-center gap-2">
-                                <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-[#C5D8E5] text-[#8BA6B9] bg-[#F8FAFF]">
+                                <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-primary text-primary bg-accent">
                                     Planned
                                 </div>
                                 <div className="flex items-center gap-1"> {/* items-center helps vertically align */}
@@ -492,7 +443,10 @@ const SetGoalPage = () => {
                 onOpenChange={setEditDialogOpen}
                 onSave={handleEditGoal}
             />
-            <SheetDemo propAddGoal={handleAddGoal} />
+            <SheetDemo 
+            propAddGoal={handleAddGoal}
+            workouts={workouts}
+            />
 
             <div className="mt-8 max-w mx-auto px-20">
                 <h2 className="text-xl font-semibold mb-4">Your Planned Workouts</h2>
