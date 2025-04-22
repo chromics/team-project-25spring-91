@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { AddCompletedTaskSheet } from '@/components/add-completed-task-sheet';
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { toast } from 'sonner';
-import { Calendar, Clock, Dumbbell, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Dumbbell, Edit, MoreVertical, Trash2 } from 'lucide-react';
 import { EditCompletedWorkoutDialog } from '@/components/edit-completed-workouts-dialog';
 import {
     Pagination,
@@ -17,6 +17,9 @@ import {
 import api from '@/utils/api';
 import axios from 'axios';
 import ButterflyLoader from '@/components/butterfly-loader';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 export interface CompletedWorkout {
     id: number;
@@ -53,6 +56,7 @@ const CompletedWorkoutsPage = () => {
     const [loading, setLoading] = useState(true);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedWorkout, setSelectedWorkout] = useState<CompletedWorkout | null>(null);
+    const [expandedWorkouts, setExpandedWorkouts] = useState(new Set());
     const [currentPages, setCurrentPages] = useState({
         lastWeek: 1,
         past: 1
@@ -62,6 +66,18 @@ const CompletedWorkoutsPage = () => {
         fetchCompletedWorkouts();
     }, []);
 
+
+    const toggleExpansion = (workoutId: number) => {
+        setExpandedWorkouts((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(workoutId)) {
+                newSet.delete(workoutId);
+            } else {
+                newSet.add(workoutId);
+            }
+            return newSet;
+        });
+    };
     const fetchCompletedWorkouts = async () => {
         try {
             setLoading(true);
@@ -314,63 +330,121 @@ const CompletedWorkoutsPage = () => {
     };
 
     const renderWorkout = (workout: CompletedWorkout) => (
-        <li key={workout.id} className="bg-card text-card-foreground px-4 py-3 rounded-lg border border-border shadow-sm">
-
-            <div className="flex flex-col">
+        <li
+            key={workout.id}
+            className="
+    bg-card text-card-foreground
+    p-3
+    rounded-lg
+    border border-border/60
+    hover:border-border/80 transition-colors
+  "
+        >
+            <div className="flex flex-col gap-1.5">
+                {/* Header */}
                 <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                        <h3 className="font-bold text-lg">{workout.title}</h3>
-                        <div className="flex items-center text-muted-foreground text-sm">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            <span>{new Date(workout.completedDate).toLocaleDateString()}</span>
-                            {workout.actualDuration && (
-                                <>
-                                    <Clock className="w-4 h-4 ml-3 mr-1" />
-                                    <span>{workout.actualDuration} min</span>
-                                </>
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-base">{workout.title}</h3>
+                        <div
+                            className="
+            inline-flex items-center h-5 px-2
+            text-[10px] rounded-full
+            border border-primary text-primary
+            bg-accent
+          "
+                        >
+                            Completed
+                        </div>
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    setSelectedWorkout(workout)
+                                    setEditDialogOpen(true)
+                                }}
+                            >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Workout
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => handleDeleteGoal(workout.id)}
+                                aria-label="Delete workout"
+                                className="cursor-pointer"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Workout
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+
+                {/* Metadata */}
+                <div className="flex items-center gap-3 text-muted-foreground text-xs">
+                    <div className="flex items-center">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        <span>{new Date(workout.completedDate).toLocaleDateString()}</span>
+                    </div>
+                    {workout.actualDuration && (
+                        <div className="flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            <span>{workout.actualDuration} min</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Exercises */}
+                <div className="grid gap-0.5">
+                    {(
+                        expandedWorkouts.has(workout.id)
+                            ? workout.actualExercises
+                            : workout.actualExercises.slice(0, 1)
+                    ).map((exercise) => (
+                        <div
+                            key={exercise.id}
+                            className="flex items-center text-xs text-muted-foreground"
+                        >
+                            <Dumbbell className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{exercise.exercise.name}</span>
+                            {exercise.actualSets != null &&
+                                exercise.actualReps != null && (
+                                    <span className="ml-1 text-muted-foreground/80 flex-shrink-0">
+                                        ({exercise.actualSets}×{exercise.actualReps})
+                                    </span>
+                                )}
+                            {exercise.actualDuration != null && (
+                                <span className="ml-1 text-muted-foreground/80 flex-shrink-0">
+                                    ({exercise.actualDuration}m)
+                                </span>
                             )}
                         </div>
-                        <div className="space-y-1">
-                            {workout.actualExercises.map((exercise) => (
-                                <div key={exercise.id} className="flex items-center text-sm text-muted-foreground">
-                                    <Dumbbell className="w-3 h-3 mr-1" />
-                                    <span>{exercise.exercise.name}</span>
-                                    {exercise.actualSets && exercise.actualReps && (
-                                        <span className="ml-2">
-                                            ({exercise.actualSets} × {exercise.actualReps})
-                                        </span>
-                                    )}
-                                    {exercise.actualDuration && (
-                                        <span className="ml-2">({exercise.actualDuration} min)</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-[oklch(0.7_0.1_235)] text-[oklch(0.5_0.1_235)] bg-[oklch(0.95_0.03_235)]">
-                        Completed
-                    </div>
-                </div>
-                <div className="flex justify-end gap-3 mt-3">
-                    <button
-                        onClick={() => {
-                            setSelectedWorkout(workout);
-                            setEditDialogOpen(true);
-                        }}
-                        className="p-2 text-muted-foreground hover:text-primary transition-colors rounded-lg hover:bg-accent"
-                    >
-                        <Edit className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={() => handleDeleteGoal(workout.id)}
-                        className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-accent"
-                    >
-                        <Trash2 className="w-5 h-5" />
-                    </button>
-
+                    ))}
+                    {workout.actualExercises.length > 1 && (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                toggleExpansion(workout.id);
+                            }}
+                            className="text-xs text-primary hover:underline focus:outline-none mt-0.5"
+                        >
+                            {expandedWorkouts.has(workout.id)
+                                ? "Show less"
+                                : `+${workout.actualExercises.length - 1} more exercises`}
+                        </button>
+                    )}
                 </div>
             </div>
         </li>
+
+
     );
 
     if (loading) {
@@ -385,57 +459,96 @@ const CompletedWorkoutsPage = () => {
     const groupedWorkouts = groupWorkouts(workouts);
 
     return (
-        <div>
+        <div className="container mx-auto px-6">
+            {/* Dialogs */}
             <EditCompletedWorkoutDialog
                 workout={selectedWorkout}
                 isOpen={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
                 onSave={handleEditGoal}
             />
-            <AddCompletedTaskSheet 
-            propAddCompletedTasks={handleAddCompletedTasks} 
-            workouts={workouts}
-            />
-
-            <div className="mt-8 max-w mx-auto px-20">
-                <h2 className="text-xl font-semibold mb-4">Your Completed Workouts</h2>
-
-                <div className="space-y-8">
-                    {groupedWorkouts.today.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Today</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {groupedWorkouts.today.map(renderWorkout)}
-                            </ul>
-                        </SidebarGroup>
-                    )}
-
-                    {groupedWorkouts.lastWeek.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Last 7 Days</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {paginateWorkouts(groupedWorkouts.lastWeek, currentPages.lastWeek).map(renderWorkout)}
-                            </ul>
-                            {renderPagination(groupedWorkouts.lastWeek.length, currentPages.lastWeek, 'lastWeek')}
-                        </SidebarGroup>
-                    )}
-
-                    {groupedWorkouts.past.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Past Workouts</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {paginateWorkouts(groupedWorkouts.past, currentPages.past).map(renderWorkout)}
-                            </ul>
-                            {renderPagination(groupedWorkouts.past.length, currentPages.past, 'past')}
-                        </SidebarGroup>
-                    )}
-
-                    {workouts.length === 0 && (
-                        <p className="text-center text-muted-foreground">
-                            No completed workouts yet. Complete your first workout!
-                        </p>
-                    )}
+            <div className="flex justify-between items-center py-6">
+                <h1 className="text-2xl font-bold">Completed Workouts</h1>
+                <div className="w-auto">
+                    <AddCompletedTaskSheet
+                        propAddCompletedTasks={handleAddCompletedTasks}
+                        workouts={workouts}
+                    />
                 </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="space-y-8">
+                {workouts.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-lg text-muted-foreground mb-2">
+                            No completed workouts yet.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            Complete your first workout to see it here!
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Today */}
+                        {groupedWorkouts.today.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Today</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {groupedWorkouts.today.map(renderWorkout)}
+                                        </ul>
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Last 7 Days */}
+                        {groupedWorkouts.lastWeek.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Last 7 Days</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {paginateWorkouts(
+                                                groupedWorkouts.lastWeek,
+                                                currentPages.lastWeek
+                                            ).map(renderWorkout)}
+                                        </ul>
+                                        {renderPagination(
+                                            groupedWorkouts.lastWeek.length,
+                                            currentPages.lastWeek,
+                                            "lastWeek"
+                                        )}
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Past Workouts */}
+                        {groupedWorkouts.past.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Past Workouts</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {paginateWorkouts(
+                                                groupedWorkouts.past,
+                                                currentPages.past
+                                            ).map(renderWorkout)}
+                                        </ul>
+                                        {renderPagination(
+                                            groupedWorkouts.past.length,
+                                            currentPages.past,
+                                            "past"
+                                        )}
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );

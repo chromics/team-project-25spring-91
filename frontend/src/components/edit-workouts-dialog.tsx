@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Dumbbell } from "lucide-react";
+import { CalendarForm } from "./calendar-form";
 
 interface Exercise {
   id: number;

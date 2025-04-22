@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           setLoading(true);
           const { data } = await api.get('/users/profile');
+          console.log(data);
           console.log('Profile Data:', data);
           setUser(data.data);
         } catch (error) {

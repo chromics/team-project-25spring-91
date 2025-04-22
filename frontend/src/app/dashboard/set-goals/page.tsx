@@ -175,6 +175,16 @@ const SetGoalPage = () => {
     const markAsCompleted = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
+            const today = new Date();
+            
+            if (workout.scheduledDate.split('T')[0]  > today.toISOString().split('T')[0]){
+                toast.error("Cannot mark future plan as completed" , {
+                    description:'Please choose the correct plan date',
+                })
+                // console.log(workout.scheduledDate.split('T')[0]);
+                // console.log(today.toISOString().split('T')[0]);
+                return; 
+            }
 
             const updatedData = {
                 title: workout.title,
@@ -476,7 +486,7 @@ const SetGoalPage = () => {
     const groupedWorkouts = groupWorkouts(workouts);
 
     return (
-        <div className="container mx-auto px-6 max-w-7xl">
+        <div className="container mx-auto px-6">
             {/* Dialog and Header sections remain the same */}
             <EditWorkoutDialog
                 workout={selectedWorkout}
