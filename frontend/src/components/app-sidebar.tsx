@@ -44,6 +44,10 @@ const data = {
           title: "Make Appointment",
           url: "#",
         },
+        {
+          title: "List of Gyms",
+          url: "/dashboard/gym-list",
+        },
       ],
     },
     {
