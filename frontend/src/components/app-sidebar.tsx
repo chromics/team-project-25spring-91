@@ -69,8 +69,8 @@ const data = {
           url: "/dashboard/statistics",
         },
         {
-          title: "Online Competition",
-          url: "/dashboard/competition",
+          title: "Leaderboards",
+          url: "/dashboard/leaderboard",
         },
       ],
     },
