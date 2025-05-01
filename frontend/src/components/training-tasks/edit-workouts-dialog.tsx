@@ -15,6 +15,7 @@ import { Calendar, Clock, Dumbbell } from "lucide-react";
 import { CalendarForm } from "../calendar-form";
 import { EditWorkoutDialogProps } from '@/types/props';
 import { PlannedWorkout } from '@/types/workout';
+import { toast } from "sonner";
 
 // interface Exercise {
 //   id: number;
@@ -30,6 +31,7 @@ import { PlannedWorkout } from '@/types/workout';
 
 
 export function EditWorkoutDialog({
+  workouts,
   workout,
   isOpen,
   onOpenChange,
@@ -40,7 +42,7 @@ export function EditWorkoutDialog({
     scheduledDate: "",
     estimatedDuration: 0,
   });
-{/**
+  {/**
             * AI generated code 
              tool: chat-gpt 
              version: o3 mini high
@@ -60,7 +62,27 @@ export function EditWorkoutDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    const newDate = formData.scheduledDate.split('T')[0];
+    // planned date cannot be in the past
+    const today = new Date();
+    if (newDate < today.toISOString().split('T')[0]) {
+      toast.error("Planned date should not be in the past", {
+        description: 'Please choose a new date',
+      });
+      return;
+    }
+
+    const duplicatedDate = workouts.find(workout =>
+      newDate === workout.scheduledDate.split('T')[0]
+    );
+
+    if (duplicatedDate) {
+      toast.error(`${newDate} was already existed`, {
+        description: 'Please choose a new date',
+      });
+      return;
+    }
+
     const updatedWorkout: PlannedWorkout = {
       ...workout,
       title: formData.title,
@@ -158,8 +180,8 @@ export function EditWorkoutDialog({
                         {exercise.plannedSets && exercise.plannedReps
                           ? `${exercise.plannedSets} × ${exercise.plannedReps} reps`
                           : exercise.plannedDuration
-                          ? `Duration: ${exercise.plannedDuration} min`
-                          : "No details specified"}
+                            ? `Duration: ${exercise.plannedDuration} min`
+                            : "No details specified"}
                       </p>
                     </div>
                   </div>

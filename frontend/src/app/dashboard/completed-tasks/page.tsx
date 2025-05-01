@@ -407,6 +407,7 @@ const CompletedWorkoutsPage = () => {
         <div className="container mx-auto px-6">
             {/* Dialogs */}
             <EditCompletedWorkoutDialog
+                workouts={workouts}
                 workout={selectedWorkout}
                 isOpen={editDialogOpen}
                 onOpenChange={setEditDialogOpen}

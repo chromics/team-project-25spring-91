@@ -459,6 +459,7 @@ const SetGoalPage = () => {
         <div className="container mx-auto px-6">
             {/* Dialog and Header sections remain the same */}
             <EditWorkoutDialog
+                workouts={workouts}
                 workout={selectedWorkout}
                 isOpen={editDialogOpen}
                 onOpenChange={setEditDialogOpen}

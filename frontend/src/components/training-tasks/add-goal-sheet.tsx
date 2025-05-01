@@ -85,6 +85,10 @@ export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
     }
 
     const handleAddGoal = async () => {
+        if (title.trim().length < 2) {
+            toast.error("Title should be at least 2 characters");
+            return;
+        } 
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -102,6 +106,18 @@ export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
             setIsLoading(true);
 
             const newDate = date.toISOString().split('T')[0];
+            
+            // planned date cannot be in the past
+            const today = new Date();
+            if (newDate < today.toISOString().split('T')[0]){
+                toast.error("Planned date should not be in the past", {
+                    description: 'Please choose a new date',
+                });
+                return;
+            } 
+            
+
+            // planned date cannot be the same
             const duplicatedDate = workouts.find(workout =>
                 newDate === workout.scheduledDate.split('T')[0]
             );

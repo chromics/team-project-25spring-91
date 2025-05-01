@@ -10,6 +10,7 @@ export interface SheetDemoProps {
 }
 
 export interface EditWorkoutDialogProps {
+    workouts: PlannedWorkout[];
     workout: PlannedWorkout | null;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -26,6 +27,7 @@ export interface AddCompletedTaskSheetProps {
 }
 
 export interface EditCompletedWorkoutDialogProps {
+    workouts: CompletedWorkout[];
     workout: CompletedWorkout | null;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;

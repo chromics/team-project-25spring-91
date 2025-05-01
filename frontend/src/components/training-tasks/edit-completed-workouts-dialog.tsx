@@ -15,6 +15,7 @@ import { Calendar, Clock, Dumbbell } from "lucide-react";
 import { EditCompletedWorkoutDialogProps } from '@/types/props';
 import { DetailedCompletedExercise } from '@/types/completed-exercise';
 import { CompletedWorkout } from '@/types/completed-workout';
+import { toast } from "sonner";
 
 
 // interface Exercise {
@@ -41,11 +42,14 @@ import { CompletedWorkout } from '@/types/completed-workout';
 
 
 export function EditCompletedWorkoutDialog({
+  workouts,
   workout,
   isOpen,
   onOpenChange,
   onSave,
 }: EditCompletedWorkoutDialogProps) {
+
+  
   const [formData, setFormData] = useState({
     title: "",
     completedDate: "",
@@ -72,6 +76,28 @@ export function EditCompletedWorkoutDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const newDate = formData.completedDate.split('T')[0];
+
+    // completed date cannot be in the future******
+    const today = new Date();
+    if (newDate > today.toISOString().split('T')[0]){
+        toast.error("Completed date should not be in the future", {
+            description: 'Please choose a new date',
+        });
+        return;
+    } 
+
+    const duplicatedDate = workouts.find(workout =>
+        newDate === workout.completedDate.split('T')[0]
+    );
+
+    if (duplicatedDate) {
+        toast.error(`${newDate} was already existed`, {
+            description: 'Please choose a new date',
+        });
+        return;
+    }
+    
     const updatedWorkout: CompletedWorkout = {
       ...workout,
       title: formData.title,

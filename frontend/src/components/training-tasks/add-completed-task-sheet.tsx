@@ -86,6 +86,10 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCo
     }
 
     const handleAddCompletedWorkout = async () => {
+        if (title.trim().length < 2) {
+            toast.error("Title should be at least 2 characters");
+            return;
+        }
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -101,9 +105,19 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCo
 
         try {
             setIsLoading(true);
-            const newDate = date.toISOString().split('T')[0]; 
-            const duplicatedDate = workouts.find(workout => 
-                 newDate === workout.completedDate.split('T')[0] 
+            const newDate = date.toISOString().split('T')[0];
+
+            // completed date cannot be in the future******
+            const today = new Date();
+            if (newDate > today.toISOString().split('T')[0]){
+                toast.error("Completed date should not be in the future", {
+                    description: 'Please choose a new date',
+                });
+                return;
+            } 
+
+            const duplicatedDate = workouts.find(workout =>
+                newDate === workout.completedDate.split('T')[0]
             );
 
             if (duplicatedDate) {
