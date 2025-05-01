@@ -12,36 +12,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Dumbbell } from "lucide-react";
-import { CalendarForm } from "./calendar-form";
+import { CalendarForm } from "../calendar-form";
+import { EditWorkoutDialogProps } from '@/types/props';
+import { PlannedWorkout } from '@/types/workout';
+import { toast } from "sonner";
 
-interface Exercise {
-  id: number;
-  exercise: {
-    name: string;
-    category: string;
-  };
-  plannedSets: number | null;
-  plannedReps: number | null;
-  plannedDuration: number | null;
-}
+// interface Exercise {
+//   id: number;
+//   exercise: {
+//     name: string;
+//     category: string;
+//   };
+//   plannedSets: number | null;
+//   plannedReps: number | null;
+//   plannedDuration: number | null;
+// }
 
-interface PlannedWorkout {
-  id: number;
-  title: string;
-  scheduledDate: string;
-  estimatedDuration: number;
-  reminderSent: boolean;
-  plannedExercises: Exercise[];
-}
 
-interface EditWorkoutDialogProps {
-  workout: PlannedWorkout | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (workout: PlannedWorkout) => Promise<void>;
-}
 
 export function EditWorkoutDialog({
+  workouts,
   workout,
   isOpen,
   onOpenChange,
@@ -52,7 +42,7 @@ export function EditWorkoutDialog({
     scheduledDate: "",
     estimatedDuration: 0,
   });
-{/**
+  {/**
             * AI generated code 
              tool: chat-gpt 
              version: o3 mini high
@@ -72,7 +62,27 @@ export function EditWorkoutDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    const newDate = formData.scheduledDate.split('T')[0];
+    // planned date cannot be in the past
+    const today = new Date();
+    if (newDate < today.toISOString().split('T')[0]) {
+      toast.error("Planned date should not be in the past", {
+        description: 'Please choose a new date',
+      });
+      return;
+    }
+
+    const duplicatedDate = workouts.find(workout =>
+      newDate === workout.scheduledDate.split('T')[0]
+    );
+
+    if (duplicatedDate) {
+      toast.error(`${newDate} was already existed`, {
+        description: 'Please choose a new date',
+      });
+      return;
+    }
+
     const updatedWorkout: PlannedWorkout = {
       ...workout,
       title: formData.title,
@@ -170,8 +180,8 @@ export function EditWorkoutDialog({
                         {exercise.plannedSets && exercise.plannedReps
                           ? `${exercise.plannedSets} × ${exercise.plannedReps} reps`
                           : exercise.plannedDuration
-                          ? `Duration: ${exercise.plannedDuration} min`
-                          : "No details specified"}
+                            ? `Duration: ${exercise.plannedDuration} min`
+                            : "No details specified"}
                       </p>
                     </div>
                   </div>

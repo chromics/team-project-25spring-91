@@ -1,4 +1,4 @@
-// add-completed-exercise-dialog.tsx
+//add-exercise-dialog
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -22,67 +22,49 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import api from "@/utils/api"
+import api from "@/lib/api"
 import axios from "axios"
 
-interface CompletedExercise {
-    exerciseId: number;
-    actualSets: number;
-    actualReps: number;
-    actualDuration: number;
-}
+import { AddExerciseDialogProps } from '@/types/props';
+import { Exercise, ExerciseOption } from '@/types/exercise';
 
-interface AddCompletedExerciseDialogProps {
-    propAddExercise: (exercise: CompletedExercise) => void;
-}
-
-interface ExerciseOption {
-    id: string;
-    name: string;
-    category: string;
-}
-
-export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExerciseDialogProps) {
+export function AddExerciseDialog({ propAddExercise }: AddExerciseDialogProps) {
     const [selectedExerciseId, setSelectedExerciseId] = useState<string>('');
-    const [reps, setReps] = useState('0');
-    const [sets, setSets] = useState('0');
-    const [duration, setDuration] = useState('0');
+    const [reps, setReps] = useState('');
+    const [sets, setSets] = useState('');
     const [open, setOpen] = useState(false);
     const [exerciseOptions, setExerciseOptions] = useState<ExerciseOption[]>([]);
     useEffect(() => {
         handleFetchExercises();
     }, []);
 
-
     const handleSaveExercise = () => {
         try {
-            if (!selectedExerciseId) {
-                toast.error("Please select an exercise");
+            if (!selectedExerciseId || !reps || !sets) {
+                toast.error("All fields are required");
                 return;
             }
 
-            // Convert all values to numbers, defaulting to 0 if empty
-            const actualReps = Number(reps) || 0;
-            const actualSets = Number(sets) || 0;
-            const actualDuration = Number(duration) || 0;
+            if (Number(reps) <= 0 || Number(sets) <= 0) {
+                toast.error("Reps and sets must be greater than 0");
+                return;
+            }
 
             propAddExercise({
                 exerciseId: Number(selectedExerciseId),
-                actualReps,
-                actualSets,
-                actualDuration
+                plannedReps: Number(reps),
+                plannedSets: Number(sets)
             });
 
             // Reset form
             setSelectedExerciseId('');
-            setReps('0');
-            setSets('0');
-            setDuration('0');
+            setReps('');
+            setSets('');
             setOpen(false);
 
-            
+
         } catch (error) {
-            console.error("Error saving workout:", error);
+            console.error("Error saving exercise:", error);
             let errorMessage = 'Failed to add exercises';
 
             if (axios.isAxiosError(error) && error.response && error.response.data) {
@@ -98,23 +80,7 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
 
     const handleFetchExercises = async () => {
         try {
-            // const token = localStorage.getItem('auth-token');
 
-            // if (!token) {
-            //     toast.error("Authentication token not found. Please login again.");
-            //     return;
-            // }
-            // const response = await fetch('http://localhost:5000/api/exercises', {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         'Authorization': `Bearer ${token}`,
-            //     },
-            // });
-            // if (!response.ok) {
-            //     throw new Error("cannot fetch exercises");
-            // }
-            // const data = await response.json();
             const { data } = await api.get('/exercises');
             const options = data.data.map((exercise: any) => ({
                 id: exercise.id.toString(),
@@ -173,9 +139,9 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add Completed Exercise</DialogTitle>
+                    <DialogTitle>Add Exercise to Workout</DialogTitle>
                     <DialogDescription>
-                        Enter exercise details. Use 0 for any fields that don't apply.
+                        Select an exercise and specify sets and reps.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -207,7 +173,7 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
                                         {exercises.map((exercise) => (
                                             <SelectItem
                                                 key={exercise.id}
-                                                value={exercise.id}
+                                                value={exercise.id.toString()}
                                             >
                                                 {exercise.name}
                                             </SelectItem>
@@ -217,59 +183,39 @@ export function AddCompletedExerciseDialog({ propAddExercise }: AddCompletedExer
                             </SelectContent>
                         </Select>
                     </div>
-
-                    {selectedExerciseId && (
-                        <>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="sets" className="text-right">
-                                    Sets
-                                </Label>
-                                <Input
-                                    id="sets"
-                                    type="number"
-                                    value={sets}
-                                    onChange={(e) => setSets(e.target.value)}
-                                    className="col-span-3"
-                                    min="0"
-                                    placeholder="Number of sets"
-                                />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="reps" className="text-right">
-                                    Reps
-                                </Label>
-                                <Input
-                                    id="reps"
-                                    type="number"
-                                    value={reps}
-                                    onChange={(e) => setReps(e.target.value)}
-                                    className="col-span-3"
-                                    min="0"
-                                    placeholder="Number of repetitions"
-                                />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="duration" className="text-right">
-                                    Duration (min)
-                                </Label>
-                                <Input
-                                    id="duration"
-                                    type="number"
-                                    value={duration}
-                                    onChange={(e) => setDuration(e.target.value)}
-                                    className="col-span-3"
-                                    min="0"
-                                    placeholder="Duration in minutes"
-                                />
-                            </div>
-                        </>
-                    )}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="reps" className="text-right">
+                            Reps
+                        </Label>
+                        <Input
+                            id="reps"
+                            type="number"
+                            value={reps}
+                            onChange={(e) => setReps(e.target.value)}
+                            className="col-span-3"
+                            min="1"
+                            placeholder="Number of repetitions"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="sets" className="text-right">
+                            Sets
+                        </Label>
+                        <Input
+                            id="sets"
+                            type="number"
+                            value={sets}
+                            onChange={(e) => setSets(e.target.value)}
+                            className="col-span-3"
+                            min="1"
+                            placeholder="Number of sets"
+                        />
+                    </div>
                 </div>
                 <DialogFooter>
                     <Button
                         type="button"
                         onClick={handleSaveExercise}
-                        disabled={!selectedExerciseId}
                     >
                         Add Exercise
                     </Button>

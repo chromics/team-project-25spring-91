@@ -10,31 +10,23 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "../ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
-import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
+import { AddCompletedExerciseDialog } from "../training-tasks/add-completed-exercise-dialog"
 import { AArrowDown, Plus, Trash2 } from "lucide-react"
-import api from "@/utils/api"
+import api from "@/lib/api"
 import axios from "axios"
-import { CompletedWorkout } from "@/app/dashboard/completed-tasks/page"
 
-interface CompletedExercise {
-    exerciseId: number;
-    actualSets: number | null;
-    actualReps: number | null;
-    actualDuration: number | null;
-}
+import { AddCompletedTaskSheetProps } from '@/types/props';
+import { CompletedExercise } from '@/types/completed-exercise';
+import { CompletedWorkout } from '@/types/completed-workout';
+
 
 interface ExerciseOption {
     id: number;
     name: string;
     category: string;
-}
-
-interface AddCompletedTaskSheetProps {
-    propAddCompletedTasks: () => void;
-    workouts: CompletedWorkout[];
 }
 
 export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCompletedTaskSheetProps) {
@@ -94,6 +86,10 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCo
     }
 
     const handleAddCompletedWorkout = async () => {
+        if (title.trim().length < 2) {
+            toast.error("Title should be at least 2 characters");
+            return;
+        }
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -109,9 +105,19 @@ export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCo
 
         try {
             setIsLoading(true);
-            const newDate = date.toISOString().split('T')[0]; 
-            const duplicatedDate = workouts.find(workout => 
-                 newDate === workout.completedDate.split('T')[0] 
+            const newDate = date.toISOString().split('T')[0];
+
+            // completed date cannot be in the future******
+            const today = new Date();
+            if (newDate > today.toISOString().split('T')[0]){
+                toast.error("Completed date should not be in the future", {
+                    description: 'Please choose a new date',
+                });
+                return;
+            } 
+
+            const duplicatedDate = workouts.find(workout =>
+                newDate === workout.completedDate.split('T')[0]
             );
 
             if (duplicatedDate) {

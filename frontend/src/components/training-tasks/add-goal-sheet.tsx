@@ -10,37 +10,19 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "../ui/calendar"
 import { toast } from "sonner"
-import React, { forwardRef, useEffect } from "react"
-import { AddExerciseDialog } from "./add-exercise-dialog"
+import React, { useEffect } from "react"
+import { AddExerciseDialog } from "../training-tasks/add-exercise-dialog"
 import { Plus, Trash2 } from "lucide-react"
-import api from "@/utils/api"
+import api from "@/lib/api"
 import axios from "axios"
-import type { PlannedWorkout } from '@/app/dashboard/set-goals/page'
 
-interface Exercise {
-    exerciseId: number;
-    plannedSets: number;
-    plannedReps: number;
-}
+import { SheetDemoProps } from '@/types/props';
+import { Exercise, ExerciseOption } from '@/types/exercise';
+import { Goal } from '@/types/workout';
 
-interface Goal {
-    date: string;
-    calories: number;
-    title: string;
-}
 
-interface ExerciseOption {
-    id: number;
-    name: string;
-    category: string;
-}
-
-interface SheetDemoProps {
-    propAddGoal: (goal: Goal) => void
-    workouts: PlannedWorkout[]; 
-}
 
 export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
     const [open, setOpen] = React.useState(false);
@@ -103,6 +85,10 @@ export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
     }
 
     const handleAddGoal = async () => {
+        if (title.trim().length < 2) {
+            toast.error("Title should be at least 2 characters");
+            return;
+        } 
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -118,10 +104,22 @@ export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
 
         try {
             setIsLoading(true);
+
+            const newDate = date.toISOString().split('T')[0];
             
-            const newDate = date.toISOString().split('T')[0]; 
-            const duplicatedDate = workouts.find(workout => 
-                 newDate === workout.scheduledDate.split('T')[0] 
+            // planned date cannot be in the past
+            const today = new Date();
+            if (newDate < today.toISOString().split('T')[0]){
+                toast.error("Planned date should not be in the past", {
+                    description: 'Please choose a new date',
+                });
+                return;
+            } 
+            
+
+            // planned date cannot be the same
+            const duplicatedDate = workouts.find(workout =>
+                newDate === workout.scheduledDate.split('T')[0]
             );
 
             if (duplicatedDate) {
@@ -130,7 +128,7 @@ export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
                 });
                 return;
             }
-            
+
 
             const workoutData = {
                 title: title.trim(),
