@@ -1,10 +1,10 @@
+//page.tsx
 "use client";
 import React, { useEffect, useState } from 'react'
-import { AddCompletedTaskSheet } from '@/components/add-completed-task-sheet';
-import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
+import { AddCompletedTaskSheet } from '@/components/training-tasks/add-completed-task-sheet';
 import { toast } from 'sonner';
 import { Calendar, Clock, Dumbbell, Edit, MoreVertical, Trash2 } from 'lucide-react';
-import { EditCompletedWorkoutDialog } from '@/components/edit-completed-workouts-dialog';
+import { EditCompletedWorkoutDialog } from '@/components/training-tasks/edit-completed-workouts-dialog';
 import {
     Pagination,
     PaginationContent,
@@ -14,40 +14,14 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import api from '@/utils/api';
+import api from '@/lib/api';
 import axios from 'axios';
 import ButterflyLoader from '@/components/butterfly-loader';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { CompletedWorkout, CompletedWorkoutGroup } from '@/types/completed-workout';
 
 
-export interface CompletedWorkout {
-    id: number;
-    title: string;
-    completedDate: string;
-    completedTime: string | null;
-    actualDuration: number | null;
-    createdAt: string;
-    actualExercises: {
-        id: number;
-        actualId: number;
-        exerciseId: number;
-        plannedExerciseId: null;
-        actualSets: number | null;
-        actualReps: number | null;
-        actualWeight: number | null;
-        actualDuration: number | null;
-        exercise: {
-            id: number;
-            name: string;
-            category: string;
-            description: string;
-            createdAt: string;
-        };
-        plannedExercise: null;
-    }[];
-    plannedWorkout: null;
-}
 
 const ITEMS_PER_PAGE = 10;
 
@@ -81,13 +55,6 @@ const CompletedWorkoutsPage = () => {
     const fetchCompletedWorkouts = async () => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch('http://localhost:5000/api/actual-workouts', {
-            //     headers: { 'Authorization': `Bearer ${token}` }
-            // });
-
-            // if (!response.ok) throw new Error('Failed to fetch workouts');
-            // const data = await response.json();
             const { data } = await api.get('/actual-workouts');
             setWorkouts(data.data);
         } catch (error) {
@@ -113,13 +80,7 @@ const CompletedWorkoutsPage = () => {
     const handleDeleteGoal = async (id: number) => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch(`http://localhost:5000/api/actual-workouts/${id}`, {
-            //     method: 'DELETE',
-            //     headers: { 'Authorization': `Bearer ${token}` }
-            // });
 
-            // if (!response.ok) throw new Error('Failed to delete workout');
             await api.delete(`/actual-workouts/${id}`);
             await fetchCompletedWorkouts();
             toast.success('Workout deleted successfully');
@@ -141,23 +102,7 @@ const CompletedWorkoutsPage = () => {
 
     const handleEditGoal = async (workout: CompletedWorkout) => {
         try {
-            // setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch(`http://localhost:5000/api/actual-workouts/${workout.id}`, {
-            //     method: 'PUT',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({
-            //         title: workout.title,
-            //         completedDate: workout.completedDate,
-            //         actualDuration: workout.actualDuration,
-            //         actualExercises: workout.actualExercises
-            //     })
-            // });
 
-            // if (!response.ok) throw new Error('Failed to update workout');
 
             const updatedData = {
                 title: workout.title,

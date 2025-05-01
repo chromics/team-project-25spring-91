@@ -1,10 +1,10 @@
 "use client";
-import { SheetDemo } from '@/components/add-goal-sheet';
+import { SheetDemo } from '@/components/training-tasks/add-goal-sheet';
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Calendar, CheckCircle, Clock, Dumbbell, Edit, Loader2, LogOut, MoreVertical, Settings, Trash2, User } from 'lucide-react';
-import { EditWorkoutDialog } from '@/components/edit-workouts-dialog';
+import { EditWorkoutDialog } from '@/components/training-tasks/edit-workouts-dialog';
 import {
     Pagination,
     PaginationContent,
@@ -14,7 +14,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import api from '@/utils/api';
+import api from '@/lib/api';
 import ButterflyLoader from '@/components/butterfly-loader';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
@@ -28,38 +28,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import router from 'next/router';
 
-export interface PlannedExercise {
-    id: number;
-    exercise: {
-        name: string;
-        category: string;
-    };
-    plannedSets: number | null;
-    plannedReps: number | null;
-    plannedDuration: number | null;
-}
+import { PlannedWorkout, WorkoutGroup, Goal } from '@/types/workout';
 
-export interface PlannedWorkout {
-    id: number;
-    title: string;
-    scheduledDate: string;
-    estimatedDuration: number;
-    reminderSent: boolean;
-    plannedExercises: PlannedExercise[];
-}
-
-interface Goal {
-    date: string;
-    calories: number;
-    title: string;
-}
-
-interface WorkoutGroup {
-    future: PlannedWorkout[];
-    today: PlannedWorkout[];
-    lastWeek: PlannedWorkout[];
-    past: PlannedWorkout[];
-}
 
 const ITEMS_PER_PAGE = 10;
 
@@ -176,14 +146,14 @@ const SetGoalPage = () => {
         try {
             setLoading(true);
             const today = new Date();
-            
-            if (workout.scheduledDate.split('T')[0]  > today.toISOString().split('T')[0]){
-                toast.error("Cannot mark future plan as completed" , {
-                    description:'Please choose the correct plan date',
+
+            if (workout.scheduledDate.split('T')[0] > today.toISOString().split('T')[0]) {
+                toast.error("Cannot mark future plan as completed", {
+                    description: 'Please choose the correct plan date',
                 })
                 // console.log(workout.scheduledDate.split('T')[0]);
                 // console.log(today.toISOString().split('T')[0]);
-                return; 
+                return;
             }
 
             const updatedData = {

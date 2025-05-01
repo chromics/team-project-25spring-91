@@ -2,7 +2,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import api from '@/utils/api';
+import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 type User = {

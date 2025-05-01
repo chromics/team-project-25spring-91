@@ -1,4 +1,4 @@
-//edit-workouts-dialog.tsx
+//edit-completed-workouts-dialog.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,45 +12,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Dumbbell } from "lucide-react";
-import { CalendarForm } from "./calendar-form";
+import { EditCompletedWorkoutDialogProps } from '@/types/props';
+import { DetailedCompletedExercise } from '@/types/completed-exercise';
+import { CompletedWorkout } from '@/types/completed-workout';
 
-interface Exercise {
-  id: number;
-  exercise: {
-    name: string;
-    category: string;
-  };
-  plannedSets: number | null;
-  plannedReps: number | null;
-  plannedDuration: number | null;
-}
 
-interface PlannedWorkout {
-  id: number;
-  title: string;
-  scheduledDate: string;
-  estimatedDuration: number;
-  reminderSent: boolean;
-  plannedExercises: Exercise[];
-}
+// interface Exercise {
+//   id: number;
+//   actualId: number;
+//   exerciseId: number;
+//   plannedExerciseId: null;
+//   actualSets: number | null;
+//   actualReps: number | null;
+//   actualWeight: number | null;
+//   actualDuration: number | null;
+//   exercise: {
+//     id: number;
+//     name: string;
+//     category: string;
+//     description: string;
+//     createdAt: string;
+//   };
+//   plannedExercise: null;
+// }
 
-interface EditWorkoutDialogProps {
-  workout: PlannedWorkout | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (workout: PlannedWorkout) => Promise<void>;
-}
 
-export function EditWorkoutDialog({
+
+
+
+export function EditCompletedWorkoutDialog({
   workout,
   isOpen,
   onOpenChange,
   onSave,
-}: EditWorkoutDialogProps) {
+}: EditCompletedWorkoutDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
-    scheduledDate: "",
-    estimatedDuration: 0,
+    completedDate: "",
+    actualDuration: 0,
   });
 {/**
             * AI generated code 
@@ -62,8 +61,8 @@ export function EditWorkoutDialog({
     if (workout) {
       setFormData({
         title: workout.title,
-        scheduledDate: workout.scheduledDate.split("T")[0],
-        estimatedDuration: workout.estimatedDuration,
+        completedDate: workout.completedDate.split("T")[0],
+        actualDuration: workout.actualDuration || 0,
       });
     }
   }, [workout]);
@@ -72,17 +71,18 @@ export function EditWorkoutDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const updatedWorkout: PlannedWorkout = {
+
+    const updatedWorkout: CompletedWorkout = {
       ...workout,
       title: formData.title,
-      scheduledDate: formData.scheduledDate,
-      estimatedDuration: formData.estimatedDuration,
+      completedDate: formData.completedDate,
+      actualDuration: formData.actualDuration,
     };
 
     await onSave(updatedWorkout);
     onOpenChange(false);
   };
+
   {/**
             * AI generated code 
              tool: chat-gpt 
@@ -94,7 +94,7 @@ export function EditWorkoutDialog({
   ) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: field === "estimatedDuration" ? Number(e.target.value) : e.target.value,
+      [field]: field === "actualDuration" ? Number(e.target.value) : e.target.value,
     }));
   };
 
@@ -102,9 +102,9 @@ export function EditWorkoutDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Workout</DialogTitle>
+          <DialogTitle>Edit Completed Workout</DialogTitle>
           <DialogDescription>
-            Update your workout details below.
+            Update your completed workout details below.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,8 +129,8 @@ export function EditWorkoutDialog({
               <Input
                 id="date"
                 type="date"
-                value={formData.scheduledDate}
-                onChange={handleInputChange("scheduledDate")}
+                value={formData.completedDate}
+                onChange={handleInputChange("completedDate")}
                 className="col-span-3"
               />
             </div>
@@ -143,8 +143,8 @@ export function EditWorkoutDialog({
                 id="duration"
                 type="number"
                 min="1"
-                value={formData.estimatedDuration}
-                onChange={handleInputChange("estimatedDuration")}
+                value={formData.actualDuration}
+                onChange={handleInputChange("actualDuration")}
                 className="col-span-3"
               />
             </div>
@@ -158,7 +158,7 @@ export function EditWorkoutDialog({
              version: o3 mini high
              usage: i use ai to help correct the mapping syntax  
             */}
-                {workout.plannedExercises.map((exercise) => (
+                {workout.actualExercises.map((exercise) => (
                   <div
                     key={exercise.id}
                     className="flex items-center gap-2 p-2 bg-secondary rounded-lg"
@@ -167,11 +167,12 @@ export function EditWorkoutDialog({
                     <div>
                       <p className="font-medium">{exercise.exercise.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {exercise.plannedSets && exercise.plannedReps
-                          ? `${exercise.plannedSets} × ${exercise.plannedReps} reps`
-                          : exercise.plannedDuration
-                          ? `Duration: ${exercise.plannedDuration} min`
+                        {exercise.actualSets && exercise.actualReps
+                          ? `${exercise.actualSets} × ${exercise.actualReps} reps`
+                          : exercise.actualDuration
+                          ? `Duration: ${exercise.actualDuration} min`
                           : "No details specified"}
+                        {exercise.actualWeight && ` @ ${exercise.actualWeight}kg`}
                       </p>
                     </div>
                   </div>

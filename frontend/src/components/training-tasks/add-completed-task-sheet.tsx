@@ -10,31 +10,23 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "../ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
-import { AddCompletedExerciseDialog } from "./add-completed-exercise-dialog"
+import { AddCompletedExerciseDialog } from "../training-tasks/add-completed-exercise-dialog"
 import { AArrowDown, Plus, Trash2 } from "lucide-react"
-import api from "@/utils/api"
+import api from "@/lib/api"
 import axios from "axios"
-import { CompletedWorkout } from "@/app/dashboard/completed-tasks/page"
 
-interface CompletedExercise {
-    exerciseId: number;
-    actualSets: number | null;
-    actualReps: number | null;
-    actualDuration: number | null;
-}
+import { AddCompletedTaskSheetProps } from '@/types/props';
+import { CompletedExercise } from '@/types/completed-exercise';
+import { CompletedWorkout } from '@/types/completed-workout';
+
 
 interface ExerciseOption {
     id: number;
     name: string;
     category: string;
-}
-
-interface AddCompletedTaskSheetProps {
-    propAddCompletedTasks: () => void;
-    workouts: CompletedWorkout[];
 }
 
 export function AddCompletedTaskSheet({ propAddCompletedTasks, workouts }: AddCompletedTaskSheetProps) {

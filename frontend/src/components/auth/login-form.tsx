@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Cookies from 'js-cookie';
 import { useAuth } from "@/context/auth-context";
-import api from "@/utils/api";
+import api from "@/lib/api";
 import axios from "axios";
 
 export function LoginForm({

@@ -1,4 +1,4 @@
-//edit-completed-workouts-dialog.tsx
+//edit-workouts-dialog.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,54 +12,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Dumbbell } from "lucide-react";
+import { CalendarForm } from "../calendar-form";
+import { EditWorkoutDialogProps } from '@/types/props';
+import { PlannedWorkout } from '@/types/workout';
 
-interface Exercise {
-  id: number;
-  actualId: number;
-  exerciseId: number;
-  plannedExerciseId: null;
-  actualSets: number | null;
-  actualReps: number | null;
-  actualWeight: number | null;
-  actualDuration: number | null;
-  exercise: {
-    id: number;
-    name: string;
-    category: string;
-    description: string;
-    createdAt: string;
-  };
-  plannedExercise: null;
-}
+// interface Exercise {
+//   id: number;
+//   exercise: {
+//     name: string;
+//     category: string;
+//   };
+//   plannedSets: number | null;
+//   plannedReps: number | null;
+//   plannedDuration: number | null;
+// }
 
-interface CompletedWorkout {
-  id: number;
-  title: string;
-  completedDate: string;
-  completedTime: string | null;
-  actualDuration: number | null;
-  createdAt: string;
-  actualExercises: Exercise[];
-  plannedWorkout: null;
-}
 
-interface EditCompletedWorkoutDialogProps {
-  workout: CompletedWorkout | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (workout: CompletedWorkout) => Promise<void>;
-}
 
-export function EditCompletedWorkoutDialog({
+export function EditWorkoutDialog({
   workout,
   isOpen,
   onOpenChange,
   onSave,
-}: EditCompletedWorkoutDialogProps) {
+}: EditWorkoutDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
-    completedDate: "",
-    actualDuration: 0,
+    scheduledDate: "",
+    estimatedDuration: 0,
   });
 {/**
             * AI generated code 
@@ -71,8 +50,8 @@ export function EditCompletedWorkoutDialog({
     if (workout) {
       setFormData({
         title: workout.title,
-        completedDate: workout.completedDate.split("T")[0],
-        actualDuration: workout.actualDuration || 0,
+        scheduledDate: workout.scheduledDate.split("T")[0],
+        estimatedDuration: workout.estimatedDuration,
       });
     }
   }, [workout]);
@@ -81,18 +60,17 @@ export function EditCompletedWorkoutDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const updatedWorkout: CompletedWorkout = {
+    
+    const updatedWorkout: PlannedWorkout = {
       ...workout,
       title: formData.title,
-      completedDate: formData.completedDate,
-      actualDuration: formData.actualDuration,
+      scheduledDate: formData.scheduledDate,
+      estimatedDuration: formData.estimatedDuration,
     };
 
     await onSave(updatedWorkout);
     onOpenChange(false);
   };
-
   {/**
             * AI generated code 
              tool: chat-gpt 
@@ -104,7 +82,7 @@ export function EditCompletedWorkoutDialog({
   ) => {
     setFormData((prev) => ({
       ...prev,
-      [field]: field === "actualDuration" ? Number(e.target.value) : e.target.value,
+      [field]: field === "estimatedDuration" ? Number(e.target.value) : e.target.value,
     }));
   };
 
@@ -112,9 +90,9 @@ export function EditCompletedWorkoutDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Completed Workout</DialogTitle>
+          <DialogTitle>Edit Workout</DialogTitle>
           <DialogDescription>
-            Update your completed workout details below.
+            Update your workout details below.
           </DialogDescription>
         </DialogHeader>
 
@@ -139,8 +117,8 @@ export function EditCompletedWorkoutDialog({
               <Input
                 id="date"
                 type="date"
-                value={formData.completedDate}
-                onChange={handleInputChange("completedDate")}
+                value={formData.scheduledDate}
+                onChange={handleInputChange("scheduledDate")}
                 className="col-span-3"
               />
             </div>
@@ -153,8 +131,8 @@ export function EditCompletedWorkoutDialog({
                 id="duration"
                 type="number"
                 min="1"
-                value={formData.actualDuration}
-                onChange={handleInputChange("actualDuration")}
+                value={formData.estimatedDuration}
+                onChange={handleInputChange("estimatedDuration")}
                 className="col-span-3"
               />
             </div>
@@ -168,7 +146,7 @@ export function EditCompletedWorkoutDialog({
              version: o3 mini high
              usage: i use ai to help correct the mapping syntax  
             */}
-                {workout.actualExercises.map((exercise) => (
+                {workout.plannedExercises.map((exercise) => (
                   <div
                     key={exercise.id}
                     className="flex items-center gap-2 p-2 bg-secondary rounded-lg"
@@ -177,12 +155,11 @@ export function EditCompletedWorkoutDialog({
                     <div>
                       <p className="font-medium">{exercise.exercise.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {exercise.actualSets && exercise.actualReps
-                          ? `${exercise.actualSets} × ${exercise.actualReps} reps`
-                          : exercise.actualDuration
-                          ? `Duration: ${exercise.actualDuration} min`
+                        {exercise.plannedSets && exercise.plannedReps
+                          ? `${exercise.plannedSets} × ${exercise.plannedReps} reps`
+                          : exercise.plannedDuration
+                          ? `Duration: ${exercise.plannedDuration} min`
                           : "No details specified"}
-                        {exercise.actualWeight && ` @ ${exercise.actualWeight}kg`}
                       </p>
                     </div>
                   </div>
