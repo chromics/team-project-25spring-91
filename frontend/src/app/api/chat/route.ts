@@ -9,15 +9,27 @@ export async function POST(request: NextRequest) {
     });
 
     const { messages } = await request.json();
-    const lastMessage = messages[messages.length - 1].content.toLowerCase().trim();
 
-    // General fitness responses
+    // Extract the last 3 messages for context
+    const recentMessages = messages.slice(-4); // includes last user message too
+    const lastMessage = recentMessages[recentMessages.length - 1].content.toLowerCase().trim();
+
+    // Format the chat history (excluding the last message)
+    const chatHistory = recentMessages
+      .slice(0, -1)
+      .map((msg: { role: string; content: string }) => ({
+        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
+        message: msg.content
+      }));
+
+    // Get AI response
     const response = await cohere.chat({
-      message: `Respond to this fitness question in a friendly, casual tone but keep it under 8 sentences: ${lastMessage}.`,
+      message: lastMessage,
       model: 'command',
-      max_tokens: 400,
-      temperature: 0.6, // Slightly more creative
-      preamble: `When responding to a greeting/goodbye/thankyou message, keep it VERY CONCISE and under 2 sentences. You're a knowledgeable but approachable fitness coach. Be concise but add a tiny bit of personality.`,
+      max_tokens: 500,
+      temperature: 0.6,
+      chat_history: chatHistory,
+      preamble: `You're a knowledgeable but approachable fitness coach. Always stay on topic. When responding to a greeting/goodbye/thankyou, be VERY CONCISE (under 2 sentences). Be friendly and clear.`,
       stop_sequences: ['###END###']
     });
 
