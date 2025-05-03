@@ -1,3 +1,4 @@
+// import { Header } from "@/components/layout/header";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { ChevronsRight } from "lucide-react";
@@ -68,7 +69,7 @@ export default function Home() {
                     dark:backdrop-blur-sm 
                     dark:border-white/30"
                 >
-                <Link href="/sign-up" className="text-white hover:text-white">
+                <Link href="/sign-in" className="text-white hover:text-white">
                     <span className="relative top-[-2px]">Start tracking</span>
                     <ChevronsRight className="w-5 h-5 ml-1" />
                 </Link>

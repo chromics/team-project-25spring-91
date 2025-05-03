@@ -12,50 +12,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Dumbbell } from "lucide-react";
+import { EditCompletedWorkoutDialogProps } from '@/types/props';
+import { DetailedCompletedExercise } from '@/types/completed-exercise';
+import { CompletedWorkout } from '@/types/completed-workout';
+import { toast } from "sonner";
 
-interface Exercise {
-  id: number;
-  actualId: number;
-  exerciseId: number;
-  plannedExerciseId: null;
-  actualSets: number | null;
-  actualReps: number | null;
-  actualWeight: number | null;
-  actualDuration: number | null;
-  exercise: {
-    id: number;
-    name: string;
-    category: string;
-    description: string;
-    createdAt: string;
-  };
-  plannedExercise: null;
-}
 
-interface CompletedWorkout {
-  id: number;
-  title: string;
-  completedDate: string;
-  completedTime: string | null;
-  actualDuration: number | null;
-  createdAt: string;
-  actualExercises: Exercise[];
-  plannedWorkout: null;
-}
+// interface Exercise {
+//   id: number;
+//   actualId: number;
+//   exerciseId: number;
+//   plannedExerciseId: null;
+//   actualSets: number | null;
+//   actualReps: number | null;
+//   actualWeight: number | null;
+//   actualDuration: number | null;
+//   exercise: {
+//     id: number;
+//     name: string;
+//     category: string;
+//     description: string;
+//     createdAt: string;
+//   };
+//   plannedExercise: null;
+// }
 
-interface EditCompletedWorkoutDialogProps {
-  workout: CompletedWorkout | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (workout: CompletedWorkout) => Promise<void>;
-}
+
+
+
 
 export function EditCompletedWorkoutDialog({
+  workouts,
   workout,
   isOpen,
   onOpenChange,
   onSave,
 }: EditCompletedWorkoutDialogProps) {
+
+  
   const [formData, setFormData] = useState({
     title: "",
     completedDate: "",
@@ -82,6 +76,28 @@ export function EditCompletedWorkoutDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const newDate = formData.completedDate.split('T')[0];
+
+    // completed date cannot be in the future******
+    const today = new Date();
+    if (newDate > today.toISOString().split('T')[0]){
+        toast.error("Completed date should not be in the future", {
+            description: 'Please choose a new date',
+        });
+        return;
+    } 
+
+    const duplicatedDate = workouts.find(workout =>
+        newDate === workout.completedDate.split('T')[0]
+    );
+
+    if (duplicatedDate) {
+        toast.error(`${newDate} was already existed`, {
+            description: 'Please choose a new date',
+        });
+        return;
+    }
+    
     const updatedWorkout: CompletedWorkout = {
       ...workout,
       title: formData.title,
@@ -161,7 +177,7 @@ export function EditCompletedWorkoutDialog({
 
             <div className="grid grid-cols-4 items-start gap-4">
               <Label className="text-right pt-2">Exercises</Label>
-              <div className="col-span-3 space-y-2">
+              <div className="col-span-3 space-y-2 h-64 overflow-y-auto">
                 {/**
             * AI generated code 
              tool: chat-gpt 

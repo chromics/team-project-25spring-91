@@ -41,62 +41,67 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-completed: var(--completed);
 }
 
 :root {
   --radius: 0.625rem;
-  
+
   /* Clean white background with dark text */
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.15 0 0);
-  
+
   /* Slightly off-white for cards */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0 0);
-  
+
   /* Matching white with dark text */
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  
+
   /* Baby blue for primary/buttons - same as dark theme */
   --primary: oklch(0.65 0.1 235);
   --primary-foreground: oklch(1 0 0);
-  
+
   /* Light gray with dark text */
   --secondary: oklch(0.95 0.02 235);
   --secondary-foreground: oklch(0.15 0 0);
-  
+
   /* Light gray with medium-dark text */
   --muted: oklch(0.95 0.02 235);
   --muted-foreground: oklch(0.45 0 0);
-  
+
   /* Light gray with dark text */
   --accent: oklch(0.95 0.02 235);
   --accent-foreground: oklch(0.15 0 0);
-  
+
   /* Functional colors */
   --destructive: oklch(0.65 0.245 27.325);
   --border: oklch(0 0 0 / 10%);
   --input: oklch(0 0 0 / 15%);
-  --ring: oklch(0.65 0.1 235); /* Baby blue ring */
-  
+  --ring: oklch(0.65 0.1 235);
+  /* Baby blue ring */
+
   /* Chart colors - using the dark theme's palette for consistency */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  
+
   /* Light sidebar with dark text */
   --sidebar: oklch(0.97 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: oklch(0.65 0.1 235); /* Baby blue accent */
+  --sidebar-primary: oklch(0.65 0.1 235);
+  /* Baby blue accent */
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.95 0.02 235);
   --sidebar-accent-foreground: oklch(0.15 0 0);
   --sidebar-border: oklch(0 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.1 235); /* Baby blue ring */
-  --sidebar-hover: oklch(0.9 0.02 235); /* Light gray hover state */
+  --sidebar-ring: oklch(0.65 0.1 235);
+  /* Baby blue ring */
+  --sidebar-hover: oklch(0.9 0.02 235);
+  /* Light gray hover state */
 }
 
 
@@ -133,7 +138,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.8 0.1 235); /* Baby blue ring */
+  --ring: oklch(0.8 0.1 235);
+  /* Baby blue ring */
 
   /* Keep chart colors the same */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -145,19 +151,203 @@
   /* Dark sidebar with white text */
   --sidebar: oklch(0.08 0 0);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.8 0.1 235); /* Baby blue accent */
+  --sidebar-primary: oklch(0.8 0.1 235);
+  /* Baby blue accent */
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.15 0 0);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.8 0.1 235); /* Baby blue ring */
-  --sidebar-hover: oklch(0.25 0 0); /* New grayer hover state for sidebar buttons */
+  --sidebar-ring: oklch(0.8 0.1 235);
+  /* Baby blue ring */
+  --sidebar-hover: oklch(0.25 0 0);
+  /* New grayer hover state for sidebar buttons */
+}
+
+
+/* Neutral Theme - Light Mode */
+:root {
+  --radius: 0.625rem;
+  /* Keep your radius */
+
+  /* Core */
+  --background: oklch(1 0 0);
+  /* White */
+  --foreground: oklch(0.10 0 0);
+  /* Near Black */
+
+  /* Card */
+  --card: oklch(1 0 0);
+  /* White */
+  --card-foreground: oklch(0.10 0 0);
+  /* Near Black */
+
+  /* Popover */
+  --popover: oklch(1 0 0);
+  /* White */
+  --popover-foreground: oklch(0.10 0 0);
+  /* Near Black */
+
+  /* Primary (Neutral Gray) */
+  --primary: oklch(0.15 0 0);
+  /* Dark Gray */
+  --primary-foreground: oklch(0.98 0 0);
+  /* Very Light Gray / Near White */
+
+  /* Secondary */
+  --secondary: oklch(0.95 0 0);
+  /* Light Gray */
+  --secondary-foreground: oklch(0.15 0 0);
+  /* Dark Gray */
+
+  /* Muted */
+  --muted: oklch(0.95 0 0);
+  /* Light Gray */
+  --muted-foreground: oklch(0.45 0 0);
+  /* Medium Gray */
+
+  /* Accent */
+  --accent: oklch(0.95 0 0);
+  /* Light Gray */
+  --accent-foreground: oklch(0.15 0 0);
+  /* Dark Gray */
+
+  /* Destructive (Keep Red) */
+  --destructive: oklch(0.65 0.2 25);
+  /* Standard Red */
+  --destructive-foreground: oklch(1 0 0);
+  /* White */
+
+  /* Functional */
+  --border: oklch(0.1 0 0 / 0.1);
+  /* Near Black 10% */
+  --input: oklch(0.1 0 0 / 0.12);
+  /* Near Black 12% */
+  --ring: oklch(0.15 0 0);
+  /* Dark Gray (matches primary) */
+
+  /* Chart colors - Keep existing or adjust if needed */
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  /* Sidebar (Neutral) */
+  --sidebar: oklch(0.98 0 0);
+  /* Very Light Gray */
+  --sidebar-foreground: oklch(0.15 0 0);
+  /* Dark Gray */
+  --sidebar-primary: oklch(0.15 0 0);
+  /* Dark Gray */
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  /* Near White */
+  --sidebar-accent: oklch(0.94 0 0);
+  /* Light Gray */
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  /* Dark Gray */
+  --sidebar-border: oklch(0.1 0 0 / 0.1);
+  /* Near Black 10% */
+  --sidebar-ring: oklch(0.15 0 0);
+  /* Dark Gray */
+  --sidebar-hover: oklch(0.92 0 0);
+  /* Slightly darker light gray */
+
+  --completed:            oklch(0.97 0.08 220);
+}
+
+/* Neutral Theme - Dark Mode */
+.dark {
+  /* Core */
+  --background: oklch(0.09 0 0);
+  /* Very Dark Gray */
+  --foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Card */
+  --card: oklch(0.09 0 0);
+  /* Very Dark Gray */
+  --card-foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Popover */
+  --popover: oklch(0.09 0 0);
+  /* Very Dark Gray */
+  --popover-foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Primary (Neutral Gray) */
+  --primary: oklch(0.95 0 0);
+  /* Near White */
+  --primary-foreground: oklch(0.12 0 0);
+  /* Dark Gray */
+
+  /* Secondary */
+  --secondary: oklch(0.15 0 0);
+  /* Dark Gray */
+  --secondary-foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Muted */
+  --muted: oklch(0.15 0 0);
+  /* Dark Gray */
+  --muted-foreground: oklch(0.65 0 0);
+  /* Medium-Light Gray */
+
+  /* Accent */
+  --accent: oklch(0.15 0 0);
+  /* Dark Gray */
+  --accent-foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Destructive (Keep Red, adjust lightness) */
+  --destructive: oklch(0.7 0.2 25);
+  /* Standard Red (slightly lighter) */
+  --destructive-foreground: oklch(0.95 0 0);
+  /* Near White */
+
+  /* Functional */
+  --border: oklch(0.95 0 0 / 0.1);
+  /* Near White 10% */
+  --input: oklch(0.95 0 0 / 0.12);
+  /* Near White 12% */
+  --ring: oklch(0.95 0 0);
+  /* Near White (matches primary) */
+
+  /* Chart colors - Keep existing or adjust if needed */
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  /* Sidebar (Neutral) */
+  --sidebar: oklch(0.05 0 0);
+  /* Near Black */
+  --sidebar-foreground: oklch(0.95 0 0);
+  /* Near White */
+  --sidebar-primary: oklch(0.95 0 0);
+  /* Near White */
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  /* Dark Gray */
+  --sidebar-accent: oklch(0.15 0 0);
+  /* Dark Gray */
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  /* Near White */
+  --sidebar-border: oklch(0.95 0 0 / 0.1);
+  /* Near White 10% */
+  --sidebar-ring: oklch(0.95 0 0);
+  /* Near White */
+  --sidebar-hover: oklch(0.2 0 0);
+  /* Darker gray hover */
+
+  --completed:            oklch(0.97 0.08 220);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

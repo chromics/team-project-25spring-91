@@ -1,39 +1,17 @@
-// // frontend/lib/api.ts
-// import { getAuth } from 'firebase/auth';
+// lib/api.ts
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
-// export const api = {
-//   test: async () => {
-//     const auth = getAuth();
-//     const token = await auth.currentUser?.getIdToken();
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api'
+});
 
-//     const response = await fetch('http://localhost:5000/api/test', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`
-//       }
-//     });
+api.interceptors.request.use((config) => {
+  const token = Cookies.get('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-//     if (!response.ok) {
-//       throw new Error('API call failed');
-//     }
-//     return response.json();
-//   },
-
-//   createTest: async (txt: string) => {
-//     const auth = getAuth();
-//     const token = await auth.currentUser?.getIdToken();
-
-//     const response = await fetch('http://localhost:5000/api/test', {
-//       method: 'POST',
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       },
-//       body: JSON.stringify({ txt })
-//     });
-
-//     if (!response.ok) {
-//       throw new Error('API call failed');
-//     }
-//     return response.json();
-//   }
-// };
+export default api;

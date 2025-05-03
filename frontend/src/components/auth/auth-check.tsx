@@ -1,54 +1,47 @@
-// src/components/auth/auth-check.tsx
-"use client";
+// // src/components/auth/auth-check.tsx
+// "use client";
 
-import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { LoadingSpinner } from "@/components/ui/loading";
+// import { useAuth } from "@/context/auth-context";
+// import { useRouter } from "next/navigation";
+// import { useEffect } from "react";
+// import { LoadingSpinner } from "@/components/ui/loading";
 
-interface AuthCheckProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-  redirectTo?: string;
-}
+// interface AuthCheckProps {
+//   children: React.ReactNode;
+//   requireAuth?: boolean;
+//   redirectTo?: string;
+// }
 
-  {/**
-            * AI generated code 
-             tool: chat-gpt 
-             version: o3 mini high
-             usage: generate an auth check for authentication purposes, but we will mmigrate from firebase to different method in furture date  
-            */}
+// export function AuthCheck({
+//   children,
+//   requireAuth = true,
+//   redirectTo = requireAuth ? "/sign-in" : "/dashboard",
+// }: AuthCheckProps) {
+//   const { user, loading } = useAuth();
+//   const router = useRouter();
 
-export function AuthCheck({
-  children,
-  requireAuth = true,
-  redirectTo = requireAuth ? "/sign-in" : "/dashboard",
-}: AuthCheckProps) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+//   useEffect(() => {
+//     if (!loading) {
+//       const isAuthenticated = !!user;
+//       // console.log(user?.uid);
+//       if (requireAuth && !isAuthenticated) {
+//         router.push(redirectTo);
+//       } else if (!requireAuth && isAuthenticated) {
+//         router.push(redirectTo);
+//       }
+//     }
+//   }, [user, loading, requireAuth, redirectTo, router]);
 
-  useEffect(() => {
-    if (!loading) {
-      const isAuthenticated = !!user;
-      // console.log(user?.uid);
-      if (requireAuth && !isAuthenticated) {
-        router.push(redirectTo);
-      } else if (!requireAuth && isAuthenticated) {
-        router.push(redirectTo);
-      }
-    }
-  }, [user, loading, requireAuth, redirectTo, router]);
+//   if (loading) {
+//     return <LoadingSpinner />;
+//   }
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+//   if (
+//     (requireAuth && user) || // User is authenticated and auth is required
+//     (!requireAuth && !user) // User is not authenticated and auth is not required
+//   ) {
+//     return <>{children}</>;
+//   }
 
-  if (
-    (requireAuth && user) || // User is authenticated and auth is required
-    (!requireAuth && !user) // User is not authenticated and auth is not required
-  ) {
-    return <>{children}</>;
-  }
-
-  return <LoadingSpinner />;
-}
+//   return <LoadingSpinner />;
+// }

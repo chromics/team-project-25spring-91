@@ -1,10 +1,10 @@
 "use client";
-import { SheetDemo } from '@/components/add-goal-sheet';
+import { SheetDemo } from '@/components/training-tasks/add-goal-sheet';
 import { SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Calendar, CheckCircle, Clock, Dumbbell, Edit, Trash2 } from 'lucide-react';
-import { EditWorkoutDialog } from '@/components/edit-workouts-dialog';
+import { Calendar, CheckCircle, Clock, Dumbbell, Edit, Loader2, LogOut, MoreVertical, Settings, Trash2, User } from 'lucide-react';
+import { EditWorkoutDialog } from '@/components/training-tasks/edit-workouts-dialog';
 import {
     Pagination,
     PaginationContent,
@@ -14,39 +14,22 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import api from '@/lib/api';
+import ButterflyLoader from '@/components/butterfly-loader';
+import axios from 'axios';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import router from 'next/router';
 
-interface PlannedExercise {
-    id: number;
-    exercise: {
-        name: string;
-        category: string;
-    };
-    plannedSets: number | null;
-    plannedReps: number | null;
-    plannedDuration: number | null;
-}
+import { PlannedWorkout, WorkoutGroup, Goal } from '@/types/workout';
 
-interface PlannedWorkout {
-    id: number;
-    title: string;
-    scheduledDate: string;
-    estimatedDuration: number;
-    reminderSent: boolean;
-    plannedExercises: PlannedExercise[];
-}
-
-interface Goal {
-    date: string;
-    calories: number;
-    title: string;
-}
-
-interface WorkoutGroup {
-    future: PlannedWorkout[];
-    today: PlannedWorkout[];
-    lastWeek: PlannedWorkout[];
-    past: PlannedWorkout[];
-}
 
 const ITEMS_PER_PAGE = 10;
 
@@ -55,29 +38,49 @@ const SetGoalPage = () => {
     const [loading, setLoading] = useState(true);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedWorkout, setSelectedWorkout] = useState<PlannedWorkout | null>(null);
+    const [expandedWorkouts, setExpandedWorkouts] = useState(new Set());
     const [currentPages, setCurrentPages] = useState({
         future: 1,
         lastWeek: 1,
         past: 1
     });
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         fetchWorkouts();
     }, []);
 
+    // At the component level where you manage state
+
+    // Function to toggle expansion for a specific workout
+    const toggleExpansion = (workoutId: number) => {
+        setExpandedWorkouts((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(workoutId)) {
+                newSet.delete(workoutId);
+            } else {
+                newSet.add(workoutId);
+            }
+            return newSet;
+        });
+    };
     const fetchWorkouts = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/planned-workouts', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error('Failed to fetch workouts');
-            const data = await response.json();
+            const { data } = await api.get('/planned-workouts');
             setWorkouts(data.data);
         } catch (error) {
-            toast.error("Failed to load workouts");
+
+            let errorMessage = 'Failed to load workouts';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -90,18 +93,20 @@ const SetGoalPage = () => {
     const handleDeleteGoal = async (id: number) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/planned-workouts/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) throw new Error('Failed to delete workout');
-            
+            await api.delete(`/planned-workouts/${id}`);
             await fetchWorkouts();
             toast.success('Workout deleted successfully');
         } catch (error) {
-            toast.error("Failed to delete workout");
+            let errorMessage = 'Failed to delete workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -110,27 +115,28 @@ const SetGoalPage = () => {
     const handleEditGoal = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/planned-workouts/${workout.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: workout.title,
-                    scheduledDate: workout.scheduledDate,
-                    estimatedDuration: workout.estimatedDuration,
-                    plannedExercises: workout.plannedExercises
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to update workout');
-            
+            const updatedData = {
+                title: workout.title,
+                scheduledDate: workout.scheduledDate,
+                estimatedDuration: workout.estimatedDuration,
+                plannedExercises: workout.plannedExercises
+            }
+            await api.put(`/planned-workouts/${workout.id}`, updatedData);
             await fetchWorkouts();
             toast.success('Workout updated successfully');
         } catch (error) {
-            toast.error("Failed to update workout");
+            // console.error('Error marking workout:', error); 
+
+            let errorMessage = 'Failed to update workout';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -139,30 +145,39 @@ const SetGoalPage = () => {
     const markAsCompleted = async (workout: PlannedWorkout) => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch(`http://localhost:5000/api/actual-workouts/from-planned/${workout.id}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: workout.title,
-                    completedDate: workout.scheduledDate,
-                    actualDuration: workout.estimatedDuration,
-                    actualExercises: workout.plannedExercises
-                })
-            });
+            const today = new Date();
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to mark workout as completed');
+            if (workout.scheduledDate.split('T')[0] > today.toISOString().split('T')[0]) {
+                toast.error("Cannot mark future plan as completed", {
+                    description: 'Please choose the correct plan date',
+                })
+                // console.log(workout.scheduledDate.split('T')[0]);
+                // console.log(today.toISOString().split('T')[0]);
+                return;
             }
 
+            const updatedData = {
+                title: workout.title,
+                completedDate: workout.scheduledDate,
+                actualDuration: workout.estimatedDuration,
+                actualExercises: workout.plannedExercises
+            }
+            await api.post(`/actual-workouts/from-planned/${workout.id}`, updatedData);
             await fetchWorkouts();
             toast.success('Workout marked as completed');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Failed to mark workout as completed");
+            // console.error('Error marking workout:', error); 
+
+            let errorMessage = 'Failed to mark workout as completed';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -214,19 +229,19 @@ const SetGoalPage = () => {
     const renderPagination = (total: number, currentPage: number, section: keyof typeof currentPages) => {
         const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
         if (totalPages <= 1) return null;
-    
+
         const renderPageNumbers = () => {
             const pages = [];
             const maxVisiblePages = 5; // Show max 5 page numbers at a time
-            
+
             let start = Math.max(1, currentPage - 2);
             let end = Math.min(totalPages, start + maxVisiblePages - 1);
-            
+
             // Adjust start if we're near the end
             if (end === totalPages) {
                 start = Math.max(1, end - maxVisiblePages + 1);
             }
-    
+
             // Add first page
             if (start > 1) {
                 pages.push(
@@ -247,7 +262,7 @@ const SetGoalPage = () => {
                     );
                 }
             }
-    
+
             // Add visible page numbers
             for (let i = start; i <= end; i++) {
                 pages.push(
@@ -262,7 +277,7 @@ const SetGoalPage = () => {
                     </PaginationItem>
                 );
             }
-    
+
             // Add last page
             if (end < totalPages) {
                 if (end < totalPages - 1) {
@@ -283,15 +298,15 @@ const SetGoalPage = () => {
                     </PaginationItem>
                 );
             }
-    
+
             return pages;
         };
-    
+
         return (
             <Pagination className="mt-4">
                 <PaginationContent className="flex flex-wrap gap-1">
                     <PaginationItem>
-                        <PaginationPrevious 
+                        <PaginationPrevious
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.max(1, prev[section] - 1)
@@ -299,11 +314,11 @@ const SetGoalPage = () => {
                             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                     </PaginationItem>
-                    
+
                     {renderPageNumbers()}
-                    
+
                     <PaginationItem>
-                        <PaginationNext 
+                        <PaginationNext
                             onClick={() => setCurrentPages(prev => ({
                                 ...prev,
                                 [section]: Math.min(totalPages, prev[section] + 1)
@@ -317,71 +332,123 @@ const SetGoalPage = () => {
     };
 
     const renderWorkoutList = (workouts: PlannedWorkout[]) => {
-        return workouts.map(workout => (
-            <li key={workout.id} className="px-4 py-3 rounded-lg border shadow-sm">
-                <div className="flex flex-col">
-                    <div className="flex justify-between items-start">
-                        <div className="space-y-2">
-                            <h3 className="font-bold text-lg">{workout.title}</h3>
-                            <div className="flex items-center text-gray-600 text-sm">
-                                <Calendar className="w-4 h-4 mr-1" />
+        return workouts.map(workout => {
+            const exercisesToShow = isExpanded ? workout.plannedExercises : workout.plannedExercises.slice(0, 1);
+
+            return (
+                <li
+                    key={workout.id}
+                    className="bg-card text-card-foreground p-3 rounded-lg border border-border/60 hover:border-border/80 transition-colors"
+                >
+                    <div className="flex flex-col gap-1.5">
+                        {/* Header Section */}
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-base">{workout.title}</h3>
+                                <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-primary text-primary bg-accent">
+                                    Planned
+                                </div>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuItem onClick={() => markAsCompleted(workout)}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Mark as Completed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            setSelectedWorkout(workout);
+                                            setEditDialogOpen(true);
+                                        }}
+                                    >
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit Workout
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        variant="destructive"
+                                        onClick={() => handleDeleteGoal(workout.id)}
+                                        aria-label="Delete workout"
+                                        className="cursor-pointer"
+                                    >
+                                        <Trash2 className="mr-2 w-4 h-4" />
+                                        Delete Workout
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+
+                        {/* Metadata Section */}
+                        <div className="flex items-center gap-3 text-muted-foreground text-xs">
+                            <div className="flex items-center">
+                                <Calendar className="w-3 h-3 mr-1" />
                                 <span>{new Date(workout.scheduledDate).toLocaleDateString()}</span>
-                                <Clock className="w-4 h-4 ml-3 mr-1" />
+                            </div>
+                            <div className="flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
                                 <span>{workout.estimatedDuration} min</span>
                             </div>
-                            <div className="space-y-1">
-                                {workout.plannedExercises.map((exercise) => (
-                                    <div key={exercise.id} className="flex items-center text-sm text-gray-700">
-                                        <Dumbbell className="w-3 h-3 mr-1" />
-                                        <span>{exercise.exercise.name}</span>
-                                        {exercise.plannedSets && exercise.plannedReps && (
-                                            <span className="ml-2">
-                                                ({exercise.plannedSets} × {exercise.plannedReps})
-                                            </span>
-                                        )}
-                                        {exercise.plannedDuration && (
-                                            <span className="ml-2">({exercise.plannedDuration} min)</span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
                         </div>
-                        <div className="inline-flex items-center h-5 px-2 text-[10px] rounded-full border border-green-500 text-green-600 bg-green-50">
-                            Planned
+
+                        {/* Exercises Section */}
+                        <div className="grid gap-0.5">
+                            {(expandedWorkouts.has(workout.id)
+                                ? workout.plannedExercises
+                                : workout.plannedExercises.slice(0, 1)
+                            ).map((exercise) => (
+                                <div
+                                    key={exercise.id}
+                                    className="flex items-center text-xs text-muted-foreground"
+                                >
+                                    <Dumbbell className="w-3 h-3 mr-1 text-muted-foreground/70 flex-shrink-0" />
+                                    <span className="truncate">{exercise.exercise.name}</span>
+                                    {exercise.plannedSets && exercise.plannedReps && (
+                                        <span className="ml-1 text-muted-foreground/80 flex-shrink-0">
+                                            ({exercise.plannedSets}×{exercise.plannedReps})
+                                        </span>
+                                    )}
+                                    {exercise.plannedDuration && (
+                                        <span className="ml-1 text-muted-foreground/80 flex-shrink-0">
+                                            ({exercise.plannedDuration}m)
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                            {workout.plannedExercises.length > 1 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        toggleExpansion(workout.id);
+                                    }}
+                                    className="text-xs text-primary hover:underline focus:outline-none mt-0.5"
+                                >
+                                    {expandedWorkouts.has(workout.id)
+                                        ? "Show less"
+                                        : `+${workout.plannedExercises.length - 1} more exercises`}
+                                </button>
+                            )}
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 mt-3">
-                        <button
-                            onClick={() => markAsCompleted(workout)}
-                            className="p-2 text-gray-600 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
-                        >
-                            <CheckCircle className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => {
-                                setSelectedWorkout(workout);
-                                setEditDialogOpen(true);
-                            }}
-                            className="p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                        >
-                            <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                            onClick={() => handleDeleteGoal(workout.id)}
-                            className="p-2 text-gray-600 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
-            </li>
-        ));
+                </li>
+
+
+
+
+            );
+        });
     };
+
+
 
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <ButterflyLoader />
             </div>
         );
     }
@@ -389,66 +456,119 @@ const SetGoalPage = () => {
     const groupedWorkouts = groupWorkouts(workouts);
 
     return (
-        <div>
+        <div className="container mx-auto px-6">
+            {/* Dialog and Header sections remain the same */}
             <EditWorkoutDialog
+                workouts={workouts}
                 workout={selectedWorkout}
                 isOpen={editDialogOpen}
                 onOpenChange={setEditDialogOpen}
                 onSave={handleEditGoal}
             />
-            <SheetDemo propAddGoal={handleAddGoal} />
 
-            <div className="mt-8 max-w mx-auto px-20">
-                <h2 className="text-xl font-semibold mb-4">Your Planned Workouts</h2>
-
-                <div className="space-y-8">
-                    {groupedWorkouts.today.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Today</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {renderWorkoutList(groupedWorkouts.today)}
-                            </ul>
-                        </SidebarGroup>
-                    )}
-
-                    {groupedWorkouts.future.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Upcoming Workouts</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {renderWorkoutList(paginateWorkouts(groupedWorkouts.future, currentPages.future))}
-                            </ul>
-                            {renderPagination(groupedWorkouts.future.length, currentPages.future, 'future')}
-                        </SidebarGroup>
-                    )}
-
-                    {groupedWorkouts.lastWeek.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Last 7 Days</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {renderWorkoutList(paginateWorkouts(groupedWorkouts.lastWeek, currentPages.lastWeek))}
-                            </ul>
-                            {renderPagination(groupedWorkouts.lastWeek.length, currentPages.lastWeek, 'lastWeek')}
-                        </SidebarGroup>
-                    )}
-
-                    {groupedWorkouts.past.length > 0 && (
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Past Workouts</SidebarGroupLabel>
-                            <ul className="space-y-3">
-                                {renderWorkoutList(paginateWorkouts(groupedWorkouts.past, currentPages.past))}
-                            </ul>
-                            {renderPagination(groupedWorkouts.past.length, currentPages.past, 'past')}
-                        </SidebarGroup>
-                    )}
-
-                    {workouts.length === 0 && (
-                        <p className="text-center text-gray-500">
-                            No workouts planned yet. Add your first workout!
-                        </p>
-                    )}
+            <div className="flex justify-between items-center py-6">
+                <h1 className="text-2xl font-bold">Workout Planner</h1>
+                <div className="w-auto">
+                    <SheetDemo propAddGoal={handleAddGoal} workouts={workouts} />
                 </div>
             </div>
+
+            {/* Main Content */}
+            <div className="space-y-8"> {/* Increased space between sections */}
+                {workouts.length === 0 ? (
+                    <div className="text-center py-8">
+                        <p className="text-lg text-muted-foreground mb-2">
+                            No workouts planned yet
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            Click the button above to add your first workout!
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Today's Workouts */}
+                        {groupedWorkouts.today.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Today</h2>
+                                <div className="ml-4"> {/* Indent content */}
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {renderWorkoutList(groupedWorkouts.today)}
+                                        </ul>
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Upcoming Workouts */}
+                        {groupedWorkouts.future.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Upcoming Workouts</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {renderWorkoutList(
+                                                paginateWorkouts(groupedWorkouts.future, currentPages.future)
+                                            )}
+                                        </ul>
+                                        {renderPagination(
+                                            groupedWorkouts.future.length,
+                                            currentPages.future,
+                                            "future"
+                                        )}
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Last 7 Days */}
+                        {groupedWorkouts.lastWeek.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Last 7 Days</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {renderWorkoutList(
+                                                paginateWorkouts(groupedWorkouts.lastWeek, currentPages.lastWeek)
+                                            )}
+                                        </ul>
+                                        {renderPagination(
+                                            groupedWorkouts.lastWeek.length,
+                                            currentPages.lastWeek,
+                                            "lastWeek"
+                                        )}
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Past Workouts */}
+                        {groupedWorkouts.past.length > 0 && (
+                            <div>
+                                <h2 className="text-xl font-semibold mb-3">Past Workouts</h2>
+                                <div className="ml-4">
+                                    <section className="border-l-4 border-primary pl-4">
+                                        <ul className="space-y-3">
+                                            {renderWorkoutList(
+                                                paginateWorkouts(groupedWorkouts.past, currentPages.past)
+                                            )}
+                                        </ul>
+                                        {renderPagination(
+                                            groupedWorkouts.past.length,
+                                            currentPages.past,
+                                            "past"
+                                        )}
+                                    </section>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
+
+
+
     );
 };
 

@@ -10,35 +10,21 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Calendar } from "./ui/calendar"
+import { Calendar } from "../ui/calendar"
 import { toast } from "sonner"
 import React, { useEffect } from "react"
-import { AddExerciseDialog } from "./add-exercise-dialog"
-import { Plus } from "lucide-react"
+import { AddExerciseDialog } from "../training-tasks/add-exercise-dialog"
+import { Plus, Trash2 } from "lucide-react"
+import api from "@/lib/api"
+import axios from "axios"
 
-interface Exercise {
-    exerciseId: number;
-    plannedSets: number;
-    plannedReps: number;
-}
+import { SheetDemoProps } from '@/types/props';
+import { Exercise, ExerciseOption } from '@/types/exercise';
+import { Goal } from '@/types/workout';
 
-interface Goal {
-    date: string;
-    calories: number;
-    title: string;
-}
 
-interface ExerciseOption {
-    id: number;
-    name: string;
-    category: string;
-}
 
-interface SheetDemoProps {
-    propAddGoal: (goal: Goal) => void;
-}
-
-export function SheetDemo({ propAddGoal }: SheetDemoProps) {
+export function SheetDemo({ workouts, propAddGoal }: SheetDemoProps) {
     const [open, setOpen] = React.useState(false);
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [calories, setCalories] = React.useState('');
@@ -58,30 +44,51 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
     const handleFetchExercises = async () => {
         try {
-            const token = localStorage.getItem('auth-token');
-            if (!token) {
-                toast.error("Authentication token not found");
-                return;
-            }
-
-            const response = await fetch('http://localhost:5000/api/exercises', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-            const data = await response.json();
+            const { data } = await api.get('exercises');
             setExerciseOptions(data.data);
         } catch (error) {
             console.error('Error fetching exercises:', error);
-            toast.error("Failed to fetch exercises");
+            let errorMessage = 'Failed to load exercises';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         }
     };
 
     const handleAddExercise = (newExercise: Exercise) => {
+        const duplicated = exercises.find((exercise) => exercise.exerciseId === newExercise.exerciseId);
+        if (duplicated) {
+            let exerciseName = '';
+            exerciseOptions.forEach(exerciseOption => {
+                if (exerciseOption.id === newExercise.exerciseId) {
+                    exerciseName = exerciseOption.name;
+                }
+            });
+            toast.error(`${exerciseName} was already added`, {
+                description: 'Please choose a new exercise',
+            });
+            return;
+        }
         setExercises([...exercises, newExercise]);
+        toast.success("Exercise added successfully");
+    }
+
+    const handleDeleteExercise = (id: number) => {
+        const updatedExercises = exercises.filter(exercise => exercise.exerciseId !== id);
+        setExercises(updatedExercises);
     }
 
     const handleAddGoal = async () => {
+        if (title.trim().length < 2) {
+            toast.error("Title should be at least 2 characters");
+            return;
+        } 
         if (!title.trim()) {
             toast.error("Please enter a workout title");
             return;
@@ -97,12 +104,31 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
 
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('auth-token');
 
-            if (!token) {
-                toast.error("Authentication token not found. Please login again.");
+            const newDate = date.toISOString().split('T')[0];
+            
+            // planned date cannot be in the past
+            const today = new Date();
+            if (newDate < today.toISOString().split('T')[0]){
+                toast.error("Planned date should not be in the past", {
+                    description: 'Please choose a new date',
+                });
+                return;
+            } 
+            
+
+            // planned date cannot be the same
+            const duplicatedDate = workouts.find(workout =>
+                newDate === workout.scheduledDate.split('T')[0]
+            );
+
+            if (duplicatedDate) {
+                toast.error(`${newDate} was already existed`, {
+                    description: 'Please choose a new date',
+                });
                 return;
             }
+
 
             const workoutData = {
                 title: title.trim(),
@@ -115,37 +141,7 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                     plannedReps: ex.plannedReps
                 }))
             };
-
-            const response = await fetch("http://localhost:5000/api/planned-workouts", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(workoutData),
-            });
-
-            const responseText = await response.text();
-{/**
-            * AI generated code 
-             tool: chat-gpt 
-             version: o3 mini high
-             usage: typescript is a bit strict with type, i use it to correct the syntax and more robust error checking  
-            */}
-            if (!response.ok) {
-                let errorMessage = "Failed to add workout";
-                try {
-                    const errorData = JSON.parse(responseText);
-                    errorMessage = Array.isArray(errorData.error)
-                        ? errorData.error.map((err: any) => err.message).join('\n')
-                        : errorData.message || errorData.error || errorMessage;
-                } catch {
-                    errorMessage = responseText || errorMessage;
-                }
-                throw new Error(errorMessage);
-            }
-
-            const data = JSON.parse(responseText);
+            const { data } = await api.post('planned-workouts', workoutData);
 
             propAddGoal({
                 date: date.toISOString(),
@@ -158,9 +154,15 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
             resetForm();
 
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred';
+            let errorMessage = 'Failed to add workout plan';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
@@ -255,6 +257,16 @@ export function SheetDemo({ propAddGoal }: SheetDemoProps) {
                                                         <span className="text-sm text-gray-600">
                                                             {exercise.plannedSets} sets
                                                         </span>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="icon"
+                                                            type="button"
+                                                            onClick={() => handleDeleteExercise(exercise.exerciseId)}
+                                                            aria-label="Delete workout"
+                                                            className="cursor-pointer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </li>

@@ -3,6 +3,9 @@ import { AnnualLineChart } from '@/components/line-chart';
 import AnnualBarChart from '@/components/bar-chart';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
+import api from '@/lib/api';
+import ButterflyLoader from '@/components/butterfly-loader';
+import axios from 'axios';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -71,7 +74,7 @@ interface TopExercise {
 const StatsPage = () => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<WorkoutStats | null>(null);
-    
+
     useEffect(() => {
         fetchStats();
     }, []);
@@ -79,19 +82,29 @@ const StatsPage = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('auth-token');
-            const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            // const token = localStorage.getItem('auth-token');
+            // const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
+            //     headers: {
+            //         'Authorization': `Bearer ${token}`
+            //     }
+            // });
 
-            if (!response.ok) throw new Error('Failed to fetch statistics');
+            // if (!response.ok) throw new Error('Failed to fetch statistics');
 
-            const data = await response.json();
+            // const data = await response.json();
+            const { data } = await api.get('/statistics/dashboard');
             setStats(data.data);
         } catch (error) {
-            toast.error("Failed to load statistics");
+            let errorMessage = 'Failed to load data';
+
+            if (axios.isAxiosError(error) && error.response && error.response.data) {
+
+                errorMessage = error.response.data.message || errorMessage;
+            } else if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -100,7 +113,7 @@ const StatsPage = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <ButterflyLoader />
             </div>
         );
     }
@@ -122,14 +135,14 @@ const StatsPage = () => {
         },
         longestStreak: {
             value: stats?.longestStreak || 0,
-            unit: "day",
-            unitPlural: "days",
+            unit: "week",
+            unitPlural: "weeks",
             description: "Longest streak",
         },
         currentStreak: {
             value: stats?.currentStreak || 0,
-            unit: "day",
-            unitPlural: "days",
+            unit: "week",
+            unitPlural: "weeks",
             description: "Current streak",
         },
         TotalCompletion: {
@@ -176,16 +189,16 @@ const StatsPage = () => {
                 Streaks and Completion Rate and Count
             */}
             <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
-                
+
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
                     {/* Longest Streak */}
                     <div className="flex flex-col items-center gap-2 w-full sm:w-auto ">
                         <div className="flex flex-wrap items-baseline text-2xl sm:text-3xl font-bold text-primary">
                             {records.longestStreak.value}
                             <span className="text-lg sm:text-xl text-primary/80 ml-1">
-                            {records.longestStreak.value > 1
-                                ? records.longestStreak.unitPlural
-                                : records.longestStreak.unit}
+                                {records.longestStreak.value > 1
+                                    ? records.longestStreak.unitPlural
+                                    : records.longestStreak.unit}
                             </span>
                         </div>
                         <div className="text-sm text-muted-foreground italic">
@@ -270,7 +283,7 @@ const StatsPage = () => {
             */}
             <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
                 <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-4 sm:mb-6">Best Records</h2>
-                
+
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
                     {/* Heaviest Lift */}
                     <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
@@ -303,8 +316,8 @@ const StatsPage = () => {
                             {records.mostReps.value}
                             <span className="text-lg sm:text-xl text-primary/80 ml-1">
                                 {records.mostReps.unitPlural && records.mostReps.value > 1
-                                        ? records.mostReps.unitPlural
-                                        : records.mostReps.unit}
+                                    ? records.mostReps.unitPlural
+                                    : records.mostReps.unit}
                             </span>
                         </div>
                         <div className="text-sm text-muted-foreground italic">
@@ -318,13 +331,13 @@ const StatsPage = () => {
             <div>
                 <AnnualLineChart chartData={stats?.volumeByYear || []} />
             </div>
-            
+
             {/* 
                 Top 3 most frequent Exercises
             */}
             <div className="border-2 border-primary/20 bg-card p-4 sm:p-8 rounded-xl w-full max-w-5xl m-auto text-center">
                 <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-4 sm:mb-6">Top 3 Most Frequently Scheduled Exercises</h2>
-                
+
                 <div className="flex flex-col sm:flex-row justify-around items-center gap-6 sm:gap-4">
                     {/* Top 1 */}
                     <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
@@ -335,9 +348,9 @@ const StatsPage = () => {
                             {records.TopMostFrequentExercise.value}
 
                             <span className="text-muted-foreground/80 ml-1">
-                            {records.TopMostFrequentExercise.unitPlural && records.TopMostFrequentExercise.value > 1
-                                ? records.TopMostFrequentExercise.unitPlural
-                                : records.TopMostFrequentExercise.unit}
+                                {records.TopMostFrequentExercise.unitPlural && records.TopMostFrequentExercise.value > 1
+                                    ? records.TopMostFrequentExercise.unitPlural
+                                    : records.TopMostFrequentExercise.unit}
                             </span>
                         </div>
                     </div>
@@ -357,13 +370,13 @@ const StatsPage = () => {
                             {records.SecondMostFrequentExercise.value}
 
                             <span className="text-muted-foreground/80 ml-1">
-                            {records.SecondMostFrequentExercise.unitPlural && records.SecondMostFrequentExercise.value > 1
-                                ? records.SecondMostFrequentExercise.unitPlural
-                                : records.SecondMostFrequentExercise.unit}
+                                {records.SecondMostFrequentExercise.unitPlural && records.SecondMostFrequentExercise.value > 1
+                                    ? records.SecondMostFrequentExercise.unitPlural
+                                    : records.SecondMostFrequentExercise.unit}
                             </span>
                         </div>
                     </div>
-                    
+
                     {/* Divider - Only shown on larger screens */}
                     <div className="hidden sm:block h-32 w-px bg-border border-1 border-primary/20"></div>
 
@@ -379,9 +392,9 @@ const StatsPage = () => {
                             {records.ThirdMostFrequentExercise.value}
 
                             <span className="text-muted-foreground/80 ml-1">
-                            {records.ThirdMostFrequentExercise.unitPlural && records.ThirdMostFrequentExercise.value > 1
-                                ? records.ThirdMostFrequentExercise.unitPlural
-                                : records.ThirdMostFrequentExercise.unit}
+                                {records.ThirdMostFrequentExercise.unitPlural && records.ThirdMostFrequentExercise.value > 1
+                                    ? records.ThirdMostFrequentExercise.unitPlural
+                                    : records.ThirdMostFrequentExercise.unit}
                             </span>
                         </div>
                     </div>
