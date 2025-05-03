@@ -94,7 +94,7 @@ const data = {
       items: [
         {
           title: "Ask AI",
-          url: "#",
+          url: "/dashboard/chat",
         },
       ],
     },
