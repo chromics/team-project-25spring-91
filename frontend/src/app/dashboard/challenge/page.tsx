@@ -39,7 +39,6 @@ interface Challenge {
 }
 
 interface LeaderboardEntry {
-  id: string;
   rank: number;
   username: string;
   completionTime?: string | null;
@@ -49,16 +48,21 @@ interface LeaderboardEntry {
 
 // Sample data for leaderboard
 const leaderboardData: LeaderboardEntry[] = [
-  { id: "1", rank: 1, username: "FitChampion", completionTime: "3d 4h", progress: 100},
-  { id: "2", rank: 2, username: "RunnerPro", completionTime: "4d 2h", progress: 100},
-  { id: "3", rank: 3, username: "FitnessGuru", completionTime: null, progress: 87},
-  { id: "4", rank: 4, username: "SportsStar", completionTime: null, progress: 76},
-  { id: "5", rank: 5, username: "WorkoutWarrior", completionTime: null, progress: 65},
-  { id: "6", rank: 6, username: "HealthyHabits", completionTime: null, progress: 64},
-  { id: "7", rank: 7, username: "StrengthMaster", completionTime: null, progress: 60},
-  { id: "8", rank: 8, username: "EnduranceKing", completionTime: null, progress: 55},
-  { id: "9", rank: 9, username: "PowerLifter", completionTime: null, progress: 52},
-  { id: "10", rank: 10, username: "ActiveUser", completionTime: null, progress: 50},
+  { rank: 1, username: "FitChampion", completionTime: "3d 4h", progress: 100},
+  { rank: 2, username: "RunnerPro", completionTime: "4d 2h", progress: 100},
+  { rank: 3, username: "FitnessGuru", completionTime: null, progress: 87},
+  { rank: 4, username: "SportsStar", completionTime: null, progress: 76},
+  { rank: 5, username: "WorkoutWarrior", completionTime: null, progress: 65},
+  { rank: 6, username: "HealthyHabits", completionTime: null, progress: 64},
+  { rank: 7, username: "StrengthMaster", completionTime: null, progress: 60},
+  { rank: 8, username: "EnduranceKing", completionTime: null, progress: 55},
+  { rank: 9, username: "PowerLifter", completionTime: null, progress: 52},
+  { rank: 10, username: "ActiveUser", completionTime: null, progress: 50},
+  { rank: 11, username: "FitnessFan", completionTime: null, progress: 48},
+  { rank: 12, username: "GymGoer", completionTime: null, progress: 45},
+  { rank: 13, username: "HealthTracker", completionTime: null, progress: 43},
+  { rank: 14, username: "WorkoutWizard", completionTime: null, progress: 40},
+  { rank: 15, username: "FitnessJourney", completionTime: null, progress: 38},
 ];
 
 // Table columns for leaderboard
@@ -947,7 +951,7 @@ const ChallengesPage: React.FC = () => {
                             </>
                         )}
                     </SelectContent>
-                </Select>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -989,6 +993,10 @@ const ChallengesPage: React.FC = () => {
                         selected={date}
                         onSelect={setDate}
                         initialFocus
+                        disabled={(date) => {
+                          // Disable dates in the past
+                          return date < new Date(new Date().setHours(0, 0, 0, 0));
+                        }}
                     />
                     </PopoverContent>
                 </Popover>
@@ -998,8 +1006,40 @@ const ChallengesPage: React.FC = () => {
             <div className="flex items-center">
               <label className="text-foreground text-xl w-1/3">Metric</label>
               <div className="w-2/3">
-                <Select value={metric} onValueChange={setMetric}>
-                    <SelectTrigger>
+                <Select value={metric} onValueChange={(value: string) => {
+                  const oldMetric = metric;
+                    setMetric(value);
+
+                    // Set default unit based on the selected metric
+                    if (value === "Weight") {
+                        setUnit("kg");
+                    } else if (value === "Repetition") {
+                        setUnit("rep");
+                    } else if (value === "Distance") {
+                        setUnit("km");
+                    } else if (value === "Duration") {
+                        setUnit("minute");
+                    } else if (value === "Workout") {
+                        setUnit("session");
+                        // Reset exercise when metric is WorkoutSessions
+                        setExercise("");
+                        return;
+                    }
+
+                    // Check if current exercise is compatible with the new metric
+                    const availableExercises = exercisesData[value as keyof typeof exercisesData] || [];
+                    const isCurrentExerciseCompatible = availableExercises.includes(exercise);
+                    
+                    if (!isCurrentExerciseCompatible) {
+                        // Set default exercise for the new metric
+                        if (availableExercises.length > 0) {
+                            setExercise(availableExercises[0]);
+                        } else {
+                            setExercise(""); // Fallback if no exercises available
+                        }
+                    }
+                }}>
+                    <SelectTrigger className="w-40">
                     <SelectValue placeholder="Select Metric" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1007,27 +1047,30 @@ const ChallengesPage: React.FC = () => {
                     <SelectItem value="Repetition">Repetition</SelectItem>
                     <SelectItem value="Distance">Distance</SelectItem>
                     <SelectItem value="Duration">Duration</SelectItem>
-                    <SelectItem value="WorkoutSessions">Workout Sessions</SelectItem>
+                    <SelectItem value="Workout">Workout</SelectItem>
                     </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="flex items-center">
-              <label className="text-foreground text-xl w-1/3">Exercise</label>
-              <div className="w-2/3">
-                <Select value={exercise} onValueChange={setExercise}>
-                    <SelectTrigger>
-                    <SelectValue placeholder="Select Exercise" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    <SelectItem value="Bench Press">Bench Press</SelectItem>
-                    <SelectItem value="Running">Running</SelectItem>
-                    <SelectItem value="Squats">Squats</SelectItem>
-                    <SelectItem value="Deadlift">Deadlift</SelectItem>
-                    </SelectContent>
-                </Select>
-              </div>
+                <label className={`text-foreground text-xl w-1/3 ${metric === "Workout" ? "opacity-50" : ""}`}>Exercise</label>
+                <div className="w-2/3">
+                    <Select 
+                        value={exercise} 
+                        onValueChange={setExercise} 
+                        disabled={metric === "Workout"}
+                    >
+                        <SelectTrigger className={metric === "Workout" ? "opacity-50 cursor-not-allowed" : ""}>
+                        <SelectValue placeholder="Select Exercise" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {metric !== "Workout" && (exercisesData[metric as keyof typeof exercisesData] || []).map((ex) => (
+                              <SelectItem key={ex} value={ex}>{ex}</SelectItem>
+                          ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="flex items-center">
@@ -1037,23 +1080,40 @@ const ChallengesPage: React.FC = () => {
                   type="number" 
                   value={target} 
                   onChange={(e) => setTarget(e.target.value)}
-                  className="flex-grow"
+                  className="w-1/3"
                 />
+                <div className="w-2/3">
                 <Select value={unit} onValueChange={setUnit}>
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-30">
                     <SelectValue placeholder="Unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="kg">kg</SelectItem>
-                    <SelectItem value="time">time</SelectItem>
-                    <SelectItem value="km">km</SelectItem>
-                    <SelectItem value="m">m</SelectItem>
-                    <SelectItem value="minute">minute</SelectItem>
-                    <SelectItem value="hour">hour</SelectItem>
-                    <SelectItem value="perWeek">per week</SelectItem>
-                    <SelectItem value="perMonth">per month</SelectItem>
-                  </SelectContent>
-                </Select>
+                        {metric === "Weight" && (
+                            <SelectItem value="kg">kg</SelectItem>
+                        )}
+                        {metric === "Repetition" && (
+                            <SelectItem value="rep">rep</SelectItem>
+                        )}
+                        {metric === "Distance" && (
+                            <>
+                            <SelectItem value="km">km</SelectItem>
+                            <SelectItem value="m">m</SelectItem>
+                            </>
+                        )}
+                        {metric === "Duration" && (
+                            <>
+                            <SelectItem value="minute">minute</SelectItem>
+                            <SelectItem value="hour">hour</SelectItem>
+                            </>
+                        )}
+                        {metric === "Workout" && (
+                            <>
+                            <SelectItem value="session">session</SelectItem>
+                            </>
+                        )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -1101,80 +1161,127 @@ const ChallengesPage: React.FC = () => {
             <Tabs 
               defaultValue="prize" 
               className="w-full"
-              onValueChange={(value) => setActiveLeaderboardTab(value as "progress" | "time")}
+              onValueChange={(value) => {
+                if (value === "leaderboard") {
+                  setActiveLeaderboardTab("progress");
+                  // Reset page when switching to leaderboard
+                  setLeaderboardPage(1);
+                }
+              }}
             >
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="prize">Prize</TabsTrigger>
                 <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="prize" className="p-4 border rounded-md">
-                <p>Complete this challenge to earn exclusive badges and rewards! Finish within the top 10 for additional benefits.</p>
-              </TabsContent>
-              
-              <TabsContent value="leaderboard">
-                <Card className="w-full">
-                  <CardHeader>
-                    <CardDescription>Your rank: 198</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-16">Rank</TableHead>
-                          <TableHead>Username</TableHead>
-                          <TableHead>Completion time</TableHead>
-                          <TableHead>Progress</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {leaderboardData.slice(0, 5).map((entry) => (
-                          <TableRow key={entry.id}>
-                            <TableCell>{entry.rank}</TableCell>
-                            <TableCell>{entry.username}</TableCell>
-                            <TableCell>{entry.completionTime || "-"}</TableCell>
-                            <TableCell>{entry.progress}%</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                  <CardFooter className="flex justify-center">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setLeaderboardPage(Math.max(1, leaderboardPage - 1));
-                            }}
-                            className={leaderboardPage <= 1 ? "pointer-events-none opacity-50" : ""}
-                          />
-                        </PaginationItem>
-                        <PaginationItem>
-                          <PaginationLink 
-                            href="#" 
-                            isActive 
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            {leaderboardPage}
-                          </PaginationLink>
-                        </PaginationItem>
-                        <PaginationItem>
-                          <PaginationNext 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setLeaderboardPage(leaderboardPage + 1);
-                            }}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
+              <div className="h-[390px] w-full">
+                <TabsContent 
+                value="prize" 
+                className="p-4 border rounded-md h-[390px] w-full overflow-auto"
+                style={{ minHeight: '390px', maxHeight: '390px', flexGrow: 0, flexShrink: 0 }}
+              >
+                    <div className="flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="font-medium text-lg mb-2">Challenge Rewards</h3>
+                      <p className="mb-4">Complete this challenge to earn exclusive badges and rewards! Finish within the top 10 for additional benefits.</p>
+                      
+                      <h4 className="font-medium mt-2">Completion Rewards:</h4>
+                      <ul className="list-disc pl-5 mt-1 mb-3">
+                        <li>Exclusive profile badge</li>
+                        <li>Achievement certificate</li>
+                        <li>Special in-app recognition</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="mt-4 pt-2 border-t">
+                      <p className="text-sm text-muted-foreground italic">
+                        Challenge completion is calculated based on your progress toward the goal.
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent 
+                  value="leaderboard" 
+                  className="h-[390px] w-full min-h-[390px] max-h-[390px] min-w-full max-w-full flex-none overflow-hidden box-border"
+                >
+                  <Card className="w-full h-full flex flex-col">
+                    <CardHeader className="flex-shrink-0">
+                      <CardDescription>Your rank: 198</CardDescription>
+                    </CardHeader>
+                    <CardContent className="overflow-y-auto flex-1 w-full" style={{ height: 'calc(390px - 130px)' }}>
+                      <div className="w-full">
+                        <Table className="w-full table-fixed">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[15%]">Rank</TableHead>
+                              <TableHead className="w-[35%]">Username</TableHead>
+                              <TableHead className="w-[25%]">Completion</TableHead>
+                              <TableHead className="w-[25%]">Progress</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {(() => {
+                                // Calculate which entries to show based on pagination
+                                const itemsPerPage = 5;
+                                const startIndex = (leaderboardPage - 1) * itemsPerPage;
+                                const endIndex = startIndex + itemsPerPage;
+                                const displayedEntries = leaderboardData.slice(startIndex, endIndex);
+                                
+                                return displayedEntries.map((entry) => (
+                                  <TableRow key={entry.rank}>
+                                    <TableCell>{entry.rank}</TableCell>
+                                    <TableCell>{entry.username}</TableCell>
+                                    <TableCell>{entry.completionTime || "-"}</TableCell>
+                                    <TableCell>{entry.progress}%</TableCell>
+                                  </TableRow>
+                                ))
+                              })()}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-center flex-shrink-0">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              href="#" 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setLeaderboardPage(Math.max(1, leaderboardPage - 1));
+                              }}
+                              className={leaderboardPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                          <PaginationItem>
+                            <PaginationLink 
+                              href="#" 
+                              isActive 
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              {leaderboardPage}
+                            </PaginationLink>
+                          </PaginationItem>
+                          <PaginationItem>
+                            <PaginationNext 
+                              href="#" 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                const maxPage = Math.ceil(leaderboardData.length / 5);
+                                if (leaderboardPage < maxPage) {
+                                  setLeaderboardPage(leaderboardPage + 1);
+                                }
+                              }}
+                              className={leaderboardPage >= Math.ceil(leaderboardData.length / 5) ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </CardFooter>
+                  </Card>
+                </TabsContent>
+              </div>
             </Tabs>
           </div>
         </DialogContent>
