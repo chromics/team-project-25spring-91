@@ -10,11 +10,10 @@ export async function POST(request: NextRequest) {
 
     const { messages } = await request.json();
 
-    // Extract the last 3 messages for context
-    const recentMessages = messages.slice(-4); // includes last user message too
+    // include last 3 message + current user message in request
+    const recentMessages = messages.slice(-4);
     const lastMessage = recentMessages[recentMessages.length - 1].content.toLowerCase().trim();
 
-    // Format the chat history (excluding the last message)
     const chatHistory = recentMessages
       .slice(0, -1)
       .map((msg: { role: string; content: string }) => ({
@@ -22,7 +21,6 @@ export async function POST(request: NextRequest) {
         message: msg.content
       }));
 
-    // Get AI response
     const response = await cohere.chat({
       message: lastMessage,
       model: 'command',
