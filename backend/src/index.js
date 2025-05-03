@@ -18,6 +18,7 @@ const statisticsRoutes = require('./routes/statistics.routes');
 
 //gym routes
 const gymRoutes = require('./routes/gym.routes');
+const membershipRoutes = require('./routes/membership.routes');
 
 // Initialize express app
 const app = express();
@@ -71,6 +72,7 @@ app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
 app.use('/api/gyms', gymRoutes);
+
 
 // Error handling middleware
 app.use(errorHandler);
