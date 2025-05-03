@@ -5,13 +5,60 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Check } from "lucide-react";
 import { Gym } from '@/types/gym';
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/auth-context";
 
+import Link from 'next/link';
 type StepNumber = 1 | 2;
 
 const stepTitles: Record<StepNumber, string> = {
   1: "Choose Membership",
   2: "Confirmation"
 };
+
+export const membershipPlans = [
+  {
+    name: "Basic",
+    link: 
+      process.env.NODE_ENV === 'development' ? 'https://buy.stripe.com/test_bIY4gs4kQgjSexadQQ' : '',
+    price: "1.00",
+    period: "month",
+    features: [
+      "Access to gym equipment",
+      "Standard operating hours",
+      "Locker room access",
+    ],
+  },
+  {
+    name: "Premium",
+    link: 
+      process.env.NODE_ENV === 'development' ? 'https://buy.stripe.com/test_6oEfZadVqd7G74I7st' : '',
+    price: "2.00",
+    period: "month",
+    features: [
+      "All Basic features",
+      "Group fitness classes",
+      "Extended hours access",
+      "Personal trainer consultation",
+      "Access to swimming pool",
+    ],
+    highlighted: true,
+  },
+  {
+    name: "Elite",
+    link: 
+      process.env.NODE_ENV === 'development' ? 'https://buy.stripe.com/test_bIY8wI4kQ4Ba9cQdQS' : '',
+    price: "2.50",
+    period: "month",
+    features: [
+      "All Premium features",
+      "Unlimited guest passes",
+      "Private locker",
+      "Spa access",
+      "Priority booking",
+      "Nutrition consultation",
+    ],
+  },
+];
 
 interface MembershipDialogProps {
   gym: Gym;
@@ -20,13 +67,14 @@ interface MembershipDialogProps {
 }
 
 function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
+  const { user } = useAuth();
   const [step, setStep] = React.useState<StepNumber>(1);
-  const [selectedPlan, setSelectedPlan] = React.useState<string>("");
+  const [selectedPlan, setSelectedPlan] = React.useState(membershipPlans[0]); // need a plan interface when backend done
 
   const resetAndClose = () => {
     onOpenChange(false);
     setStep(1);
-    setSelectedPlan("");
+    setSelectedPlan(membershipPlans[0]);
   };
 
   const handleNext = () => {
@@ -38,44 +86,7 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
     if (step > 1) setStep((step - 1) as StepNumber);
   };
 
-  const membershipPlans = [
-    {
-      name: "Basic",
-      price: "29",
-      period: "month",
-      features: [
-        "Access to gym equipment",
-        "Standard operating hours",
-        "Locker room access",
-      ],
-    },
-    {
-      name: "Premium",
-      price: "49",
-      period: "month",
-      features: [
-        "All Basic features",
-        "Group fitness classes",
-        "Extended hours access",
-        "Personal trainer consultation",
-        "Access to swimming pool",
-      ],
-      highlighted: true,
-    },
-    {
-      name: "Elite",
-      price: "89",
-      period: "month",
-      features: [
-        "All Premium features",
-        "Unlimited guest passes",
-        "Private locker",
-        "Spa access",
-        "Priority booking",
-        "Nutrition consultation",
-      ],
-    },
-  ];
+
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -91,7 +102,7 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
                 <Card
                   key={plan.name}
                   className={`relative flex flex-col md:h-full ${
-                    selectedPlan === plan.name
+                    selectedPlan === plan
                       ? 'border-primary ring-2 ring-primary ring-offset-2'
                       : ''
                   } ${
@@ -119,11 +130,11 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
                   </CardContent>
                   <CardFooter className="flex-none pt-4 bg-background">
                     <Button
-                      variant={selectedPlan === plan.name ? "default" : "outline"}
+                      variant={selectedPlan.name === plan.name ? "default" : "outline"}
                       className="w-full"
-                      onClick={() => setSelectedPlan(plan.name)}
+                      onClick={() => setSelectedPlan(plan)}
                     >
-                      {selectedPlan === plan.name ? "Selected" : "Select"}
+                      {selectedPlan.name === plan.name ? "Selected" : "Select"}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -146,7 +157,7 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
               </div>
               <div>
                 <p>You've selected the:</p>
-                <p className="text-2xl font-bold">{selectedPlan} Plan</p>
+                <p className="text-2xl font-bold">{selectedPlan.name} Plan</p>
                 <p className="mt-4 text-muted-foreground">
                   Please check your email for further instructions on completing your membership registration.
                 </p>
@@ -191,7 +202,9 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
               Next
             </Button>
           ) : (
-            <Button onClick={resetAndClose}>Done</Button>
+            <Button onClick={resetAndClose} asChild>
+              <Link href={selectedPlan.link + '?prefilled_email=' + user?.email}>Subscribe</Link>
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

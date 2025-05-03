@@ -27,7 +27,7 @@ function BookingDialog({ gym, open, onOpenChange }: BookingDialogProps) {
   const [step, setStep] = React.useState<StepNumber>(1);
   const [date, setDate] = React.useState<Date>(new Date());
   const [timeSlot, setTimeSlot] = React.useState<string>("");
-  
+
   const resetAndClose = () => {
     onOpenChange(false);
     setStep(1);
@@ -54,28 +54,30 @@ function BookingDialog({ gym, open, onOpenChange }: BookingDialogProps) {
     switch (step) {
       case 1:
         return (
+          
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-4 h-[400px] overflow-y-auto"
+            className="flex flex-col items-center justify-center space-y-4 h-[400px] overflow-y-auto"
           >
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(date) => date && setDate(date)}
-              className="rounded-md border"
-            />
-            <RadioGroup value={timeSlot} onValueChange={setTimeSlot}>
-              <div className="space-y-2">
-                {timeSlots.map((slot) => (
-                  <div key={slot} className="flex items-center space-x-2">
-                    <RadioGroupItem value={slot} id={slot} />
-                    <Label htmlFor={slot}>{slot}</Label>
-                  </div>
-                ))}
-              </div>
-            </RadioGroup>
+            
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(date) => date && setDate(date)}
+                className="rounded-md border"
+              />
+              <RadioGroup value={timeSlot} onValueChange={setTimeSlot}>
+                <div className="space-y-2">
+                  {timeSlots.map((slot) => (
+                    <div key={slot} className="flex items-center space-x-2">
+                      <RadioGroupItem value={slot} id={slot} />
+                      <Label htmlFor={slot}>{slot}</Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
           </motion.div>
         );
 
@@ -141,9 +143,8 @@ function BookingDialog({ gym, open, onOpenChange }: BookingDialogProps) {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`h-2 flex-1 rounded-full ${
-                  i <= step ? 'bg-primary' : 'bg-muted'
-                }`}
+                className={`h-2 flex-1 rounded-full ${i <= step ? 'bg-primary' : 'bg-muted'
+                  }`}
               />
             ))}
           </div>
