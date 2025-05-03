@@ -13,7 +13,12 @@ type Message = {
 };
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+      {
+        role: 'assistant',
+        content: "Hello! 👋 I'm your SUSTracker health assistant. Ask me about nutrition, exercise, or general health tips!"
+      }
+    ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,13 +66,13 @@ export default function ChatInterface() {
       </CardHeader>
       
       <CardContent className="flex-grow overflow-hidden">
-        <ScrollArea className="h-[400px] pr-4">
+        <ScrollArea className="h-[400px] pr-4 pb-4">
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-6">
 
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 pb-2">
               {messages.map((message, i) => (
                 <div 
                   key={i} 
