@@ -180,6 +180,7 @@ sendWorkoutReminders: async () => {
     console.log(`Sent ${sentCount} reminders out of ${upcomingWorkouts.length} scheduled workouts`);
     return sentCount;
   }
+  
   };
   
   // Initialize notification system when this module is imported

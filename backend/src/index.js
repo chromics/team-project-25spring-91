@@ -19,6 +19,8 @@ const statisticsRoutes = require('./routes/statistics.routes');
 //gym routes
 const gymRoutes = require('./routes/gym.routes');
 const membershipRoutes = require('./routes/membership.routes');
+const classRoutes = require('./routes/class.routes');
+const bookingRoutes = require('./routes/booking.routes');
 
 // Initialize express app
 const app = express();
@@ -72,6 +74,9 @@ app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
 app.use('/api/gyms', gymRoutes);
+app.use('/api/memberships', membershipRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 
 // Error handling middleware
