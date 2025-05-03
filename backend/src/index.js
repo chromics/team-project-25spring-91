@@ -16,6 +16,9 @@ const plannedRoutes = require('./routes/planned.routes');
 const actualRoutes = require('./routes/actual.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
 
+//gym routes
+const gymRoutes = require('./routes/gym.routes');
+
 // Initialize express app
 const app = express();
 const PORT = 5000;
@@ -67,6 +70,7 @@ app.use('/api/exercises', authMiddleware, exerciseRoutes);
 app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
+app.use('/api/gyms', gymRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
