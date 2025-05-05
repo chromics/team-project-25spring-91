@@ -76,6 +76,10 @@ const data = {
           title: "Leaderboards",
           url: "/dashboard/leaderboard",
         },
+        {
+          title: "Challenges",
+          url: "/dashboard/challenge",
+        },
       ],
     },
     {
