@@ -56,8 +56,6 @@ const plannedService = {
     return workouts;
   },
   
-
-  
   getPlannedWorkoutById: async (userId, workoutId) => {
     const workout = await prisma.plannedWorkout.findFirst({
       where: {
@@ -117,7 +115,8 @@ const plannedService = {
             plannedSets: exercise.plannedSets,
             plannedReps: exercise.plannedReps,
             plannedWeight: exercise.plannedWeight,
-            plannedDuration: exercise.plannedDuration
+            plannedDuration: exercise.plannedDuration,
+            plannedCalories: exercise.plannedCalories // Add calories support
           }))
         }
       },
@@ -193,7 +192,8 @@ const plannedService = {
             plannedSets: exercise.plannedSets,
             plannedReps: exercise.plannedReps,
             plannedWeight: exercise.plannedWeight,
-            plannedDuration: exercise.plannedDuration
+            plannedDuration: exercise.plannedDuration,
+            plannedCalories: exercise.plannedCalories // Add calories support
           }))
         }
       };

@@ -1,4 +1,4 @@
-// src/services/gym.service.js
+// src/serv ces/gym.service.js
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 

@@ -15,6 +15,7 @@ const userSchemas = {
       gender: z.string().optional(),
       heightCm: z.number().int().positive().optional(),
       weightKg: z.number().positive().optional(),
+      imageUrl: z.string().url('Image URL must be a valid URL').optional(),
       currentPassword: z.string().optional(),
       newPassword: z.string().min(8).optional()
     }).refine(data => {

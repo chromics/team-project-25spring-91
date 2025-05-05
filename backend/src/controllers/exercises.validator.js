@@ -18,7 +18,8 @@ const exerciseSchemas = {
     body: z.object({
       name: z.string().min(2, 'Exercise name must be at least 2 characters'),
       category: z.string().optional(),
-      description: z.string().optional()
+      description: z.string().optional(),
+      imageUrl: z.string().url('Image URL must be a valid URL').optional()
     })
   }),
   
@@ -31,7 +32,8 @@ const exerciseSchemas = {
     body: z.object({
       name: z.string().min(2).optional(),
       category: z.string().optional(),
-      description: z.string().optional()
+      description: z.string().optional(),
+      imageUrl: z.string().url('Image URL must be a valid URL').optional()
     })
   }),
   

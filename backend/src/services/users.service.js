@@ -14,7 +14,9 @@ const userService = {
         gender: true,
         heightCm: true,
         weightKg: true,
-        createdAt: true
+        createdAt: true,
+        role: true,
+        imageUrl: true
       }
     });
     
@@ -61,6 +63,7 @@ const userService = {
         gender: updateData.gender,
         heightCm: updateData.heightCm,
         weightKg: updateData.weightKg,
+        imageUrl: updateData.imageUrl,
         ...passwordUpdate
       },
       select: {
@@ -71,12 +74,116 @@ const userService = {
         gender: true,
         heightCm: true,
         weightKg: true,
+        createdAt: true,
+        role: true,
+        imageUrl: true
+      }
+    });
+    
+    return updatedUser;
+  },
+  
+  // Admin-only function to change a user's role
+  changeUserRole: async (adminId, targetUserId, newRole) => {
+    // Verify the requester is an admin
+    const admin = await prisma.user.findUnique({
+      where: { id: adminId },
+      select: { role: true }
+    });
+    
+    if (admin?.role !== 'admin') {
+      throw new ApiError(403, 'Only administrators can change user roles');
+    }
+    
+    // Validate the role is one of the allowed roles
+    const allowedRoles = ['admin', 'gym_owner', 'user'];
+    if (!allowedRoles.includes(newRole)) {
+      throw new ApiError(400, `Role must be one of: ${allowedRoles.join(', ')}`);
+    }
+    
+    // Get the target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId }
+    });
+    
+    if (!targetUser) {
+      throw new ApiError(404, 'Target user not found');
+    }
+    
+    // Update the role
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
+      data: { role: newRole },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        role: true,
         createdAt: true
       }
     });
     
     return updatedUser;
   },
+
+  // Admin-only function to list all users with pagination
+  getAllUsers: async (page = 1, limit = 20, filter = {}) => {
+    const skip = (page - 1) * limit;
+    
+    // Build where clause based on filters
+    const where = {};
+    
+    if (filter.role) {
+      where.role = filter.role;
+    }
+    
+    if (filter.search) {
+      where.OR = [
+        { email: { contains: filter.search, mode: 'insensitive' } },
+        { displayName: { contains: filter.search, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Get total count
+    const totalCount = await prisma.user.count({ where });
+    
+    // Get paginated users
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        role: true,
+        createdAt: true,
+        imageUrl: true,
+        _count: {
+          select: {
+            plannedWorkouts: true,
+            actualWorkouts: true,
+            userMemberships: true,
+            userBookings: true,
+            ownedGyms: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip,
+      take: limit
+    });
+    
+    return {
+      users,
+      pagination: {
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit),
+        page,
+        limit
+      }
+    };
+  }
   
   // getUserWorkoutStats: async (userId) => {
   //   // Get total planned workouts

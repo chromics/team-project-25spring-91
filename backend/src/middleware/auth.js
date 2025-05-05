@@ -1,37 +1,4 @@
-// // backend/src/middleware/auth.js
-// const admin = require('../config/firebase');
-
-// const verifyToken = async (req, res, next) => {
-//   const startTime = Date.now();
-//   try {
-//     const authHeader = req.headers.authorization;
-//     console.log('Auth header received:', authHeader ? 'Yes' : 'No');
-    
-//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//       return res.status(401).json({ error: 'No token provided' });
-//     }
-
-//     const token = authHeader.split('Bearer ')[1];
-//     console.log('Token verification starting...');
-
-//     try {
-//       const decodedToken = await admin.auth().verifyIdToken(token);
-//       const duration = Date.now() - startTime;
-//       console.log(`✅ Token verified in ${duration}ms for:`, decodedToken.email);
-//       req.user = decodedToken;
-//       next();
-//     } catch (verifyError) {
-//       console.error('❌ Token verification failed:', verifyError);
-//       res.status(401).json({ error: 'Invalid token' });
-//     }
-//   } catch (error) {
-//     console.error('❌ Auth middleware error:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// };
-
-// module.exports = verifyToken;
-
+// src/middleware/auth.js
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
@@ -53,18 +20,19 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
+      where: { id: decoded.id || decoded.userId }
     });
     
     if (!user) {
       throw new ApiError(401, 'User not found');
     }
     
-    // Add user to request object
+    // Add user to request object - now including role
     req.user = {
       id: user.id,
       email: user.email,
-      displayName: user.displayName
+      displayName: user.displayName,
+      role: user.role || 'user' // Include the role with default
     };
     
     next();
