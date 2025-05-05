@@ -28,6 +28,8 @@ model User {
   oauthId          String?          @map("oauth_id")
   plannedWorkouts  PlannedWorkout[]
   actualWorkouts   ActualWorkout[]
+  userMemberships  UserMembership[]
+  userBookings     UserBooking[]
 
   @@map("users")
 }
@@ -104,4 +106,123 @@ model ActualExercise {
   plannedExercise   PlannedExercise? @relation(fields: [plannedExerciseId], references: [id], onDelete: SetNull)
 
   @@map("actual_exercises")
+}
+
+// New models for gym appointment booking feature
+
+model Gym {
+  id              Int               @id @default(autoincrement()) @map("gym_id")
+  name            String
+  address         String?
+  description     String?
+  contactInfo     String?           @map("contact_info")
+  imageUrl        String?
+  createdAt       DateTime          @default(now()) @map("created_at")
+  classes         GymClass[]
+  membershipPlans MembershipPlan[]
+  userMemberships UserMembership[]
+
+  @@map("gyms")
+}
+
+model MembershipPlan {
+  id                Int              @id @default(autoincrement()) @map("plan_id")
+  gymId             Int              @map("gym_id")
+  name              String
+  description       String?
+  durationDays      Int              @map("duration_days")
+  price             Decimal          @db.Decimal(10, 2)
+  maxBookingsPerWeek Int?            @map("max_bookings_per_week")
+  isActive          Boolean          @default(true) @map("is_active")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  gym               Gym              @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  userMemberships   UserMembership[]
+
+  @@map("membership_plans")
+}
+
+model UserMembership {
+  id                   Int                  @id @default(autoincrement()) @map("membership_id")
+  userId               Int                  @map("user_id")
+  gymId                Int                  @map("gym_id")
+  planId               Int?                 @map("plan_id")
+  startDate            DateTime             @map("start_date") @db.Date
+  endDate              DateTime             @map("end_date") @db.Date
+  status               String               // 'active', 'expired', 'cancelled'
+  autoRenew            Boolean              @default(false) @map("auto_renew")
+  bookingsUsedThisWeek Int                  @default(0) @map("bookings_used_this_week")
+  lastBookingCountReset DateTime?           @map("last_booking_count_reset") @db.Date
+  createdAt            DateTime             @default(now()) @map("created_at")
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gym                  Gym                  @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  membershipPlan       MembershipPlan?      @relation(fields: [planId], references: [id], onDelete: SetNull)
+  membershipPayments   MembershipPayment[]
+  userBookings         UserBooking[]
+
+  @@map("user_memberships")
+}
+
+model MembershipPayment {
+  id              Int            @id @default(autoincrement()) @map("payment_id")
+  membershipId    Int            @map("membership_id")
+  amount          Decimal        @db.Decimal(10, 2)
+  paymentDate     DateTime       @map("payment_date")
+  paymentMethod   String?        @map("payment_method")
+  transactionId   String?        @map("transaction_id")
+  status          String         // 'completed', 'pending', 'failed'
+  createdAt       DateTime       @default(now()) @map("created_at")
+  userMembership  UserMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@map("membership_payments")
+}
+
+model GymClass {
+  id               Int             @id @default(autoincrement()) @map("class_id")
+  gymId            Int             @map("gym_id")
+  name             String
+  description      String?
+  maxCapacity      Int?            @map("max_capacity")
+  durationMinutes  Int             @map("duration_minutes")
+  imageUrl         String?
+  membersOnly      Boolean         @default(false) @map("members_only")
+  difficultyLevel  String?         @map("difficulty_level")
+  isActive         Boolean         @default(true) @map("is_active")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  gym              Gym             @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  schedules        ClassSchedule[]
+
+  @@map("gym_classes")
+}
+
+model ClassSchedule {
+  id                 Int           @id @default(autoincrement()) @map("schedule_id")
+  classId            Int           @map("class_id")
+  startTime          DateTime      @map("start_time")
+  endTime            DateTime      @map("end_time")
+  instructor         String?
+  currentBookings    Int           @default(0) @map("current_bookings")
+  isCancelled        Boolean       @default(false) @map("is_cancelled")
+  cancellationReason String?       @map("cancellation_reason")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  gymClass           GymClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userBookings       UserBooking[]
+
+  @@map("class_schedules")
+}
+
+model UserBooking {
+  id                 Int            @id @default(autoincrement()) @map("booking_id")
+  userId             Int            @map("user_id")
+  membershipId       Int            @map("membership_id")
+  scheduleId         Int            @map("schedule_id")
+  bookingTime        DateTime       @default(now()) @map("booking_time")
+  bookingStatus      String         @default("confirmed") @map("booking_status")
+  cancellationReason String?        @map("cancellation_reason")
+  attended           Boolean        @default(false)
+  createdAt          DateTime       @default(now()) @map("created_at")
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userMembership     UserMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  schedule           ClassSchedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@map("user_bookings")
 }
