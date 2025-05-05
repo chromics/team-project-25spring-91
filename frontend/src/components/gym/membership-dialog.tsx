@@ -24,8 +24,7 @@ export const membershipPlans = [
     period: "month",
     features: [
       "Access to gym equipment",
-      "Standard operating hours",
-      "Locker room access",
+      "Standard operating hours","Locker room access",
     ],
   },
   {
@@ -103,7 +102,7 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
                   key={plan.name}
                   className={`relative flex flex-col md:h-full ${
                     selectedPlan === plan
-                      ? 'border-primary ring-2 ring-primary ring-offset-2'
+                      ? 'border-primary ring-2 ring-primary ring-offset-3'
                       : ''
                   } ${
                     plan.highlighted
@@ -152,14 +151,14 @@ function MembershipDialog({ gym, open, onOpenChange }: MembershipDialogProps) {
             className="h-[450px] flex items-center justify-center"
           >
             <div className="space-y-4 text-center">
-              <div className="text-green-600 text-xl font-semibold">
-                Welcome to {gym.name}!
+              <div className="text-xl font-semibold">
+                {gym.name}
               </div>
               <div>
                 <p>You've selected the:</p>
                 <p className="text-2xl font-bold">{selectedPlan.name} Plan</p>
                 <p className="mt-4 text-muted-foreground">
-                  Please check your email for further instructions on completing your membership registration.
+                  Please complete the payment by clicking the subscribe button.
                 </p>
               </div>
             </div>

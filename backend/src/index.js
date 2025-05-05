@@ -15,10 +15,14 @@ const exerciseRoutes = require('./routes/exercises.routes');
 const plannedRoutes = require('./routes/planned.routes');
 const actualRoutes = require('./routes/actual.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
+const stripeRoutes = require('./routes/stripe.routes'); // Add this
 
 // Initialize express app
 const app = express();
 const PORT = 5000;
+
+//raw body parser for Stripe webhooks must come before other middleware ****important
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
 // Middleware
 app.use(helmet({
@@ -29,7 +33,7 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:5000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Stripe-Signature'] // Add Stripe-Signature
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -38,7 +42,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Stripe-Signature');
   next();
 });
 
@@ -67,6 +71,7 @@ app.use('/api/exercises', authMiddleware, exerciseRoutes);
 app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
+app.use('/api/stripe', stripeRoutes); // Add Stripe routes
 
 // Error handling middleware
 app.use(errorHandler);

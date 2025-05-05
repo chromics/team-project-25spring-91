@@ -41,12 +41,12 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Make Appointment",
-          url: "#",
-        },
-        {
           title: "List of Gyms",
           url: "/dashboard/gym-list",
+        },
+        {
+          title: "Gym Subscription",
+          url: "/dashboard/gym-subscription",
         },
       ],
     },
