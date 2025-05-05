@@ -48,6 +48,10 @@ const data = {
           title: "List of Gyms",
           url: "/dashboard/gym-list",
         },
+        {
+          title: "Gym Submission Form",
+          url: "/dashboard/gym-submission-form",
+        }
       ],
     },
     {
