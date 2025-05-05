@@ -23,15 +23,29 @@ const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
-      title: "Training Tasks",
+        title: "Personal",
+        url: "#",
+        items: [
+          {
+            title: "Dashboard",
+            url: "#",
+          },
+          {
+            title: "Statistics",
+            url: "/dashboard/statistics",
+          },
+        ],
+      },
+    {
+      title: "Workout",
       url: "#",
       items: [
         {
-          title: "Set Goals",
+          title: "Set Workout Goals",
           url: "/dashboard/set-goals",
         },
         {
-          title: "Completed Tasks",
+          title: "Completed Workouts",
           url: "/dashboard/completed-tasks",
         },
       ],
@@ -41,37 +55,33 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Make Appointment",
-          url: "#",
-        },
-        {
-          title: "List of Gyms",
+          title: "Gym Booking",
           url: "/dashboard/gym-list",
         },
         {
-          title: "Gym Submission Form",
+            title: "Your Bookings",
+            url: "#",
+          },
+        {
+          title: "Submit Gym",
           url: "/dashboard/gym-submission-form",
         }
       ],
     },
     {
-      title: "Diet",
-      url: "#",
-      items: [
-        {
-          title: "Diet Discussion",
-          url: "#",
-        },
-      ],
-    },
+        title: "Diet",
+        url: "#",
+        items: [
+          {
+            title: "Logged Meals",
+            url: "#",
+          },
+        ],
+      },
     {
       title: "Growth",
       url: "#",
       items: [
-        {
-          title: "Statistics",
-          url: "/dashboard/statistics",
-        },
         {
           title: "Leaderboards",
           url: "/dashboard/leaderboard",
@@ -82,20 +92,7 @@ const data = {
         },
       ],
     },
-    {
-      title: "Personal",
-      url: "#",
-      items: [
-        {
-          title: "Personal Info",
-          url: "#",
-        },
-        {
-          title: "FAQ",
-          url: "#",
-        },
-      ],
-    },
+
     {
       title: "Coach",
       url: "#",
