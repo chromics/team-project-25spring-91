@@ -23,15 +23,29 @@ const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
-      title: "Training Tasks",
+      title: "Personal",
       url: "#",
       items: [
         {
-          title: "Set Goals",
+          title: "Dashboard",
+          url: "#",
+        },
+        {
+          title: "Statistics",
+          url: "/dashboard/statistics",
+        },
+      ],
+    },
+    {
+      title: "Workout",
+      url: "#",
+      items: [
+        {
+          title: "Set Workout Goals",
           url: "/dashboard/set-goals",
         },
         {
-          title: "Completed Tasks",
+          title: "Completed Workouts",
           url: "/dashboard/completed-tasks",
         },
       ],
@@ -41,11 +55,17 @@ const data = {
       url: "#",
       items: [
         {
+          title: "Gym Booking",
+        {
           title: "List of Gyms",
           url: "/dashboard/gym-list",
         },
         {
-          title: "Gym Submission Form",
+          title: "Your Bookings",
+          url: "#",
+        },
+        {
+          title: "Submit Gym",
           url: "/dashboard/gym-submission-form",
         },
         {
@@ -59,7 +79,7 @@ const data = {
       url: "#",
       items: [
         {
-          title: "Diet Discussion",
+          title: "Logged Meals",
           url: "#",
         },
       ],
@@ -68,10 +88,6 @@ const data = {
       title: "Growth",
       url: "#",
       items: [
-        {
-          title: "Statistics",
-          url: "/dashboard/statistics",
-        },
         {
           title: "Leaderboards",
           url: "/dashboard/leaderboard",
@@ -82,20 +98,7 @@ const data = {
         },
       ],
     },
-    {
-      title: "Personal",
-      url: "#",
-      items: [
-        {
-          title: "Personal Info",
-          url: "#",
-        },
-        {
-          title: "FAQ",
-          url: "#",
-        },
-      ],
-    },
+
     {
       title: "Coach",
       url: "#",
@@ -103,6 +106,17 @@ const data = {
         {
           title: "Ask AI",
           url: "/dashboard/chat",
+        },
+      ],
+    },
+
+    {
+      title: "Admin",
+      url: "#",
+      items: [
+        {
+          title: "Gym Approval",
+          url: "#",
         },
       ],
     },
@@ -165,7 +179,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         onClick={(e) => {
                           e.preventDefault();
                           if (subItem.url && subItem.url !== "#") {
-                             router.push(subItem.url);
+                            router.push(subItem.url);
                           }
                         }}
                         isActive={isActive}
@@ -182,7 +196,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                   ))
                 }
-                 )}
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
