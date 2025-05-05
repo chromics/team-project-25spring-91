@@ -73,10 +73,10 @@ app.use('/api/exercises', authMiddleware, exerciseRoutes);
 app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
-app.use('/api/gyms', gymRoutes);
-app.use('/api/memberships', membershipRoutes);
-app.use('/api/classes', classRoutes);
-app.use('/api/bookings', bookingRoutes);
+app.use('/api/gyms', authMiddleware, gymRoutes);
+app.use('/api/memberships', authMiddleware, membershipRoutes);
+app.use('/api/classes', authMiddleware, classRoutes);
+app.use('/api/bookings', authMiddleware, bookingRoutes);
 
 
 // Error handling middleware
