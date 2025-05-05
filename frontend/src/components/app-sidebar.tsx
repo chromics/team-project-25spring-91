@@ -56,8 +56,6 @@ const data = {
       items: [
         {
           title: "Gym Booking",
-        {
-          title: "List of Gyms",
           url: "/dashboard/gym-list",
         },
         {
