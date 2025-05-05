@@ -142,8 +142,8 @@ export default function GymFormPage() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Add Your Own Gyms</h1>
-        <p className="text-gray-600">Use this page to add, view, and edit gyms you want to manage. Fill out the form below to add a new gym.</p>
+        <h1 className="text-3xl font-bold">Add Your Gyms</h1>
+        <p className="text-gray-600">Fill out the form below to add your gym to our list.</p>
       </div>
 
       {/* Gym Cards Section */}
@@ -243,7 +243,7 @@ export default function GymFormPage() {
               }} />
               <div className="flex items-center space-x-2">
                 <Label>Members Only</Label>
-                <Switch checked={cls.membersOnly} onCheckedChange={(val) => {
+                <Switch checked={cls.membersOnly} onCheckedChange={(val: boolean) => {
                   const updated = [...classes];
                   updated[classIndex].membersOnly = val;
                   setClasses(updated);

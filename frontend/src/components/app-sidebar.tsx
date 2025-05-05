@@ -103,6 +103,17 @@ const data = {
         },
       ],
     },
+
+    {
+        title: "Admin",
+        url: "#",
+        items: [
+          {
+            title: "Gym Approval",
+            url: "#",
+          },
+        ],
+      },
   ],
 }
 
