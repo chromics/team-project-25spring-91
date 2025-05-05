@@ -16,21 +16,18 @@ export default function GymsPage() {
     const fetchGyms = async () => {
       try {
         const response = await api.get('/gyms');
-        
-        if (response.data && Array.isArray(response.data.data)) {
-          const formattedGyms = response.data.data.map((gym: any) => ({
-            id: gym.id,
-            name: gym.name,
-            description: gym.description,
-            contactInfo: gym.contactInfo,
-            imageURL: gym.imageUrl,
-            _count: gym._count,
-          }));
-          setGyms(formattedGyms);
-        } else {
-          console.error("Unexpected API response structure:", response.data);
-          toast.error("Received unexpected data format from server");
-        }
+
+
+        const formattedGyms = response.data.data.map((gym: any) => ({
+          id: gym.id,
+          name: gym.name,
+          description: gym.description,
+          contactInfo: gym.contactInfo,
+          imageURL: gym.imageUrl,
+          _count: gym._count,
+        }));
+        setGyms(formattedGyms);
+
       } catch (error: unknown) {
         console.error("Error details:", error);
 
@@ -51,7 +48,7 @@ export default function GymsPage() {
     fetchGyms();
   }, []);
 
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">

@@ -1,3 +1,5 @@
+import { StringValidation } from "zod";
+
 // Using union type for ID to handle both string and number
 export type ID = string | number;
 
@@ -34,9 +36,13 @@ export interface GymClass {
 // Membership interface
 export interface Membership {
   id: ID;
+  gymId: ID;
   name: string;
-  price: string;
   description: string;
+  durationDays: string
+  price: string;
+  maxBookingsPerWeek:number;
+  isActive: string;
 }
 
 // Gym interface updated to match API response
