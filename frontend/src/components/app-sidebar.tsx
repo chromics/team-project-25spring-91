@@ -45,6 +45,10 @@ const data = {
           url: "/dashboard/gym-list",
         },
         {
+          title: "Gym Submission Form",
+          url: "/dashboard/gym-submission-form",
+        },
+        {
           title: "Gym Subscription",
           url: "/dashboard/gym-subscription",
         },
@@ -69,8 +73,12 @@ const data = {
           url: "/dashboard/statistics",
         },
         {
-          title: "Online Competition",
-          url: "/dashboard/competition",
+          title: "Leaderboards",
+          url: "/dashboard/leaderboard",
+        },
+        {
+          title: "Challenges",
+          url: "/dashboard/challenge",
         },
       ],
     },
@@ -94,7 +102,7 @@ const data = {
       items: [
         {
           title: "Ask AI",
-          url: "#",
+          url: "/dashboard/chat",
         },
       ],
     },

@@ -15,6 +15,12 @@ const exerciseRoutes = require('./routes/exercises.routes');
 const plannedRoutes = require('./routes/planned.routes');
 const actualRoutes = require('./routes/actual.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
+
+//gym routes
+const gymRoutes = require('./routes/gym.routes');
+const membershipRoutes = require('./routes/membership.routes');
+const classRoutes = require('./routes/class.routes');
+const bookingRoutes = require('./routes/booking.routes');
 const stripeRoutes = require('./routes/stripe.routes'); // Add this
 
 // Initialize express app
@@ -71,6 +77,11 @@ app.use('/api/exercises', authMiddleware, exerciseRoutes);
 app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
+app.use('/api/gyms', authMiddleware, gymRoutes);
+app.use('/api/memberships', authMiddleware, membershipRoutes);
+app.use('/api/classes', authMiddleware, classRoutes);
+app.use('/api/bookings', authMiddleware, bookingRoutes);
+
 app.use('/api/stripe', stripeRoutes); // Add Stripe routes
 
 // Error handling middleware
