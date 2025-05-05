@@ -716,8 +716,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { columns, Stats } from "@/components/competition-columns";
-import { DataTable } from "@/components/competition-data-table";
+import { columns, Stats } from "@/components/leaderboard-columns";
+import { DataTable } from "@/components/leaderboard-data-table";
 
 
 
