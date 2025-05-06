@@ -17,6 +17,9 @@ const authService = {
     // Hash password
     const passwordHash = await bcrypt.hash(userData.password, 10);
     
+    // Assign default role if not provided
+    const role = userData.role || 'user';
+    
     // Create user
     const newUser = await prisma.user.create({
       data: {
@@ -26,13 +29,19 @@ const authService = {
         dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null,
         gender: userData.gender,
         heightCm: userData.heightCm,
-        weightKg: userData.weightKg
+        weightKg: userData.weightKg,
+        imageUrl: userData.imageUrl,
+        role: role
       }
     });
     
     // Generate token
     const token = jwt.sign(
-      { userId: newUser.id },
+      { 
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role || 'user' // Include role with default
+      },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -41,7 +50,9 @@ const authService = {
       user: {
         id: newUser.id,
         email: newUser.email,
-        displayName: newUser.displayName
+        displayName: newUser.displayName,
+        role: newUser.role || 'user', // Include role in response
+        imageUrl: newUser.imageUrl
       },
       token
     };
@@ -66,7 +77,11 @@ const authService = {
     
     // Generate token
     const token = jwt.sign(
-      { userId: user.id },
+      { 
+        id: user.id,
+        email: user.email,
+        role: user.role || 'user' // Include role with default
+      },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -75,7 +90,9 @@ const authService = {
       user: {
         id: user.id,
         email: user.email,
-        displayName: user.displayName
+        displayName: user.displayName,
+        role: user.role || 'user', // Include role in response
+        imageUrl: user.imageUrl
       },
       token
     };

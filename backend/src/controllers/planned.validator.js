@@ -38,7 +38,8 @@ const plannedSchemas = {
           plannedSets: z.number().int().positive().optional(),
           plannedReps: z.number().int().positive().optional(),
           plannedWeight: z.number().positive().optional(),
-          plannedDuration: z.number().int().positive().optional()
+          plannedDuration: z.number().int().positive().optional(),
+          plannedCalories: z.number().int().positive().optional()
         })
       ).min(1, 'At least one exercise is required')
     })
@@ -63,7 +64,8 @@ const plannedSchemas = {
           plannedSets: z.number().int().positive().optional(),
           plannedReps: z.number().int().positive().optional(),
           plannedWeight: z.number().positive().optional(),
-          plannedDuration: z.number().int().positive().optional()
+          plannedDuration: z.number().int().positive().optional(),
+          plannedCalories: z.number().int().positive().optional()
         })
       ).optional()
     })

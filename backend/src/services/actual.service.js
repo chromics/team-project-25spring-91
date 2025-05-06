@@ -65,7 +65,8 @@ const actualService = {
                 plannedSets: true,
                 plannedReps: true,
                 plannedWeight: true,
-                plannedDuration: true
+                plannedDuration: true,
+                plannedCalories: true // Include planned calories
               }
             }
           }
@@ -150,6 +151,10 @@ const actualService = {
           const setsDiff = ex.actualSets && ex.plannedExercise.plannedSets
             ? (ex.actualSets - ex.plannedExercise.plannedSets)
             : null;
+            
+          const caloriesDiff = ex.actualCalories && ex.plannedExercise.plannedCalories
+            ? (ex.actualCalories - ex.plannedExercise.plannedCalories)
+            : null;
           
           return {
             exerciseName: ex.exercise.name,
@@ -161,7 +166,10 @@ const actualService = {
             repsDifference: repsDiff,
             plannedWeight: ex.plannedExercise.plannedWeight,
             actualWeight: ex.actualWeight,
-            weightDifference: weightDiff
+            weightDifference: weightDiff,
+            plannedCalories: ex.plannedExercise.plannedCalories,
+            actualCalories: ex.actualCalories,
+            caloriesDifference: caloriesDiff
           };
         });
       
@@ -324,7 +332,8 @@ const actualService = {
             actualSets: exercise.actualSets,
             actualReps: exercise.actualReps,
             actualWeight: exercise.actualWeight,
-            actualDuration: exercise.actualDuration
+            actualDuration: exercise.actualDuration,
+            actualCalories: exercise.actualCalories // Add calories support
           }))
         }
       },
@@ -436,7 +445,8 @@ const actualService = {
         actualSets: exercise.actualSets,
         actualReps: exercise.actualReps,
         actualWeight: exercise.actualWeight,
-        actualDuration: exercise.actualDuration
+        actualDuration: exercise.actualDuration,
+        actualCalories: exercise.actualCalories // Add calories support
       }));
     } else {
       // No exercises provided - use the planned exercises as a template
@@ -446,7 +456,8 @@ const actualService = {
         actualSets: pe.plannedSets,
         actualReps: pe.plannedReps,
         actualWeight: pe.plannedWeight,
-        actualDuration: pe.plannedDuration
+        actualDuration: pe.plannedDuration,
+        actualCalories: pe.plannedCalories // Copy planned calories
       }));
     }
     
@@ -551,7 +562,8 @@ const actualService = {
             actualSets: exercise.actualSets,
             actualReps: exercise.actualReps,
             actualWeight: exercise.actualWeight,
-            actualDuration: exercise.actualDuration
+            actualDuration: exercise.actualDuration,
+            actualCalories: exercise.actualCalories // Add calories support
           }))
         }
       };

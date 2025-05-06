@@ -1,9 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 
 generator client {
   provider = "prisma-client-js"
@@ -24,12 +20,15 @@ model User {
   heightCm         Int?             @map("height_cm")
   weightKg         Decimal?         @map("weight_kg") @db.Decimal(5, 2)
   createdAt        DateTime         @default(now()) @map("created_at")
+  role             String           @default("user") // New field: "admin", "gym_owner", or "user"
+  imageUrl         String?          @map("image_url") // New field for user profile image
   oauthProvider    String?          @map("oauth_provider")
   oauthId          String?          @map("oauth_id")
   plannedWorkouts  PlannedWorkout[]
   actualWorkouts   ActualWorkout[]
   userMemberships  UserMembership[]
   userBookings     UserBooking[]
+  ownedGyms        Gym[]            @relation("GymOwner") // New relation for gym owners
 
   @@map("users")
 }
@@ -39,6 +38,7 @@ model Exercise {
   name             String            @unique
   category         String?
   description      String?
+  imageUrl         String?           @map("image_url") // New field for exercise image
   createdAt        DateTime          @default(now()) @map("created_at")
   plannedExercises PlannedExercise[]
   actualExercises  ActualExercise[]
@@ -69,6 +69,7 @@ model PlannedExercise {
   plannedReps      Int?             @map("planned_reps")
   plannedWeight    Decimal?         @map("planned_weight") @db.Decimal(5, 2)
   plannedDuration  Int?             @map("planned_duration")
+  plannedCalories  Int?             @map("planned_calories") // New field for calorie tracking
   plannedWorkout   PlannedWorkout   @relation(fields: [plannedId], references: [id], onDelete: Cascade)
   exercise         Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   actualExercises  ActualExercise[]
@@ -101,6 +102,7 @@ model ActualExercise {
   actualReps        Int?             @map("actual_reps")
   actualWeight      Decimal?         @map("actual_weight") @db.Decimal(5, 2)
   actualDuration    Int?             @map("actual_duration")
+  actualCalories    Int?             @map("actual_calories") // New field for calorie tracking
   actualWorkout     ActualWorkout    @relation(fields: [actualId], references: [id], onDelete: Cascade)
   exercise          Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   plannedExercise   PlannedExercise? @relation(fields: [plannedExerciseId], references: [id], onDelete: SetNull)
@@ -108,7 +110,7 @@ model ActualExercise {
   @@map("actual_exercises")
 }
 
-// New models for gym appointment booking feature
+// Gym appointment booking system models
 
 model Gym {
   id              Int               @id @default(autoincrement()) @map("gym_id")
@@ -116,8 +118,10 @@ model Gym {
   address         String?
   description     String?
   contactInfo     String?           @map("contact_info")
-  imageUrl        String?
+  imageUrl        String?           @map("image_url")
+  ownerId         Int?              @map("owner_id") // New field for gym ownership
   createdAt       DateTime          @default(now()) @map("created_at")
+  owner           User?             @relation("GymOwner", fields: [ownerId], references: [id]) // Owner relation
   classes         GymClass[]
   membershipPlans MembershipPlan[]
   userMemberships UserMembership[]
@@ -183,7 +187,7 @@ model GymClass {
   description      String?
   maxCapacity      Int?            @map("max_capacity")
   durationMinutes  Int             @map("duration_minutes")
-  imageUrl         String?
+  imageUrl         String?         @map("image_url")
   membersOnly      Boolean         @default(false) @map("members_only")
   difficultyLevel  String?         @map("difficulty_level")
   isActive         Boolean         @default(true) @map("is_active")
