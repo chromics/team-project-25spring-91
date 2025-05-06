@@ -2,8 +2,9 @@ const express = require('express');
 const { validate } = require('../middleware/validate');
 const { userController } = require('../controllers/users.controller');
 const { userSchemas } = require('../controllers/users.validator');
+const { authMiddleware } = require('../middleware/auth');
 const { asyncHandler } = require('../utils/asyncHandler');
-
+const { roleCheck } = require('../middleware/roleCheck');
 const router = express.Router();
 
 router.get(
@@ -17,9 +18,25 @@ router.put(
   asyncHandler(userController.updateProfile)
 );
 
-// router.get(
-//   '/stats',
-//   asyncHandler(userController.getWorkoutStats)
-// );
+router.get(
+  '/stats',
+  asyncHandler(userController.getWorkoutStats)
+);
+
+// Admin-only routes
+router.get(
+  '/admin/all-users',
+  authMiddleware,
+  roleCheck(['admin']), // Only admins can list all users
+  asyncHandler(userController.getAllUsers)
+);
+
+router.put(
+  '/admin/change-role/:id',
+  authMiddleware,
+  roleCheck(['admin']), // Only admins can change roles
+  validate(userSchemas.changeRole),
+  asyncHandler(userController.changeUserRole)
+);
 
 module.exports = router;

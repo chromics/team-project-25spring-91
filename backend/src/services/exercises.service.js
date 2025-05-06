@@ -57,7 +57,8 @@ const exerciseService = {
       data: {
         name: exerciseData.name,
         category: exerciseData.category,
-        description: exerciseData.description
+        description: exerciseData.description,
+        imageUrl: exerciseData.imageUrl // Add image URL support
       }
     });
     
@@ -93,9 +94,16 @@ const exerciseService = {
       }
     }
     
+    // Create a clean update object with only defined fields
+    const updateObject = {};
+    if (updateData.name !== undefined) updateObject.name = updateData.name;
+    if (updateData.category !== undefined) updateObject.category = updateData.category;
+    if (updateData.description !== undefined) updateObject.description = updateData.description;
+    if (updateData.imageUrl !== undefined) updateObject.imageUrl = updateData.imageUrl;
+    
     const updatedExercise = await prisma.exercise.update({
       where: { id: exerciseId },
-      data: updateData
+      data: updateObject
     });
     
     return updatedExercise;
