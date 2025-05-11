@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Gym } from '@/types/gym';
-import GymCard from '@/components/gym-card';
+import GymCard from '@/components/gym/gym-card';
 import ButterflyLoader from '@/components/butterfly-loader';
 import api from '@/lib/api';
 import axios from 'axios';

@@ -59,17 +59,14 @@ const data = {
           url: "/dashboard/gym-list",
         },
         {
-          title: "Your Bookings",
-          url: "#",
+          title: "My Bookings",
+          url: "/dashboard/gym-subscription",
         },
         {
           title: "Submit Gym",
           url: "/dashboard/gym-submission-form",
         },
-        {
-          title: "Gym Subscription",
-          url: "/dashboard/gym-subscription",
-        },
+
       ],
     },
     {

@@ -1,9 +1,7 @@
-import { StringValidation } from "zod";
-
-// Using union type for ID to handle both string and number
+// Basic ID type
 export type ID = string | number;
 
-// Basic pagination interface
+// Pagination interface
 export interface Pagination {
   page: number;
   limit: number;
@@ -11,26 +9,88 @@ export interface Pagination {
   totalItems: number;
 }
 
-// Schedule interface for gym classes
-export interface Schedule {
-  id: ID;
-  startTime: string;
-  endTime: string;
-  instructor: string;
-}
-
 // GymClass interface
 export interface GymClass {
   id: ID;
   name: string;
   description: string;
-  price: string;
-  maxCapacity: string;
-  image: string;
-  duration: string;
+  maxCapacity: number | null;
+  durationMinutes: number;
+  imageUrl: string;
   membersOnly: boolean;
-  difficulty: string;
-  schedules: Schedule[];
+  difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
+  createdAt: string;
+  gym?: {
+    id: ID;
+    name: string;
+    address?: string;
+    contactInfo?: string;
+  };
+  schedules?: Schedule[];
+  // Additional fields for frontend use
+  isSelected?: boolean;
+  temporaryData?: any;
+  metadata?: Record<string, any>;
+}
+
+// Schedule interface
+export interface Schedule {
+  id: ID;
+  classId: ID;
+  startTime: string;
+  endTime: string;
+  instructor: string;
+  currentBookings: number;
+  isCancelled: boolean;
+  cancellationReason: string | null;
+  createdAt: string;
+  gymClass?: {
+    name: string;
+    maxCapacity: number | null;
+    durationMinutes: number;
+    membersOnly: boolean;
+    description?: string;
+    imageUrl?: string;
+  };
+  _count?: {
+    userBookings: number;
+  };
+  spotsAvailable: number;
+  isFull: boolean;
+  // Additional fields for frontend use
+  isBooked?: boolean;
+  isWaitlisted?: boolean;
+  userNote?: string;
+  temporaryData?: any;
+}
+
+// Gym interface
+export interface Gym {
+  id: ID;
+  name: string;
+  address: string;
+  description: string;
+  contactInfo: string;
+  imageUrl: string;
+  createdAt: string;
+  // Optional fields that might be useful
+  location?: string;
+  openingHours?: string;
+  websiteUrl?: string;
+  equipments?: string[];
+  amenities?: string[];
+  _count?: {
+    classes: number;
+    membershipPlans: number;
+  };
+  // Related data
+  classes?: GymClass[];
+  memberships?: Membership[];
+  // Additional fields for frontend use
+  isFavorite?: boolean;
+  lastVisited?: string;
+  userNotes?: string;
+  temporaryData?: any;
 }
 
 // Membership interface
@@ -39,38 +99,32 @@ export interface Membership {
   gymId: ID;
   name: string;
   description: string;
-  durationDays: string
-  price: string;
-  maxBookingsPerWeek:number;
-  isActive: string;
+  durationDays: number;
+  price: number;
+  maxBookingsPerWeek: number;
+  isActive: boolean;
+  // Additional fields
+  benefits?: string[];
+  restrictions?: string[];
+  discounts?: {
+    amount: number;
+    description: string;
+  }[];
+  startDate?: string;
+  endDate?: string;
+  // Frontend specific
+  isSelected?: boolean;
+  temporaryData?: any;
 }
 
-// Gym interface updated to match API response
-export interface Gym {
-  id: ID;
-  name: string;
-  address?: string;
-  location?: string;  // Added but marked optional since it's in your model but not API
-  description?: string;
-  contactInfo?: string; // From API
-  imageUrl?: string;
-  openingHours?: string; // Added but marked optional
-  websiteUrl?: string;
-  equipments?: string;
-  createdAt?: string; // From API
-  _count?: {
-    classes: number;
-    membershipPlans: number;
-  };
-  // These would likely be populated separately or through relationship queries
-  memberships?: Membership[];
-  classes?: GymClass[];
-}
-
-// API Response interface
-export interface GymsApiResponse {
+// API Response interfaces
+export interface ApiResponse<T> {
   status: string;
   results: number;
-  pagination: Pagination;
-  data: Gym[];
+  pagination?: Pagination;
+  data: T;
 }
+
+export interface GymsApiResponse extends ApiResponse<Gym[]> {}
+export interface ClassesApiResponse extends ApiResponse<GymClass[]> {}
+export interface SchedulesApiResponse extends ApiResponse<Schedule[]> {}

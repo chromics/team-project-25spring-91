@@ -3,6 +3,7 @@
 import type { FC } from 'react'
 import { useState } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import {
   Card,
   CardTitle,
@@ -11,16 +12,15 @@ import {
   CardFooter,
 } from '@/components/ui/card'
 import type { Gym } from '@/types/gym'
-import { Button } from './ui/button'
-import BookingDialog from '@/components/gym/booking-dialog'
-import MembershipDialog from './gym/membership-dialog'
+import { Button } from '@/components/ui/button'
+import MembershipDialog from '@/components/gym/membership-dialog'
 
 interface GymCardProps {
   gym: Gym
 }
 
 const GymCard: FC<GymCardProps> = ({ gym }) => {
-  const [bookingOpen, setBookingOpen] = useState(false)
+  const router = useRouter()
   const [membershipOpen, setMembershipOpen] = useState(false)
 
   return (
@@ -54,20 +54,13 @@ const GymCard: FC<GymCardProps> = ({ gym }) => {
           <Button
             size="sm"
             className="flex-1 text-xs"
-            onClick={() => setBookingOpen(true)}
+            onClick={() => router.push(`/dashboard/gym-list/${gym.id}`)}
           >
             Book
           </Button>
         </CardFooter>
       </Card>
 
-      <BookingDialog
-        gym={gym}
-        open={bookingOpen}
-        onOpenChange={setBookingOpen}
-      />
-
-      {/* You can add MembershipDialog here later if needed */}
       <MembershipDialog
         gym={gym}
         open={membershipOpen}
