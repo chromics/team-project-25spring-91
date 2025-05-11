@@ -22,6 +22,9 @@ const membershipRoutes = require('./routes/membership.routes');
 const classRoutes = require('./routes/class.routes');
 const bookingRoutes = require('./routes/booking.routes');
 
+// Add this to your routes setup
+const competitionRoutes = require('./routes/competition.routes');
+
 // Initialize express app
 const app = express();
 const PORT = 5000;
@@ -77,6 +80,7 @@ app.use('/api/gyms', authMiddleware, gymRoutes);
 app.use('/api/memberships', authMiddleware, membershipRoutes);
 app.use('/api/classes', authMiddleware, classRoutes);
 app.use('/api/bookings', authMiddleware, bookingRoutes);
+app.use('/api/competitions', competitionRoutes);
 
 
 // Error handling middleware
