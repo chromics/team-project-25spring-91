@@ -29,6 +29,7 @@ model User {
   userMemberships  UserMembership[]
   userBookings     UserBooking[]
   ownedGyms        Gym[]            @relation("GymOwner") // New relation for gym owners
+  competitionHistory CompetitionUser[]
 
   @@map("users")
 }
@@ -42,6 +43,7 @@ model Exercise {
   createdAt        DateTime          @default(now()) @map("created_at")
   plannedExercises PlannedExercise[]
   actualExercises  ActualExercise[]
+  competitionTasks CompetitionTask[]  
 
   @@map("exercises")
 }
@@ -125,6 +127,7 @@ model Gym {
   classes         GymClass[]
   membershipPlans MembershipPlan[]
   userMemberships UserMembership[]
+  competitions    Competition[]  
 
   @@map("gyms")
 }
@@ -229,4 +232,73 @@ model UserBooking {
   schedule           ClassSchedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   @@map("user_bookings")
+}
+
+// Competition-related models
+
+model Competition {
+  id               Int                  @id @default(autoincrement()) @map("competition_id")
+  gymId            Int                  @map("gym_id")
+  name             String
+  description      String?
+  startDate        DateTime             @map("start_date")
+  endDate          DateTime             @map("end_date")
+  imageUrl         String?              @map("image_url")
+  maxParticipants  Int?                 @map("max_participants")
+  isActive         Boolean              @default(true) @map("is_active")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  gym              Gym                  @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  competitionTasks CompetitionTask[]
+  participants     CompetitionUser[]
+
+  @@map("competitions")
+}
+
+model CompetitionTask {
+  id               Int                   @id @default(autoincrement()) @map("task_id")
+  competitionId    Int                   @map("competition_id")
+  exerciseId       Int?                  @map("exercise_id") // Optional link to exercise
+  name             String                // Task name (e.g., "Squat Challenge")
+  description      String?
+  targetValue      Decimal               @map("target_value") @db.Decimal(10, 2) // Target amount (e.g., 5000kg or 30km)
+  unit             String                // Unit of measurement (e.g., "kg", "km", "reps")
+  pointsValue      Int                   @default(100) @map("points_value") // Points earned for completion
+  competition      Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  exercise         Exercise?             @relation(fields: [exerciseId], references: [id], onDelete: SetNull)
+  userProgress     CompetitionProgress[]
+
+  @@map("competition_tasks")
+}
+
+model CompetitionUser {
+  id               Int                   @id @default(autoincrement()) @map("participant_id")
+  userId           Int                   @map("user_id")
+  competitionId    Int                   @map("competition_id")
+  joinDate         DateTime              @default(now()) @map("join_date")
+  totalPoints      Int                   @default(0) @map("total_points")
+  completionPct    Decimal               @default(0) @map("completion_pct") @db.Decimal(5, 2)
+  rank             Int?                  // Current rank in competition
+  isActive         Boolean               @default(true) @map("is_active")
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competition      Competition           @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  taskProgress     CompetitionProgress[]
+
+  @@unique([userId, competitionId]) // A user can join each competition only once
+  @@map("competition_users")
+}
+
+model CompetitionProgress {
+  id               Int                  @id @default(autoincrement()) @map("progress_id")
+  participantId    Int                  @map("participant_id")
+  taskId           Int                  @map("task_id")
+  currentValue     Decimal              @default(0) @map("current_value") @db.Decimal(10, 2)
+  isCompleted      Boolean              @default(false) @map("is_completed")
+  completionDate   DateTime?            @map("completion_date")
+  lastUpdated      DateTime             @default(now()) @map("last_updated")
+  notes            String?
+  participant      CompetitionUser      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  task             CompetitionTask      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([participantId, taskId]) // One progress entry per participant per task
+  @@map("competition_progress")
 }
