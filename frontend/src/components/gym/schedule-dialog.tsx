@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format } from 'date-fns';
+import { format, toDate } from 'date-fns';
 import { Calendar, Clock, User } from 'lucide-react';
 import {
   Dialog,
@@ -15,7 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import api from '@/lib/api';
-import type { GymClass, ID, Schedule } from '@/types/gym';
+import type {
+  GymClass,
+  ID,
+  UserMembership,
+  MembershipPlan,
+  Schedule,
+} from '@/types/gym';
 
 interface ScheduleDialogProps {
   open: boolean;
@@ -23,9 +29,15 @@ interface ScheduleDialogProps {
   gymClass: GymClass;
 }
 
-export function ScheduleDialog({ open, onOpenChange, gymClass }: ScheduleDialogProps) {
+export function ScheduleDialog({
+  open,
+  onOpenChange,
+  gymClass,
+}: ScheduleDialogProps) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userMemberships, setUserMemberships] = useState<UserMembership[]>([]);
+
 
   useEffect(() => {
     if (open) {
@@ -44,21 +56,61 @@ export function ScheduleDialog({ open, onOpenChange, gymClass }: ScheduleDialogP
         }
       };
 
+      const fetchMemberships = async () => {
+        try {
+          setLoading(true);
+          const response = await api.get<{ data: UserMembership[] }>(
+            '/memberships/my-memberships'
+          );
+          setUserMemberships(response.data.data);
+        } catch (error) {
+          console.log('Failed to fetch memberships', error);
+          toast.error('Failed to load memberships');
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchSchedules();
+      fetchMemberships();
     }
   }, [open, gymClass.id]);
 
+  const findRelevantMembership = (): UserMembership | undefined => {
+    if (!gymClass.gym?.id) {
+      console.warn(
+        'Gym ID is missing from gymClass, cannot find relevant membership.'
+      );
+      return undefined;
+    }
+    return userMemberships.find((m) => m.gymId === gymClass.gym?.id);
+  };
+
   const handleBooking = async (scheduleId: ID) => {
+    const relevantMembership = findRelevantMembership(); 
+
+    if (!relevantMembership?.id) {
+      toast.error(
+        'No active membership found for this gym. Please ensure you have a valid membership.'
+      );
+      console.error(
+        'Booking failed: Relevant membership ID is missing.'
+      );
+      return;
+    }
+
     try {
-      // You'll need to implement the booking API endpoint
       await api.post(`/bookings`, {
-        scheduleId: scheduleId
+        scheduleId: scheduleId,
+        membershipId: relevantMembership.id, 
       });
       toast.success('Class booked successfully');
       onOpenChange(false);
     } catch (error) {
       console.error('Booking failed:', error);
-      toast.error('Failed to book class');
+      const errorMessage =
+        (error as any).response?.data?.message || 'Failed to book class';
+      toast.error(errorMessage);
     }
   };
 

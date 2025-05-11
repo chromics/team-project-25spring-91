@@ -60,6 +60,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import api from '@/lib/api';
+import React from 'react';
 
 // Basic route mapping
 const routeNames: Record<string, string> = {
@@ -67,30 +68,31 @@ const routeNames: Record<string, string> = {
   'statistics': 'Statistics',
   'gym-list': 'Gyms',
   'set-goals': 'Goals',
-  'completed-tasks':'Completed Tasks',
-  'gym-submission-form':'Gym Submission form',
-  'leaderboard':'Leaderboard',
-  'challenge':'Challenge',
+  'completed-tasks': 'Completed Tasks',
+  'gym-submission-form': 'Gym Submission Form',
+  'gym-subscription': 'My Bookings', 
+  'leaderboard': 'Leaderboard',
+  'challenge': 'Challenge',
   'profile': 'Profile',
   'settings': 'Settings',
-  // add more routes as needed
+  // add more routes
 };
 
 export default function DashboardLayout({
   children
 }: {
   children: React.ReactNode
-}) {    
+}) {
   const pathname = usePathname();
   const [dynamicName, setDynamicName] = useState('');
   const paths = pathname.split('/').filter(Boolean);
 
   useEffect(() => {
     const fetchDynamicName = async () => {
-     
+
       setDynamicName('');
 
-     
+
       const lastSegment = paths[paths.length - 1];
       if (lastSegment?.match(/^[0-9a-fA-F-]+$/)) {
         if (pathname.includes('gym-list/')) {
@@ -127,24 +129,27 @@ export default function DashboardLayout({
               {paths.map((path, index) => {
                 const isLast = index === paths.length - 1;
                 const href = `/${paths.slice(0, index + 1).join('/')}`;
+
                 
-                // If it's a UUID/ID format, use the dynamic name
                 const isUUID = path.match(/^[0-9a-fA-F-]+$/);
                 const displayName = isUUID ? (dynamicName || '...') : (routeNames[path] || path);
 
                 return (
-                  <BreadcrumbItem key={path}>
-                    {!isLast ? (
-                      <>
+                  <React.Fragment key={path}> 
+                    <BreadcrumbItem>
+                      {!isLast ? (
                         <BreadcrumbLink href={href}>
                           {displayName}
                         </BreadcrumbLink>
-                        <BreadcrumbSeparator />
-                      </>
-                    ) : (
-                      <BreadcrumbPage>{displayName}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbPage>{displayName}</BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                    {!isLast && (
+                      <BreadcrumbSeparator />
                     )}
-                  </BreadcrumbItem>
+                  </React.Fragment>
+
                 );
               })}
             </BreadcrumbList>

@@ -85,36 +85,58 @@ export interface Gym {
   };
   // Related data
   classes?: GymClass[];
-  memberships?: Membership[];
+  memberships?: UserMembership[];
   // Additional fields for frontend use
   isFavorite?: boolean;
   lastVisited?: string;
   userNotes?: string;
   temporaryData?: any;
 }
+export interface GymInfo {
+  id: ID;
+  name: string;
+  address: string;
+  imageUrl: string | null;
+}
+export type MembershipStatus = "active" | "cancelled" | "expired" | string; // Added string for potential future statuses
 
 // Membership interface
-export interface Membership {
+export interface MembershipPlan {
   id: ID;
   gymId: ID;
   name: string;
   description: string;
   durationDays: number;
-  price: number;
-  maxBookingsPerWeek: number;
+  price: string; // API response shows price as a string (e.g., "47")
+  maxBookingsPerWeek: number | null; // API response shows this can be null
   isActive: boolean;
-  // Additional fields
-  benefits?: string[];
-  restrictions?: string[];
-  discounts?: {
-    amount: number;
-    description: string;
-  }[];
-  startDate?: string;
-  endDate?: string;
-  // Frontend specific
-  isSelected?: boolean;
-  temporaryData?: any;
+  createdAt: string; // ISO date string
+  // Note: Fields like `benefits`, `restrictions`, `discounts` from your
+  // original `Membership` interface are not present in this specific API's
+  // `membershipPlan` object. If they are part of a plan's definition
+  // in other contexts (e.g., a detailed plan view), they could be added here
+  // (possibly as optional) or in a separate, more detailed interface.
+}
+
+export interface UserMembership {
+  id: ID;
+  userId: ID;
+  gymId: ID; // Corresponds to gym.id
+  planId: ID; // Corresponds to membershipPlan.id
+  startDate: string; // ISO date string
+  endDate: string; // ISO date string
+  status: MembershipStatus;
+  autoRenew: boolean;
+  bookingsUsedThisWeek: number;
+  lastBookingCountReset: string; // ISO date string
+  createdAt: string; // ISO date string
+  gym: GymInfo;
+  membershipPlan: MembershipPlan;
+
+  // Frontend-specific fields from your original `Membership` interface
+  // could be added here if you intend to augment this data on the client:
+  // isSelected?: boolean;
+  // temporaryData?: any;
 }
 
 // API Response interfaces
