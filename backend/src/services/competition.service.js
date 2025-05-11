@@ -4,59 +4,60 @@ const { ApiError } = require('../utils/ApiError');
 
 const competitionService = {
   // Get all competitions (with filtering options)
-  getAllCompetitions: async ({ 
-    gymId, 
-    isActive = true, 
-    search = '', 
-    page = 1, 
-    limit = 10,
-    includeEnded = false
-  }) => {
-    const where = {
-      ...(gymId && { gymId: parseInt(gymId) }),
-      ...(isActive !== undefined && { isActive }),
-      ...(search && { 
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } }
-        ] 
-      }),
-      ...(!includeEnded && { endDate: { gt: new Date() } })
-    };
+// Get all competitions (with filtering options)
+getAllCompetitions: async ({ 
+  gymId, 
+  isActive = true, 
+  search = '', 
+  page = 1, 
+  limit = 10,
+  includeEnded = false
+}) => {
+  const where = {
+    ...(gymId && { gymId: parseInt(gymId) }),
+    ...(isActive !== undefined && { isActive }),
+    ...(search && { 
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ] 
+    }),
+    ...(!includeEnded && { endDate: { gt: new Date() } })
+  };
 
-    // Get total count for pagination
-    const totalItems = await prisma.competition.count({ where });
-    const totalPages = Math.ceil(totalItems / limit);
+  // Get total count for pagination
+  const totalItems = await prisma.competition.count({ where });
+  const totalPages = Math.ceil(totalItems / limit);
 
-    // Get competitions with pagination
-    const competitions = await prisma.competition.findMany({
-      where,
-      orderBy: { startDate: 'desc' },
-      skip: (page - 1) * limit,
-      limit: limit,
-      include: {
-        gym: {
-          select: {
-            id: true,
-            name: true,
-            imageUrl: true
-          }
-        },
-        _count: {
-          select: {
-            participants: true,
-            competitionTasks: true
-          }
+  // Get competitions with pagination
+  const competitions = await prisma.competition.findMany({
+    where,
+    orderBy: { startDate: 'desc' },
+    skip: (page - 1) * limit,
+    take: limit, // Changed from 'limit' to 'take'
+    include: {
+      gym: {
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true
+        }
+      },
+      _count: {
+        select: {
+          participants: true,
+          competitionTasks: true
         }
       }
-    });
+    }
+  });
 
-    return {
-      competitions,
-      totalItems,
-      totalPages
-    };
-  },
+  return {
+    competitions,
+    totalItems,
+    totalPages
+  };
+},
 
   // Get competition by ID
   getCompetitionById: async (competitionId, includeLeaderboard = false) => {
