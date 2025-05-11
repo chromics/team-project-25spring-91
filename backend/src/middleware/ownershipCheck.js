@@ -1,3 +1,4 @@
+//src/middleware/ownershipCheck.js
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 

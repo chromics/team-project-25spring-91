@@ -1,4 +1,5 @@
 // src/controllers/competition.controller.js
+const prisma = require('../config/prisma');
 const { competitionService } = require('../services/competition.service');
 
 const competitionController = {
