@@ -10,6 +10,7 @@ import { AddMealDialog } from '@/components/diet/add-meal-dialog';
 interface Meal {
   title: string; 
   time: string;
+  date: Date;
   calories: number;
 }
 
@@ -138,28 +139,28 @@ const sampleMealLogs: DayLog[] = [
   {
     date: new Date(),
     meals: [
-      { title: 'Breakfast', time: "08:00", calories: 700 },
-      { title: 'Lunch', time: "12:00", calories: 500 },
-      { title: 'Dinner', time: "19:00", calories: 800 }
+      { title: 'Breakfast', time: "08:00", date: new Date(), calories: 700 },
+      { title: 'Lunch', time: "12:00", date: new Date(), calories: 500 },
+      { title: 'Dinner', time: "19:00", date: new Date(), calories: 800 }
     ]
   },
   // Yesterday
   {
     date: new Date(new Date().setDate(new Date().getDate() - 1)),
     meals: [
-      { title: 'Breakfast', time: "09:00", calories: 700 },
-      { title: 'Lunch', time: "12:00", calories: 500 },
-      { title: 'Dinner', time: "19:00", calories: 800 },
-      { title: 'Evening Snack', time: "22:00", calories: 300 }
+      { title: 'Breakfast', time: "09:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 700 },
+      { title: 'Lunch', time: "12:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 500 },
+      { title: 'Dinner', time: "19:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 800 },
+      { title: 'Evening Snack', time: "22:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 300 }
     ]
   },
   // 3 Dec 2024
   {
     date: new Date("2024-12-03"),
     meals: [
-      { title: 'Breakfast', time: "08:00", calories: 700 },
-      { title: 'Lunch', time: "14:00", calories: 800 },
-      { title: 'Dinner', time: "18:00", calories: 800 }
+      { title: 'Breakfast', time: "08:00", date: new Date("2024-12-03"), calories: 700 },
+      { title: 'Lunch', time: "14:00", date: new Date("2024-12-03"), calories: 800 },
+      { title: 'Dinner', time: "18:00", date: new Date("2024-12-03"), calories: 800 }
     ]
   }
 ];
@@ -173,7 +174,7 @@ const MealLogger: React.FC = () => {
   // Utility functions
   const isSameDay = (date1: Date, date2: Date): boolean => {
     return (
-      date1.getDate() === date2.getDate() &&
+      date1.getDate() === date2.getDate() &&  
       date1.getMonth() === date2.getMonth() &&
       date1.getFullYear() === date2.getFullYear()
     );
@@ -237,22 +238,31 @@ const MealLogger: React.FC = () => {
 
   // Add new meal to logs
   const handleAddNewMeal = (meal: Meal) => {
-    const today = new Date();
+    const mealDate = meal.date;
     
-    // Find today's log or create a new one
+    // Find the log for this date or create a new one
     const updatedLogs = [...mealLogs];
-    const todayLogIndex = updatedLogs.findIndex(log => isSameDay(log.date, today));
+    const logIndex = updatedLogs.findIndex(log => isSameDay(log.date, mealDate));
     
-    if (todayLogIndex >= 0) {
+    if (logIndex >= 0) {
       // Add to existing log
-      updatedLogs[todayLogIndex].meals.push(meal);
+      updatedLogs[logIndex].meals.push(meal);
+      // Sort meals within this day by time
+      updatedLogs[logIndex].meals.sort((a, b) => {
+        const timeA = new Date(`1970-01-01T${a.time}`);
+        const timeB = new Date(`1970-01-01T${b.time}`);
+        return timeA.getTime() - timeB.getTime();
+      });
     } else {
-      // Create new log for today
+      // Create new log for this date
       updatedLogs.push({
-        date: today,
+        date: mealDate,
         meals: [meal]
       });
     }
+    
+    // Sort days in descending order (newest first)
+    updatedLogs.sort((a, b) => b.date.getTime() - a.date.getTime());
     
     setMealLogs(updatedLogs);
   };

@@ -26,7 +26,7 @@ interface FoodEntry {
 interface AddMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddMeal: (meal: { title: string; time: string; calories: number }) => void;
+  onAddMeal: (meal: { title: string; time: string; date: Date; calories: number }) => void;
   foodItems: FoodItem[];
 }
 
@@ -99,6 +99,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     onAddMeal({
       title: title.trim(),
       time: format(selectedDateTime, 'HH:mm'),
+      date: selectedDateTime, // Pass the full date
       calories: totalCalories
     });
     
