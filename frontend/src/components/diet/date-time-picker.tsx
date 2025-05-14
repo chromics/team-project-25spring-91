@@ -168,8 +168,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({ value, onChange }) => {
         if (digit > 5) {
             setTimeInputState(null);
             setTimeout(() => {
-                if (buttonRef.current) {
-                buttonRef.current.focus();
+                if (minuteRef.current) {
+                  minuteRef.current.blur();
                 }
             }, 0);
         }
@@ -188,7 +188,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({ value, onChange }) => {
         setTimeInputState(null);
         setTimeout(() => {
             if (minuteRef.current) {
-                minuteRef.current.blur();
+              minuteRef.current.blur();
             }
         }, 0);
       }
