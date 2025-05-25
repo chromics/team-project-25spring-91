@@ -11,7 +11,6 @@ import { ClassSection } from '../../../../components/gym/class-section';
 import ButterflyLoader from '@/components/butterfly-loader';
 
 export default function GymPage() {
-  const router = useRouter();
   const params = useParams();
   const gymId = params.gymId as string;
 

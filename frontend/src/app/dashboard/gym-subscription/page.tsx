@@ -81,10 +81,7 @@ export default function BookingsAndMembershipsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-medium">Activity Overview</h1>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm">Last updated just now</span>
-              </div>
+
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
