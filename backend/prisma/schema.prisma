@@ -30,6 +30,7 @@ model User {
   userBookings     UserBooking[]
   ownedGyms        Gym[]            @relation("GymOwner") // New relation for gym owners
   competitionHistory CompetitionUser[]
+  dietEntries    DietEntry[]
 
   @@map("users")
 }
@@ -301,4 +302,39 @@ model CompetitionProgress {
 
   @@unique([participantId, taskId]) // One progress entry per participant per task
   @@map("competition_progress")
+}
+
+// Food Item model
+model FoodItem {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  caloriesPerUnit Decimal  @db.Decimal(10, 2)
+  servingUnit String
+  imageUrl    String?
+  createdAt   DateTime     @default(now())
+  
+  // Relations
+  dietEntries DietEntry[]
+
+  @@map("food_items")
+}
+
+// Diet Entry model
+model DietEntry {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  foodId         Int
+  quantity       Decimal   @db.Decimal(10, 2)
+  calories       Decimal?  @db.Decimal(10, 2)
+  consumptionDate DateTime @db.Date
+  mealType       String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  
+  // Relations
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItem       FoodItem  @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@map("diet_entries")
 }
