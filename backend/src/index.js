@@ -23,6 +23,13 @@ const classRoutes = require('./routes/class.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const stripeRoutes = require('./routes/stripe.routes'); // Add this
 
+// Add this to your routes setup
+const competitionRoutes = require('./routes/competition.routes');
+
+//diet routes
+const foodItemRoutes = require('./routes/foodItem.routes');
+const dietEntryRoutes = require('./routes/dietEntry.routes');
+
 // Initialize express app
 const app = express();
 const PORT = 5000;
@@ -81,6 +88,9 @@ app.use('/api/gyms', authMiddleware, gymRoutes);
 app.use('/api/memberships', authMiddleware, membershipRoutes);
 app.use('/api/classes', authMiddleware, classRoutes);
 app.use('/api/bookings', authMiddleware, bookingRoutes);
+app.use('/api/competitions', competitionRoutes);
+app.use('/api/food-items', foodItemRoutes);
+app.use('/api/diet', dietEntryRoutes);
 
 app.use('/api/stripe', stripeRoutes); // Add Stripe routes
 

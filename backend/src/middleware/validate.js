@@ -1,8 +1,14 @@
+// src/middleware/validate.js
 const { z } = require('zod');
 const { ApiError } = require('../utils/ApiError');
 
 const validate = (schema) => (req, res, next) => {
   try {
+    if (!schema || typeof schema.parse !== 'function') {
+      console.error('Invalid schema provided to validate middleware');
+      return next(new ApiError(500, 'Server configuration error'));
+    }
+    
     schema.parse({
       body: req.body,
       query: req.query,
@@ -10,12 +16,20 @@ const validate = (schema) => (req, res, next) => {
     });
     next();
   } catch (error) {
-    const errors = error.errors.map(err => ({
-      path: err.path.join('.'),
-      message: err.message
-    }));
+    console.error('Validation error:', error);
     
-    next(new ApiError(400, 'Validation error', errors));
+    // Handle Zod errors
+    if (error.errors) {
+      const formattedErrors = error.errors.map(err => ({
+        path: err.path.join('.'),
+        message: err.message
+      }));
+      
+      return next(new ApiError(400, 'Validation error', formattedErrors));
+    }
+    
+    // Handle other errors
+    next(new ApiError(400, 'Validation error', [{ message: error.message }]));
   }
 };
 

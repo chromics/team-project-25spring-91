@@ -1,3 +1,4 @@
+// src/routes/class.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { classController } = require('../controllers/class.controller');
