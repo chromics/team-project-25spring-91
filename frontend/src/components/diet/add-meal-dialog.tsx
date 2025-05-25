@@ -32,6 +32,7 @@ interface AddMealDialogProps {
 
 const MAX_WEIGHT = 2000;
 const MAX_TITLE_LENGTH = 15;
+const MAX_FOOD_ITEMS = 20;
 
 export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   open,
@@ -55,6 +56,8 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     value: item.value
   }));
 
+  const isAtFoodLimit = mealItems.length >= MAX_FOOD_ITEMS;
+
   useEffect(() => {
     // Set current date and time when dialog opens
     if (open) {
@@ -68,7 +71,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   }, [mealItems]);
 
   const handleAddFoodItem = () => {
-    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT) return;
+    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit) return;
     
     const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
     if (!foodItem) return;
@@ -149,8 +152,9 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
             </div>
           </div>
           
-          <div className="text-sm text-muted-foreground">
-            Meals ({mealItems.length}/20)
+          <div className={`text-sm ${isAtFoodLimit ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+            Meals ({mealItems.length}/{MAX_FOOD_ITEMS})
+            {isAtFoodLimit && ' - Maximum limit reached'}
           </div>
 
           <div className="grid grid-cols-12 gap-2 items-end">
@@ -159,7 +163,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                 items={comboboxItems}
                 value={selectedFood}
                 onValueChange={setSelectedFood}
-                placeholder="Search food..."
+                placeholder={isAtFoodLimit ? "Limit reached" : "Search food..."}
                 emptyText="No food found"
               />
             </div>
@@ -185,13 +189,14 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                 min={1}
                 max={MAX_WEIGHT}
                 className="w-full"
+                disabled={isAtFoodLimit}
               />
               <span className="text-sm text-muted-foreground mr-2">gram</span>
             </div>
             <div className="col-span-3">
               <Button 
                 onClick={handleAddFoodItem}
-                disabled={!selectedFood || weight <= 0}
+                disabled={!selectedFood || weight <= 0 || isAtFoodLimit}
                 className="w-full"
               >
                 Add
