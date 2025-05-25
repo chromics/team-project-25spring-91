@@ -20,7 +20,7 @@ interface GymCardProps {
 }
 
 const GymCard: FC<GymCardProps> = ({ gym }) => {
-  const router = useRouter()
+  const router = useRouter();
   const [membershipOpen, setMembershipOpen] = useState(false)
 
   return (
@@ -46,14 +46,14 @@ const GymCard: FC<GymCardProps> = ({ gym }) => {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 text-xs"
+            className="flex-1 text-xs cursor-pointer"
             onClick={() => setMembershipOpen(true)}
           >
             Join
           </Button>
           <Button
             size="sm"
-            className="flex-1 text-xs"
+            className="flex-1 text-xs cursor-pointer"
             onClick={() => router.push(`/dashboard/gym-list/${gym.id}`)}
           >
             Book

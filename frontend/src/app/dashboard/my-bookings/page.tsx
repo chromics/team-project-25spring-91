@@ -41,7 +41,7 @@ export default function BookingsAndMembershipsPage() {
       setMemberships(membershipsRes.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      // Consider adding user-facing error feedback here
+      
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +103,7 @@ export default function BookingsAndMembershipsPage() {
                     <Dumbbell className="h-5 w-5 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Active Bookings</p>
+                    <p className="text-sm text-muted-foreground">Confirmed Bookings</p>
                     <p className="text-2xl font-medium">{stats.activeBookings}</p>
                   </div>
                 </CardContent>

@@ -70,7 +70,7 @@ const routeNames: Record<string, string> = {
   'set-goals': 'Goals',
   'completed-tasks': 'Completed Tasks',
   'gym-submission-form': 'Gym Submission Form',
-  'gym-subscription': 'My Bookings', 
+  'my-bookings': 'My Bookings', 
   'leaderboard': 'Leaderboard',
   'challenge': 'Challenge',
   'profile': 'Profile',

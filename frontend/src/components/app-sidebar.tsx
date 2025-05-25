@@ -60,7 +60,7 @@ const data = {
         },
         {
           title: "My Bookings",
-          url: "/dashboard/gym-subscription",
+          url: "/dashboard/my-bookings",
         },
         {
           title: "Submit Gym",

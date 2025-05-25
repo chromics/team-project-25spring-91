@@ -147,6 +147,57 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+
+export type BookingStatus = 'confirmed' | 'cancelled' | 'completed';
+
+
+
+
+
+export interface Booking {
+  id: number;
+  userId: number;
+  membershipId: number;
+  scheduleId: number;
+  bookingTime: string;
+  bookingStatus: BookingStatus;
+  cancellationReason: string | null;
+  attended: boolean;
+  createdAt: string;
+  schedule: {
+    id: number;
+    classId: number;
+    startTime: string;
+    endTime: string;
+    instructor: string;
+    currentBookings: number;
+    isCancelled: boolean;
+    cancellationReason: string | null;
+    createdAt: string;
+    gymClass: {
+      id: number;
+      gymId: number;
+      name: string;
+      description: string;
+      maxCapacity: number | null;
+      durationMinutes: number;
+      imageUrl: string | null;
+      membersOnly: boolean;
+      difficultyLevel: string;
+      isActive: boolean;
+      createdAt: string;
+      gym: {
+        id: number;
+        name: string;
+      };
+    };
+  };
+  userMembership: {
+    id: number;
+    status: string;
+  };
+}
+
 export interface GymsApiResponse extends ApiResponse<Gym[]> {}
 export interface ClassesApiResponse extends ApiResponse<GymClass[]> {}
 export interface SchedulesApiResponse extends ApiResponse<Schedule[]> {}

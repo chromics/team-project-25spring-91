@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { 
+import {
   Calendar,
   Clock,
   MapPin,
@@ -23,9 +23,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import api from '@/lib/api';
-
-// Define the booking status type
-type BookingStatus = 'confirmed' | 'cancelled' | 'completed';
+import { useRouter } from 'next/navigation'
+import { Booking, BookingStatus } from '@/types/gym';
 
 
 const statusStyles: Record<BookingStatus, string> = {
@@ -35,22 +34,6 @@ const statusStyles: Record<BookingStatus, string> = {
 };
 
 
-interface Booking {
-  id: number;
-  bookingStatus: BookingStatus;
-  schedule: {
-    startTime: string;
-    endTime: string;
-    instructor: string;
-    gymClass: {
-      name: string;
-      gym: {
-        name: string;
-        address: string;
-      };
-    };
-  };
-}
 
 interface BookingCardProps {
   booking: Booking;
@@ -58,6 +41,7 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ booking, onCancelSuccess }: BookingCardProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
@@ -74,7 +58,7 @@ export function BookingCard({ booking, onCancelSuccess }: BookingCardProps) {
     }
   };
 
-  // Now TypeScript knows these are valid status styles
+
   const statusStyle = statusStyles[booking.bookingStatus];
   const isUpcoming = new Date(booking.schedule.startTime) > new Date();
   const canCancel = isUpcoming && booking.bookingStatus === 'confirmed';
@@ -104,11 +88,11 @@ export function BookingCard({ booking, onCancelSuccess }: BookingCardProps) {
                 {format(new Date(booking.schedule.startTime), 'EEE, MMM d, yyyy')}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>
-                {format(new Date(booking.schedule.startTime), 'h:mm a')} - 
+                {format(new Date(booking.schedule.startTime), 'h:mm a')} -
                 {format(new Date(booking.schedule.endTime), 'h:mm a')}
               </span>
             </div>
@@ -118,19 +102,27 @@ export function BookingCard({ booking, onCancelSuccess }: BookingCardProps) {
               <span>{booking.schedule.instructor}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-muted-foreground">
+            {/* <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4" />
               <span className="truncate">
                 {booking.schedule.gymClass.gym.address}
               </span>
-            </div>
+            </div> */}
+
+            <Button
+              size="sm"
+              className="flex-1 text-xs cursor-pointer"
+              onClick={() => router.push(`/dashboard/gym-list/${booking.schedule.gymClass.gym.id}`)}
+            >
+              Go to gym
+            </Button>
           </div>
         </CardContent>
 
         {canCancel && (
           <CardFooter className="border-t bg-card/50 p-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full hover:bg-destructive/5 hover:text-destructive"
               onClick={() => setShowCancelDialog(true)}
               disabled={isLoading}
