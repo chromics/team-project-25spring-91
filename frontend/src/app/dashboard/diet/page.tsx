@@ -4,14 +4,22 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AddMealDialog } from '@/components/diet/add-meal-dialog';
+import { ViewEditMealDialog } from '@/components/diet/view-edit-meal-dialog';
+
+interface FoodEntry {
+  id: string;
+  name: string;
+  weight: number;
+  calories: number;
+}
 
 interface Meal {
   title: string; 
   time: string;
   date: Date;
   calories: number;
+  foodItems?: FoodEntry[];
 }
 
 interface DayLog {
@@ -133,34 +141,152 @@ const commonFoodItems: FoodItem[] = [
   { label: 'Avocado Oil', value: 'avocado-oil', caloriesPerGram: 8.84 }
 ];
 
-// Sample data - would come from an API or state management
+// Sample data
 const sampleMealLogs: DayLog[] = [
   // Today
   {
     date: new Date(),
     meals: [
-      { title: 'Breakfast', time: "08:00", date: new Date(), calories: 700 },
-      { title: 'Lunch', time: "12:00", date: new Date(), calories: 500 },
-      { title: 'Dinner', time: "19:00", date: new Date(), calories: 800 }
+      { 
+        title: 'Breakfast', 
+        time: "08:00", 
+        date: new Date(), 
+        calories: 700, 
+        foodItems: [
+          { id: 'b1', name: 'Oatmeal', weight: 100, calories: 380 },
+          { id: 'b2', name: 'Banana', weight: 120, calories: 107 },
+          { id: 'b3', name: 'Almond', weight: 25, calories: 144 },
+          { id: 'b4', name: 'Greek Yogurt', weight: 120, calories: 71 }
+        ]
+      },
+      { 
+        title: 'Lunch', 
+        time: "12:00", 
+        date: new Date(), 
+        calories: 500,
+        foodItems: [
+          { id: 'l1', name: 'Brown Rice', weight: 150, calories: 167 },
+          { id: 'l2', name: 'Chicken Breast', weight: 120, calories: 198 },
+          { id: 'l3', name: 'Broccoli', weight: 150, calories: 51 },
+          { id: 'l4', name: 'Olive Oil', weight: 10, calories: 88 }
+        ]
+      },
+      { 
+        title: 'Dinner', 
+        time: "19:00", 
+        date: new Date(), 
+        calories: 800,
+        foodItems: [
+          { id: 'd1', name: 'Salmon', weight: 180, calories: 374 },
+          { id: 'd2', name: 'Sweet Potato', weight: 200, calories: 172 },
+          { id: 'd3', name: 'Spinach', weight: 100, calories: 23 },
+          { id: 'd4', name: 'Avocado', weight: 100, calories: 160 },
+          { id: 'd5', name: 'Olive Oil', weight: 8, calories: 71 }
+        ]
+      }
     ]
   },
   // Yesterday
   {
     date: new Date(new Date().setDate(new Date().getDate() - 1)),
     meals: [
-      { title: 'Breakfast', time: "09:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 700 },
-      { title: 'Lunch', time: "12:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 500 },
-      { title: 'Dinner', time: "19:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 800 },
-      { title: 'Evening Snack', time: "22:00", date: new Date(new Date().setDate(new Date().getDate() - 1)), calories: 300 }
+      { 
+        title: 'Breakfast', 
+        time: "09:00", 
+        date: new Date(new Date().setDate(new Date().getDate() - 1)), 
+        calories: 700, 
+        foodItems: [
+          { id: 'yb1', name: 'Whole Wheat Bread', weight: 80, calories: 198 },
+          { id: 'yb2', name: 'Egg', weight: 150, calories: 233 },
+          { id: 'yb3', name: 'Avocado', weight: 100, calories: 160 },
+          { id: 'yb4', name: 'Tomato', weight: 100, calories: 18 },
+          { id: 'yb5', name: 'Orange', weight: 200, calories: 94 }
+        ]
+      },
+      { 
+        title: 'Lunch', 
+        time: "12:00", 
+        date: new Date(new Date().setDate(new Date().getDate() - 1)), 
+        calories: 500, 
+        foodItems: [
+          { id: 'yl1', name: 'Quinoa', weight: 150, calories: 180 },
+          { id: 'yl2', name: 'Chickpeas', weight: 120, calories: 197 },
+          { id: 'yl3', name: 'Bell Pepper', weight: 100, calories: 31 },
+          { id: 'yl4', name: 'Cucumber', weight: 100, calories: 15 },
+          { id: 'yl5', name: 'Feta', weight: 30, calories: 79 }
+        ]
+      },
+      { 
+        title: 'Dinner', 
+        time: "19:00", 
+        date: new Date(new Date().setDate(new Date().getDate() - 1)), 
+        calories: 800, 
+        foodItems: [
+          { id: 'yd1', name: 'Chicken', weight: 200, calories: 350 },
+          { id: 'yd2', name: 'Rice', weight: 150, calories: 195 },
+          { id: 'yd3', name: 'Carrots', weight: 100, calories: 41 },
+          { id: 'yd4', name: 'Broccoli', weight: 150, calories: 51 },
+          { id: 'yd5', name: 'Olive Oil', weight: 18, calories: 159 }
+        ]
+      },
+      { 
+        title: 'Evening Snack', 
+        time: "22:00", 
+        date: new Date(new Date().setDate(new Date().getDate() - 1)), 
+        calories: 300, 
+        foodItems: [
+          { id: 'ys1', name: 'Greek Yogurt', weight: 200, calories: 118 },
+          { id: 'ys2', name: 'Blueberries', weight: 150, calories: 86 },
+          { id: 'ys3', name: 'Walnuts', weight: 15, calories: 98 }
+        ]
+      }
     ]
   },
   // 3 Dec 2024
   {
     date: new Date("2024-12-03"),
     meals: [
-      { title: 'Breakfast', time: "08:00", date: new Date("2024-12-03"), calories: 700 },
-      { title: 'Lunch', time: "14:00", date: new Date("2024-12-03"), calories: 800 },
-      { title: 'Dinner', time: "18:00", date: new Date("2024-12-03"), calories: 800 }
+      { 
+        title: 'Breakfast', 
+        time: "08:00", 
+        date: new Date("2024-12-03"), 
+        calories: 700, 
+        foodItems: [
+          { id: 'db1', name: 'Oatmeal', weight: 100, calories: 380 },
+          { id: 'db2', name: 'Almond Milk', weight: 250, calories: 38 },
+          { id: 'db3', name: 'Strawberries', weight: 150, calories: 48 },
+          { id: 'db4', name: 'Peanut Butter', weight: 40, calories: 235 }
+        ]
+      },
+      { 
+        title: 'Lunch', 
+        time: "14:00", 
+        date: new Date("2024-12-03"), 
+        calories: 800, 
+        foodItems: [
+          { id: 'dl1', name: 'Tuna', weight: 150, calories: 195 },
+          { id: 'dl2', name: 'Whole Wheat Bread', weight: 80, calories: 198 },
+          { id: 'dl3', name: 'Avocado', weight: 100, calories: 160 },
+          { id: 'dl4', name: 'Lettuce', weight: 50, calories: 8 },
+          { id: 'dl5', name: 'Tomato', weight: 100, calories: 18 },
+          { id: 'dl6', name: 'Apple', weight: 180, calories: 94 },
+          { id: 'dl7', name: 'Cashews', weight: 25, calories: 138 }
+        ]
+      },
+      { 
+        title: 'Dinner', 
+        time: "18:00", 
+        date: new Date("2024-12-03"), 
+        calories: 800, 
+        foodItems: [
+          { id: 'dd1', name: 'Beef', weight: 150, calories: 375 },
+          { id: 'dd2', name: 'Potato', weight: 200, calories: 154 },
+          { id: 'dd3', name: 'Asparagus', weight: 150, calories: 30 },
+          { id: 'dd4', name: 'Mushroom', weight: 100, calories: 22 },
+          { id: 'dd5', name: 'Olive Oil', weight: 15, calories: 133 },
+          { id: 'dd6', name: 'Parmesan', weight: 20, calories: 86 }
+        ]
+      }
     ]
   }
 ];
@@ -169,7 +295,7 @@ const MealLogger: React.FC = () => {
   const [mealLogs, setMealLogs] = useState<DayLog[]>(sampleMealLogs);
   const [addMealDialogOpen, setAddMealDialogOpen] = useState<boolean>(false);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
-  const [mealDetailDialogOpen, setMealDetailDialogOpen] = useState<boolean>(false);
+  const [viewMealDialogOpen, setViewMealDialogOpen] = useState<boolean>(false);
 
   // Utility functions
   const isSameDay = (date1: Date, date2: Date): boolean => {
@@ -233,7 +359,7 @@ const MealLogger: React.FC = () => {
 
   const handleOpenMealDetails = (meal: Meal) => {
     setSelectedMeal(meal);
-    setMealDetailDialogOpen(true);
+    setViewMealDialogOpen(true);
   };
 
   // Add new meal to logs
@@ -265,6 +391,104 @@ const MealLogger: React.FC = () => {
     updatedLogs.sort((a, b) => b.date.getTime() - a.date.getTime());
     
     setMealLogs(updatedLogs);
+  };
+
+  // Delete a meal
+  const handleDeleteMeal = (mealToDelete: Meal) => {
+    const updatedLogs = mealLogs.map(dayLog => {
+      // If this day doesn't contain the meal, return it unchanged
+      if (!isSameDay(dayLog.date, mealToDelete.date)) {
+        return dayLog;
+      }
+      
+      // Filter out the meal to delete
+      const updatedMeals = dayLog.meals.filter(meal => 
+        !(meal.title === mealToDelete.title && 
+          meal.time === mealToDelete.time && 
+          meal.calories === mealToDelete.calories)
+      );
+      
+      return {
+        ...dayLog,
+        meals: updatedMeals
+      };
+    });
+    
+    // Remove any days that now have no meals
+    const filteredLogs = updatedLogs.filter(dayLog => dayLog.meals.length > 0);
+    
+    setMealLogs(filteredLogs);
+    setViewMealDialogOpen(false);
+  };
+
+  // Update a meal
+  const handleUpdateMeal = (oldMeal: Meal, updatedMeal: Meal) => {
+    const updatedLogs = [...mealLogs];
+    
+    // Find the day log that contains the old meal
+    const oldDayIndex = updatedLogs.findIndex(log => 
+      isSameDay(log.date, oldMeal.date)
+    );
+    
+    if (oldDayIndex >= 0) {
+      // Find the meal within that day
+      const mealIndex = updatedLogs[oldDayIndex].meals.findIndex(meal => 
+        meal.title === oldMeal.title && 
+        meal.time === oldMeal.time &&
+        meal.calories === oldMeal.calories
+      );
+      
+      if (mealIndex >= 0) {
+        // Check if the date has changed
+        if (isSameDay(oldMeal.date, updatedMeal.date)) {
+          // Same day, just update the meal
+          updatedLogs[oldDayIndex].meals[mealIndex] = updatedMeal;
+          
+          // Sort meals within this day by time
+          updatedLogs[oldDayIndex].meals.sort((a, b) => {
+            const timeA = new Date(`1970-01-01T${a.time}`);
+            const timeB = new Date(`1970-01-01T${b.time}`);
+            return timeA.getTime() - timeB.getTime();
+          });
+        } else {
+          // Date changed, remove from old day and add to new day
+          updatedLogs[oldDayIndex].meals.splice(mealIndex, 1);
+          
+          // Find or create the log for the new date
+          const newDayIndex = updatedLogs.findIndex(log => 
+            isSameDay(log.date, updatedMeal.date)
+          );
+          
+          if (newDayIndex >= 0) {
+            // Add to existing day
+            updatedLogs[newDayIndex].meals.push(updatedMeal);
+            // Sort meals within this day by time
+            updatedLogs[newDayIndex].meals.sort((a, b) => {
+              const timeA = new Date(`1970-01-01T${a.time}`);
+              const timeB = new Date(`1970-01-01T${b.time}`);
+              return timeA.getTime() - timeB.getTime();
+            });
+          } else {
+            // Create new day log
+            updatedLogs.push({
+              date: updatedMeal.date,
+              meals: [updatedMeal]
+            });
+          }
+          
+          // Remove old day if it now has no meals
+          if (updatedLogs[oldDayIndex].meals.length === 0) {
+            updatedLogs.splice(oldDayIndex, 1);
+          }
+        }
+      }
+    }
+    
+    // Sort days in descending order (newest first)
+    updatedLogs.sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    setMealLogs(updatedLogs);
+    setSelectedMeal(updatedMeal);
   };
 
   // Component to render a meal card
@@ -363,26 +587,17 @@ const MealLogger: React.FC = () => {
         foodItems={commonFoodItems}
       />
 
-      {/* Meal Details Dialog */}
-      <Dialog open={mealDetailDialogOpen} onOpenChange={setMealDetailDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] md:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{selectedMeal?.title}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {selectedMeal && (
-              <div className="space-y-4">
-                <div>
-                  <span className="font-medium">Time:</span> {selectedMeal.time}
-                </div>
-                <div>
-                  <span className="font-medium">Calories:</span> {selectedMeal.calories}
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* View/Edit Meal Dialog */}
+      {selectedMeal && (
+        <ViewEditMealDialog
+          open={viewMealDialogOpen}
+          onOpenChange={setViewMealDialogOpen}
+          meal={selectedMeal}
+          onDeleteMeal={handleDeleteMeal}
+          onUpdateMeal={handleUpdateMeal}
+          foodItems={commonFoodItems}
+        />
+      )}
     </div>
   );
 };
