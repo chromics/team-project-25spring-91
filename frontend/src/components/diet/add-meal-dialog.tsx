@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TrashIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import DateTimePicker from './date-time-picker';
+import { TitleInputWithSuggestions } from './title-input-with-suggestions';
 
 interface FoodItem {
   label: string;
@@ -28,6 +29,7 @@ interface AddMealDialogProps {
   onOpenChange: (open: boolean) => void;
   onAddMeal: (meal: { title: string; time: string; date: Date; calories: number }) => void;
   foodItems: FoodItem[];
+  enableTitleSuggestions?: boolean;
 }
 
 const MAX_WEIGHT = 2000;
@@ -39,6 +41,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   onOpenChange,
   onAddMeal,
   foodItems,
+  enableTitleSuggestions = true,
 }) => {
   const [title, setTitle] = useState<string>('');
   const [mealItems, setMealItems] = useState<FoodEntry[]>([]);
@@ -102,7 +105,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     onAddMeal({
       title: title.trim(),
       time: format(selectedDateTime, 'HH:mm'),
-      date: selectedDateTime, // Pass the full date
+      date: selectedDateTime, 
       calories: totalCalories
     });
     
@@ -134,13 +137,12 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="meal-title">Title</Label>
-              <Input 
-                id="meal-title" 
+              <TitleInputWithSuggestions
                 value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE_LENGTH))}
-                placeholder="Meal name"
-                className="w-full"
+                onChange={setTitle}
                 maxLength={MAX_TITLE_LENGTH}
+                placeholder="Meal name"
+                enableSuggestions={enableTitleSuggestions}
               />
             </div>
             <div className="space-y-2">
@@ -266,4 +268,4 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   );
 };
 
-export default AddMealDialog;
+

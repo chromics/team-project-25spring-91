@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash, TrashIcon, ArrowLeft } from 'lucide-react';
 import DateTimePicker from './date-time-picker';
+import { TitleInputWithSuggestions } from './title-input-with-suggestions';
 
 interface FoodItem {
   label: string;
@@ -39,6 +40,7 @@ interface MealDialogProps {
   onDeleteMeal: (meal: Meal) => void;
   onUpdateMeal: (oldMeal: Meal, updatedMeal: Meal) => void;
   foodItems: FoodItem[];
+  enableTitleSuggestions?: boolean;
 }
 
 const MAX_WEIGHT = 2000;
@@ -52,6 +54,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   onDeleteMeal,
   onUpdateMeal,
   foodItems,
+  enableTitleSuggestions = true,
 }) => {
   const [activeTab, setActiveTab] = useState<string>("view");
   const [title, setTitle] = useState<string>("");
@@ -93,11 +96,11 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   // Format date to match the image format
   const formattedDate = format(meal.date, 'd MMM yyyy');
 
-  // Use actual meal data instead of demo data
-  const displayFoodItems = meal.foodItems || [];
-  const actualTotalCalories = meal.foodItems ? 
-    meal.foodItems.reduce((sum, item) => sum + item.calories, 0) : 
-    meal.calories;
+  // For demo purposes, ensure we have food items
+  const displayFoodItems = mealItems.length > 0 ? mealItems : [
+    { id: '1', name: 'Rice', weight: 500, calories: 500 },
+    { id: '2', name: 'Chicken', weight: 200, calories: 350 },
+  ];
   
   const handleDelete = () => {
     onDeleteMeal(meal);
@@ -159,21 +162,21 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
-        <Tabs value={activeTab} className="w-full flex flex-col flex-1">
+      <DialogContent className="sm:max-w-[600px] h-auto">
+        <Tabs value={activeTab} className="w-full">
           {/* View Tab */}
-          <TabsContent value="view" className="mt-0 flex flex-col flex-1">
+          <TabsContent value="view" className="mt-0">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">{meal.title}</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4 pt-2 flex-1 flex flex-col">
+            <div className="space-y-4 pt-2">
               <div className="text-sm text-muted-foreground">
                 {formattedDate} {meal.time}
               </div>
               
-              <div className="border rounded-md flex-1 min-h-[400px]">
-                <ScrollArea className="h-[400px] w-full">
+              <div className="border rounded-md h-[300px]">
+                <ScrollArea className="h-[300px] w-full">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -183,28 +186,20 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {displayFoodItems.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
-                            No food items recorded
-                          </TableCell>
+                      {displayFoodItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell>{item.weight} gr</TableCell>
+                          <TableCell>{item.calories}</TableCell>
                         </TableRow>
-                      ) : (
-                        displayFoodItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell>{item.name}</TableCell>
-                            <TableCell>{item.weight} gr</TableCell>
-                            <TableCell>{item.calories}</TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
                 </ScrollArea>
               </div>
               
               <div className="text-sm font-medium">
-                Total calories: {actualTotalCalories}
+                Total calories: {totalCalories}
               </div>
             </div>
             
@@ -232,7 +227,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
           </TabsContent>
           
           {/* Edit Tab */}
-          <TabsContent value="edit" className="mt-0 flex flex-col flex-1">
+          <TabsContent value="edit" className="mt-0">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold flex items-center">
                 <Button 
@@ -247,17 +242,16 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
               </DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-5 pt-2 flex-1 flex flex-col">
+            <div className="space-y-5 pt-2">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="meal-title">Title</Label>
-                  <Input 
-                    id="meal-title" 
+                  <TitleInputWithSuggestions
                     value={title}
-                    onChange={(e) => setTitle(e.target.value.slice(0, MAX_TITLE_LENGTH))}
-                    placeholder="Meal name"
-                    className="w-full"
+                    onChange={setTitle}
                     maxLength={MAX_TITLE_LENGTH}
+                    placeholder="Meal name"
+                    enableSuggestions={enableTitleSuggestions}
                   />
                 </div>
                 <div className="space-y-2">
@@ -321,7 +315,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                 </div>
               </div>
               
-              <div className="border rounded-md flex-1 min-h-[200px]">
+              <div className="border rounded-md h-[200px]">
                 <ScrollArea className="h-[200px] w-full">
                   <Table>
                     <TableHeader>
