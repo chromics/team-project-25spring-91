@@ -2,7 +2,7 @@
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { exerciseController } = require('../controllers/exercises.controller');
-const { exerciseSchemas } = require('../controllers/exercises.validator');
+const { exerciseSchemas } = require('../validators/exercises.validator');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { authMiddleware } = require('../middleware/auth');
 const { roleCheck } = require('../middleware/roleCheck');
