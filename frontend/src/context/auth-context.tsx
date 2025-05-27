@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 type User = {
   id: number;
@@ -14,6 +15,7 @@ type User = {
   heightCm: number;
   weightKg: string;
   createdAt: string;
+  role: UserRole;
 }
 
 type OAuthProvider = 'github' | 'microsoft';
@@ -22,7 +24,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   token: string | null;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName: string, role: UserRole) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithOAuth: (provider: OAuthProvider) => void;
   logout: () => void;
@@ -83,10 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = `http://localhost:5000/api/auth/${provider}`;
   };
 
-  const signUp = async (email: string, password: string, displayName: string) => {
+  const signUp = async (email: string, password: string, displayName: string, role: UserRole) => {
     try {
       setLoading(true);
-      const { data } = await api.post('/auth/register', { email, password, displayName });
+      const { data } = await api.post('/auth/register', { email, password, displayName, role});
 
       const newToken = data.data.token;
 
