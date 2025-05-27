@@ -3,6 +3,27 @@ const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 
 const foodItemService = {
+// get all food items without pagination
+    getAllFoodItemsNoPagination: async (search = '') => {
+    const where = search 
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } }
+          ]
+        } 
+      : {};
+    
+    // Get all food items
+    const foodItems = await prisma.foodItem.findMany({
+      where,
+      orderBy: { name: 'asc' }
+    });
+    
+    return foodItems;
+  },
+
+
   // Get all food items (with search and pagination)
   getAllFoodItems: async ({ search = '', page = 1, limit = 20 }) => {
     const where = search 
