@@ -41,28 +41,32 @@ export default function BookingsAndMembershipsPage() {
       setMemberships(membershipsRes.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      
     } finally {
       setIsLoading(false);
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]); 
+  }, [fetchData]);
 
   const handleBookingCancelSuccess = useCallback(() => {
-    fetchData(); 
+    fetchData();
+  }, [fetchData]);
+
+  const handleBookingAttendSuccess = useCallback(() => {
+    fetchData(); // Refetch all data to update the booking status and move it to history
   }, [fetchData]);
 
   const handleMembershipCancelSuccess = useCallback(() => {
-    fetchData(); 
+    fetchData();
   }, [fetchData]);
 
   const stats = {
     upcomingClasses: upcomingBookings.length,
-    activeBookings: bookings.filter(b => b.bookingStatus === 'confirmed').length,
-    activeMemberships: memberships.filter(m => m.status === 'active').length,
+    confirmedBookings: bookings.filter((b) => b.bookingStatus === 'confirmed')
+      .length,
+    activeMemberships: memberships.filter((m) => m.status === 'active').length,
   };
 
   if (isLoading && bookings.length === 0 && memberships.length === 0) {
@@ -81,7 +85,6 @@ export default function BookingsAndMembershipsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-medium">Activity Overview</h1>
-
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -92,7 +95,9 @@ export default function BookingsAndMembershipsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Upcoming</p>
-                    <p className="text-2xl font-medium">{stats.upcomingClasses}</p>
+                    <p className="text-2xl font-medium">
+                      {stats.upcomingClasses}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -103,8 +108,12 @@ export default function BookingsAndMembershipsPage() {
                     <Dumbbell className="h-5 w-5 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Confirmed Bookings</p>
-                    <p className="text-2xl font-medium">{stats.activeBookings}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Confirmed Bookings
+                    </p>
+                    <p className="text-2xl font-medium">
+                      {stats.confirmedBookings}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -115,8 +124,12 @@ export default function BookingsAndMembershipsPage() {
                     <User className="h-5 w-5 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Memberships</p>
-                    <p className="text-2xl font-medium">{stats.activeMemberships}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Memberships
+                    </p>
+                    <p className="text-2xl font-medium">
+                      {stats.activeMemberships}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -132,14 +145,20 @@ export default function BookingsAndMembershipsPage() {
           >
             <div className="flex items-center justify-between">
               <TabsList className="grid w-[400px] grid-cols-2">
-                <TabsTrigger value="bookings" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="bookings"
+                  className="flex items-center gap-2"
+                >
                   <Calendar className="h-4 w-4" />
                   <span>Bookings</span>
                   <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs">
-                    {stats.activeBookings}
+                    {stats.confirmedBookings}
                   </span>
                 </TabsTrigger>
-                <TabsTrigger value="memberships" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="memberships"
+                  className="flex items-center gap-2"
+                >
                   <Dumbbell className="h-4 w-4" />
                   <span>Memberships</span>
                   <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs">
@@ -152,11 +171,17 @@ export default function BookingsAndMembershipsPage() {
             <TabsContent value="bookings" className="space-y-6">
               <Tabs defaultValue="upcoming" className="space-y-4">
                 <TabsList>
-                  <TabsTrigger value="upcoming" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="upcoming"
+                    className="flex items-center gap-2"
+                  >
                     <Timer className="h-4 w-4" />
                     Upcoming
                   </TabsTrigger>
-                  <TabsTrigger value="history" className="flex items-center gap-2">
+                  <TabsTrigger
+                    value="history"
+                    className="flex items-center gap-2"
+                  >
                     <Clock className="h-4 w-4" />
                     History
                   </TabsTrigger>
@@ -179,6 +204,7 @@ export default function BookingsAndMembershipsPage() {
                           key={booking.id}
                           booking={booking}
                           onCancelSuccess={handleBookingCancelSuccess}
+                          onAttendSuccess={handleBookingAttendSuccess}
                         />
                       ))}
                     </div>
@@ -191,6 +217,7 @@ export default function BookingsAndMembershipsPage() {
                       <BookingCard
                         key={booking.id}
                         booking={booking}
+                        onAttendSuccess={handleBookingAttendSuccess}
                       />
                     ))}
                   </div>
@@ -224,6 +251,5 @@ export default function BookingsAndMembershipsPage() {
         </div>
       </main>
     </div>
-
   );
 }

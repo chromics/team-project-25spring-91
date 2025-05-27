@@ -77,13 +77,13 @@ export function ScheduleDialog({
   }, [open, gymClass.id]);
 
   const findRelevantMembership = (): UserMembership | undefined => {
-    if (!gymClass.gym?.id) {
+    if (!gymClass.gymId) {
       console.warn(
         'Gym ID is missing from gymClass, cannot find relevant membership.'
       );
       return undefined;
     }
-    return userMemberships.find((m) => m.gymId === gymClass.gym?.id);
+    return userMemberships.find((m) => m.gymId === gymClass.gymId);
   };
 
   const handleBooking = async (scheduleId: ID) => {

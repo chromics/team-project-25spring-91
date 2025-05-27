@@ -155,15 +155,17 @@ export function MembershipCard({ membership, onCancelSuccess }: MembershipCardPr
 
         {isActive && (
           <CardFooter className="border-t bg-card/50 p-4">
-            <Button 
-              variant="ghost" 
-              className="w-full hover:bg-destructive/5 hover:text-destructive"
-              onClick={() => setShowCancelDialog(true)}
-              disabled={isLoading}
-            >
-              <XCircle className="mr-2 h-4 w-4" />
-              Cancel Membership
-            </Button>
+
+            <Button
+                  variant="outline"
+                  size="sm"
+                  className={`w-full text-xs text-destructive hover:bg-destructive/5`}
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={isLoading}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel Membership
+                </Button>
           </CardFooter>
         )}
       </Card>

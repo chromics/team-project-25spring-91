@@ -9,28 +9,41 @@ export interface Pagination {
   totalItems: number;
 }
 
-// GymClass interface
+// // GymClass interface
+// export interface GymClass {
+//   id: ID;
+//   name: string;
+//   description: string;
+//   maxCapacity: number | null;
+//   durationMinutes: number;
+//   imageUrl: string;
+//   membersOnly: boolean;
+//   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
+//   createdAt: string;
+//   gym?: {
+//     id: ID;
+//     name: string;
+//     address?: string;
+//     contactInfo?: string;
+//   };
+//   schedules?: Schedule[];
+//   // Additional fields for frontend use
+//   isSelected?: boolean;
+//   temporaryData?: any;
+//   metadata?: Record<string, any>;
+// }
+
 export interface GymClass {
-  id: ID;
+  id: number;
+  gymId: number;
   name: string;
   description: string;
-  maxCapacity: number | null;
+  maxCapacity: number;
   durationMinutes: number;
   imageUrl: string;
   membersOnly: boolean;
   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
-  createdAt: string;
-  gym?: {
-    id: ID;
-    name: string;
-    address?: string;
-    contactInfo?: string;
-  };
-  schedules?: Schedule[];
-  // Additional fields for frontend use
-  isSelected?: boolean;
-  temporaryData?: any;
-  metadata?: Record<string, any>;
+  isActive: boolean;
 }
 
 // Schedule interface
@@ -148,7 +161,7 @@ export interface ApiResponse<T> {
 }
 
 
-export type BookingStatus = 'confirmed' | 'cancelled' | 'completed';
+export type BookingStatus = 'confirmed' | 'cancelled' | 'attended';
 
 
 
