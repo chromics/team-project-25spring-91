@@ -9,6 +9,11 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
+router.get(
+  '/all',
+  asyncHandler(foodItemController.getAllFoodItemsNoPagination)
+);
+
 // Public routes - anyone can search/view food items
 router.get(
   '/',
