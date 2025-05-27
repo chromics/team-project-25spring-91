@@ -2,6 +2,19 @@
 const { foodItemService } = require('../services/foodItem.service');
 
 const foodItemController = {
+//get all food items without pagination
+  getAllFoodItemsNoPagination: async (req, res) => {
+    const { search } = req.query;
+    
+    const foodItems = await foodItemService.getAllFoodItemsNoPagination(search);
+    
+    res.status(200).json({
+      status: 'success',
+      results: foodItems.length,
+      data: foodItems
+    });
+  },
+
   // Get all food items
   getAllFoodItems: async (req, res) => {
     const { search, page = 1, limit = 20 } = req.query;
