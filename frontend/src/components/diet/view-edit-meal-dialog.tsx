@@ -23,6 +23,7 @@ interface FoodEntry {
   name: string;
   weight: number;
   calories: number;
+  foodValue: string; 
 }
 
 interface Meal {
@@ -68,12 +69,18 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
     a.label.localeCompare(b.label)
   );
 
-  const comboboxItems = sortedFoodItems.map(item => ({
+  // Filter out already added foods
+  const availableFoodItems = sortedFoodItems.filter(item => 
+    !mealItems.some(mealItem => mealItem.foodValue === item.value)
+  );
+
+  const comboboxItems = availableFoodItems.map(item => ({
     label: item.label,
     value: item.value
   }));
 
   const isAtFoodLimit = mealItems.length >= MAX_FOOD_ITEMS;
+  const isDuplicateFood = Boolean(selectedFood) && mealItems.some(item => item.foodValue === selectedFood);
 
   // Reset form when dialog opens or meal changes
   useEffect(() => {
@@ -125,7 +132,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   };
 
   const handleAddFoodItem = () => {
-    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit) return;
+    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit || isDuplicateFood) return;
     
     const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
     if (!foodItem) return;
@@ -138,7 +145,8 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
         id: Date.now().toString(),
         name: foodItem.label,
         weight,
-        calories
+        calories,
+        foodValue: foodItem.value
       }
     ]);
     
@@ -287,7 +295,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                     items={comboboxItems}
                     value={selectedFood}
                     onValueChange={setSelectedFood}
-                    placeholder={isAtFoodLimit ? "Limit reached" : "Search food..."}
+                    placeholder={isAtFoodLimit ? "Limit reached" : availableFoodItems.length === 0 ? "All foods added" : "Search food..."}
                     emptyText="No food found"
                   />
                 </div>
@@ -320,7 +328,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                 <div className="col-span-3">
                   <Button 
                     onClick={handleAddFoodItem}
-                    disabled={!selectedFood || weight <= 0 || isAtFoodLimit}
+                    disabled={!selectedFood || weight <= 0 || isAtFoodLimit || isDuplicateFood}
                     className="w-full"
                   >
                     Add

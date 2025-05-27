@@ -56,8 +56,6 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   const [weight, setWeight] = useState<number>(100);
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
-  const [editingWeight, setEditingWeight] = useState<string | null>(null);
-  const [editWeight, setEditWeight] = useState<number>(0);
 
   const sortedFoodItems = [...foodItems].sort((a, b) => 
     a.label.localeCompare(b.label)
@@ -74,7 +72,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   }));
 
   const isAtFoodLimit = mealItems.length >= MAX_FOOD_ITEMS;
-  const isDuplicateFood = selectedFood && mealItems.some(item => item.foodValue === selectedFood);
+  const isDuplicateFood = Boolean(selectedFood) && mealItems.some(item => item.foodValue === selectedFood);
 
   useEffect(() => {
     // Set current date and time when dialog opens
@@ -115,41 +113,6 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setMealItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleWeightDoubleClick = (item: FoodEntry) => {
-    setEditingWeight(item.id);
-    setEditWeight(item.weight);
-  };
-
-  const handleWeightChange = (value: string) => {
-    const numValue = parseInt(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= MAX_WEIGHT) {
-      setEditWeight(numValue);
-    }
-  };
-
-  const handleWeightSave = (itemId: string) => {
-    if (editWeight < 1) {
-      setEditWeight(1);
-      return;
-    }
-
-    setMealItems(prev => prev.map(item => {
-      if (item.id === itemId) {
-        const foodItem = sortedFoodItems.find(f => f.value === item.foodValue);
-        const newCalories = foodItem ? Math.round(foodItem.caloriesPerGram * editWeight) : item.calories;
-        return { ...item, weight: editWeight, calories: newCalories };
-      }
-      return item;
-    }));
-    
-    setEditingWeight(null);
-  };
-
-  const handleWeightCancel = () => {
-    setEditingWeight(null);
-    setEditWeight(0);
-  };
-
   const handleSubmitMeal = () => {
     if (!title.trim() || mealItems.length === 0) return;
     
@@ -171,7 +134,6 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setSelectedFood('');
     setWeight(100);
     setSelectedDateTime(new Date());
-    setEditingWeight(null);
   };
 
   const handleDialogClose = () => {
@@ -281,38 +243,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                     mealItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.name}</TableCell>
-                        <TableCell>
-                          {editingWeight === item.id ? (
-                            <div className="flex items-center space-x-1">
-                              <Input
-                                type="number"
-                                value={editWeight || ''}
-                                onChange={(e) => handleWeightChange(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleWeightSave(item.id);
-                                  } else if (e.key === 'Escape') {
-                                    handleWeightCancel();
-                                  }
-                                }}
-                                onBlur={() => handleWeightSave(item.id)}
-                                className="w-16 h-6 text-xs"
-                                min={1}
-                                max={MAX_WEIGHT}
-                                autoFocus
-                              />
-                              <span className="text-xs text-muted-foreground">gr</span>
-                            </div>
-                          ) : (
-                            <span 
-                              className="cursor-pointer hover:bg-muted px-1 py-0.5 rounded"
-                              onDoubleClick={() => handleWeightDoubleClick(item)}
-                              title="Double-click to edit"
-                            >
-                              {item.weight} gr
-                            </span>
-                          )}
-                        </TableCell>
+                        <TableCell>{item.weight} gr</TableCell>
                         <TableCell>{item.calories}</TableCell>
                         <TableCell>
                           <Button
