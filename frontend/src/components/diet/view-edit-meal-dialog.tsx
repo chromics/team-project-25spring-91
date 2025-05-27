@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,11 +96,16 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   // Format date to match the image format
   const formattedDate = format(meal.date, 'd MMM yyyy');
 
-  // For demo purposes, ensure we have food items
-  const displayFoodItems = mealItems.length > 0 ? mealItems : [
-    { id: '1', name: 'Rice', weight: 500, calories: 500 },
-    { id: '2', name: 'Chicken', weight: 200, calories: 350 },
-  ];
+
+  const displayFoodItems = useMemo(() => meal.foodItems || [], [meal.foodItems]);
+  useEffect(() => {
+    if (open && meal) {
+      const calculatedTotal = meal.foodItems 
+        ? meal.foodItems.reduce((sum, item) => sum + item.calories, 0)
+        : meal.calories || 0;
+      setTotalCalories(calculatedTotal);
+    }
+  }, [open, meal]);
   
   const handleDelete = () => {
     onDeleteMeal(meal);
@@ -186,13 +191,21 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {displayFoodItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.weight} gr</TableCell>
-                          <TableCell>{item.calories}</TableCell>
+                      {displayFoodItems.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
+                            No food items recorded
+                          </TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        displayFoodItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>{item.weight} gr</TableCell>
+                            <TableCell>{item.calories}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </ScrollArea>

@@ -22,12 +22,19 @@ interface FoodEntry {
   name: string;
   weight: number;
   calories: number;
+  foodValue: string; 
 }
 
 interface AddMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddMeal: (meal: { title: string; time: string; date: Date; calories: number }) => void;
+  onAddMeal: (meal: { 
+    title: string; 
+    time: string; 
+    date: Date; 
+    calories: number;
+    foodItems: FoodEntry[];
+  }) => void;
   foodItems: FoodItem[];
   enableTitleSuggestions?: boolean;
 }
@@ -49,17 +56,25 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   const [weight, setWeight] = useState<number>(100);
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
+  const [editingWeight, setEditingWeight] = useState<string | null>(null);
+  const [editWeight, setEditWeight] = useState<number>(0);
 
   const sortedFoodItems = [...foodItems].sort((a, b) => 
     a.label.localeCompare(b.label)
   );
 
-  const comboboxItems = sortedFoodItems.map(item => ({
+  // Filter out already added foods
+  const availableFoodItems = sortedFoodItems.filter(item => 
+    !mealItems.some(mealItem => mealItem.foodValue === item.value)
+  );
+
+  const comboboxItems = availableFoodItems.map(item => ({
     label: item.label,
     value: item.value
   }));
 
   const isAtFoodLimit = mealItems.length >= MAX_FOOD_ITEMS;
+  const isDuplicateFood = selectedFood && mealItems.some(item => item.foodValue === selectedFood);
 
   useEffect(() => {
     // Set current date and time when dialog opens
@@ -74,7 +89,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   }, [mealItems]);
 
   const handleAddFoodItem = () => {
-    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit) return;
+    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit || isDuplicateFood) return;
     
     const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
     if (!foodItem) return;
@@ -87,7 +102,8 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
         id: Date.now().toString(),
         name: foodItem.label,
         weight,
-        calories
+        calories,
+        foodValue: foodItem.value
       }
     ]);
     
@@ -99,6 +115,41 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setMealItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleWeightDoubleClick = (item: FoodEntry) => {
+    setEditingWeight(item.id);
+    setEditWeight(item.weight);
+  };
+
+  const handleWeightChange = (value: string) => {
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= MAX_WEIGHT) {
+      setEditWeight(numValue);
+    }
+  };
+
+  const handleWeightSave = (itemId: string) => {
+    if (editWeight < 1) {
+      setEditWeight(1);
+      return;
+    }
+
+    setMealItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const foodItem = sortedFoodItems.find(f => f.value === item.foodValue);
+        const newCalories = foodItem ? Math.round(foodItem.caloriesPerGram * editWeight) : item.calories;
+        return { ...item, weight: editWeight, calories: newCalories };
+      }
+      return item;
+    }));
+    
+    setEditingWeight(null);
+  };
+
+  const handleWeightCancel = () => {
+    setEditingWeight(null);
+    setEditWeight(0);
+  };
+
   const handleSubmitMeal = () => {
     if (!title.trim() || mealItems.length === 0) return;
     
@@ -106,7 +157,8 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
       title: title.trim(),
       time: format(selectedDateTime, 'HH:mm'),
       date: selectedDateTime, 
-      calories: totalCalories
+      calories: totalCalories,
+      foodItems: mealItems
     });
     
     resetForm();
@@ -119,6 +171,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setSelectedFood('');
     setWeight(100);
     setSelectedDateTime(new Date());
+    setEditingWeight(null);
   };
 
   const handleDialogClose = () => {
@@ -165,7 +218,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                 items={comboboxItems}
                 value={selectedFood}
                 onValueChange={setSelectedFood}
-                placeholder={isAtFoodLimit ? "Limit reached" : "Search food..."}
+                placeholder={isAtFoodLimit ? "Limit reached" : availableFoodItems.length === 0 ? "All foods added" : "Search food..."}
                 emptyText="No food found"
               />
             </div>
@@ -198,7 +251,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
             <div className="col-span-3">
               <Button 
                 onClick={handleAddFoodItem}
-                disabled={!selectedFood || weight <= 0 || isAtFoodLimit}
+                disabled={!selectedFood || weight <= 0 || isAtFoodLimit || isDuplicateFood}
                 className="w-full"
               >
                 Add
@@ -228,7 +281,38 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                     mealItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.weight} gr</TableCell>
+                        <TableCell>
+                          {editingWeight === item.id ? (
+                            <div className="flex items-center space-x-1">
+                              <Input
+                                type="number"
+                                value={editWeight || ''}
+                                onChange={(e) => handleWeightChange(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleWeightSave(item.id);
+                                  } else if (e.key === 'Escape') {
+                                    handleWeightCancel();
+                                  }
+                                }}
+                                onBlur={() => handleWeightSave(item.id)}
+                                className="w-16 h-6 text-xs"
+                                min={1}
+                                max={MAX_WEIGHT}
+                                autoFocus
+                              />
+                              <span className="text-xs text-muted-foreground">gr</span>
+                            </div>
+                          ) : (
+                            <span 
+                              className="cursor-pointer hover:bg-muted px-1 py-0.5 rounded"
+                              onDoubleClick={() => handleWeightDoubleClick(item)}
+                              title="Double-click to edit"
+                            >
+                              {item.weight} gr
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>{item.calories}</TableCell>
                         <TableCell>
                           <Button
@@ -267,5 +351,3 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     </Dialog>
   );
 };
-
-
