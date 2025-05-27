@@ -1,22 +1,18 @@
 // frontend/next.config.ts
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    // simple allow‐list
-    domains: ['picsum.photos'],
-    // or, if you want more fine-grained control:
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
+        hostname: 'example.com',
+        pathname: '/images/**',
       },
     ],
   },
-};
+}
 
-export default nextConfig;
+module.exports = nextConfig

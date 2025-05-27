@@ -23,19 +23,19 @@ const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
-        title: "Personal",
-        url: "#",
-        items: [
-          {
-            title: "Dashboard",
-            url: "#",
-          },
-          {
-            title: "Statistics",
-            url: "/dashboard/statistics",
-          },
-        ],
-      },
+      title: "Personal",
+      url: "#",
+      items: [
+        {
+          title: "Dashboard",
+          url: "#",
+        },
+        {
+          title: "Statistics",
+          url: "/dashboard/statistics",
+        },
+      ],
+    },
     {
       title: "Workout",
       url: "#",
@@ -59,25 +59,26 @@ const data = {
           url: "/dashboard/gym-list",
         },
         {
-            title: "Your Bookings",
-            url: "#",
-          },
+          title: "My Bookings",
+          url: "/dashboard/my-bookings",
+        },
         {
           title: "Submit Gym",
           url: "/dashboard/gym-submission-form",
-        }
+        },
+
       ],
     },
     {
-        title: "Diet",
-        url: "#",
-        items: [
-          {
-            title: "Logged Meals",
-            url: "#",
-          },
-        ],
-      },
+      title: "Diet",
+      url: "#",
+      items: [
+        {
+          title: "Logged Meals",
+          url: "#",
+        },
+      ],
+    },
     {
       title: "Growth",
       url: "#",
@@ -105,15 +106,15 @@ const data = {
     },
 
     {
-        title: "Admin",
-        url: "#",
-        items: [
-          {
-            title: "Gym Approval",
-            url: "#",
-          },
-        ],
-      },
+      title: "Admin",
+      url: "#",
+      items: [
+        {
+          title: "Gym Approval",
+          url: "#",
+        },
+      ],
+    },
   ],
 }
 
@@ -173,7 +174,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         onClick={(e) => {
                           e.preventDefault();
                           if (subItem.url && subItem.url !== "#") {
-                             router.push(subItem.url);
+                            router.push(subItem.url);
                           }
                         }}
                         isActive={isActive}
@@ -190,7 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                   ))
                 }
-                 )}
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

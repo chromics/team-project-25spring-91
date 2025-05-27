@@ -21,6 +21,7 @@ const gymRoutes = require('./routes/gym.routes');
 const membershipRoutes = require('./routes/membership.routes');
 const classRoutes = require('./routes/class.routes');
 const bookingRoutes = require('./routes/booking.routes');
+const stripeRoutes = require('./routes/stripe.routes'); // Add this
 
 // Add this to your routes setup
 const competitionRoutes = require('./routes/competition.routes');
@@ -33,6 +34,9 @@ const dietEntryRoutes = require('./routes/dietEntry.routes');
 const app = express();
 const PORT = 5000;
 
+//raw body parser for Stripe webhooks must come before other middleware ****important
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
 // Middleware
 app.use(helmet({
   crossOriginResourcePolicy: false, // Add this to fix CORP error
@@ -42,7 +46,7 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:5000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Stripe-Signature'] // Add Stripe-Signature
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -51,7 +55,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Stripe-Signature');
   next();
 });
 
@@ -88,6 +92,7 @@ app.use('/api/competitions', competitionRoutes);
 app.use('/api/food-items', foodItemRoutes);
 app.use('/api/diet', dietEntryRoutes);
 
+app.use('/api/stripe', stripeRoutes); // Add Stripe routes
 
 // Error handling middleware
 app.use(errorHandler);

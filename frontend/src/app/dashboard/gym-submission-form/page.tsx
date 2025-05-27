@@ -7,12 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import GymOwnerCard from "@/components/gym-owner-card";
-import type { Gym } from "@/types/gym";
+import type { Gym, Membership, GymClass, Schedule, ID } from "@/types/gym";
 
 export default function GymFormPage() {
-  const [memberships, setMemberships] = useState([{ name: "", price: "", description: "" }]);
-  const [classes, setClasses] = useState([
+  const [memberships, setMemberships] = useState<Membership[]>([{ 
+    id: "", 
+    name: "", 
+    price: "", 
+    description: "" 
+  }]);
+  
+  const [classes, setClasses] = useState<GymClass[]>([
     {
+      id: "",
       name: "",
       description: "",
       price: "",
@@ -21,7 +28,7 @@ export default function GymFormPage() {
       duration: "",
       membersOnly: false,
       difficulty: "",
-      schedules: [{ startTime: "", endTime: "", instructor: "" }]
+      schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
     }
   ]);
 
@@ -31,6 +38,8 @@ export default function GymFormPage() {
     name: "",
     openingHours: "",
     address: "",
+    location: "",
+    contactInfo: "",
     equipments: "",
     imageUrl: "",
     websiteUrl: "",
@@ -41,6 +50,7 @@ export default function GymFormPage() {
     setClasses([
       ...classes,
       {
+        id: "",
         name: "",
         description: "",
         price: "",
@@ -49,29 +59,31 @@ export default function GymFormPage() {
         duration: "",
         membersOnly: false,
         difficulty: "",
-        schedules: [{ startTime: "", endTime: "", instructor: "" }],
+        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }],
       },
     ]);
   };
 
   const handleAddSchedule = (classIndex: number) => {
     const updated = [...classes];
-    updated[classIndex].schedules.push({ startTime: "", endTime: "", instructor: "" });
+    updated[classIndex].schedules.push({ id: "", startTime: "", endTime: "", instructor: "" });
     setClasses(updated);
   };
 
   const handleAddGym = () => {
     const newGym: Gym = {
+      id: selectedGymIndex !== null ? gyms[selectedGymIndex].id : "", // Preserve ID when editing
       name: gymForm.name,
       openingHours: gymForm.openingHours,
       address: gymForm.address,
+      location: gymForm.location,
+      contactInfo: gymForm.contactInfo,
       equipments: gymForm.equipments,
       imageUrl: gymForm.imageUrl,
       websiteUrl: gymForm.websiteUrl,
       description: gymForm.description,
       memberships: memberships,
       classes: classes,
-      location: gymForm.address,
     };
 
     if (selectedGymIndex !== null) {
@@ -82,11 +94,23 @@ export default function GymFormPage() {
       setGyms([...gyms, newGym]);
     }
 
+    // Reset form
     setSelectedGymIndex(null);
-    setGymForm({ name: "", openingHours: "", address: "", equipments: "", imageUrl: "", websiteUrl: "", description: "" });
-    setMemberships([{ name: "", price: "", description: "" }]);
+    setGymForm({ 
+      name: "", 
+      openingHours: "", 
+      address: "", 
+      location: "", 
+      contactInfo: "", 
+      equipments: "", 
+      imageUrl: "", 
+      websiteUrl: "", 
+      description: "" 
+    });
+    setMemberships([{ id: "", name: "", price: "", description: "" }]);
     setClasses([
       {
+        id: "",
         name: "",
         description: "",
         price: "",
@@ -95,7 +119,7 @@ export default function GymFormPage() {
         duration: "",
         membersOnly: false,
         difficulty: "",
-        schedules: [{ startTime: "", endTime: "", instructor: "" }]
+        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
       }
     ]);
   };
@@ -106,25 +130,54 @@ export default function GymFormPage() {
     setGymForm({
       name: gym.name,
       openingHours: gym.openingHours || "",
-      address: gym.address || gym.location || "",
+      address: gym.address || "",
+      location: gym.location || "",
+      contactInfo: gym.contactInfo || "",
       equipments: gym.equipments || "",
       imageUrl: gym.imageUrl || "",
       websiteUrl: gym.websiteUrl || "",
       description: gym.description || "",
     });
-    setMemberships(gym.memberships || []);
-    setClasses(gym.classes || []);
+    
+    // Use memberships and classes from the gym or defaults if none exist
+    setMemberships(gym.memberships?.length ? gym.memberships : [{ id: "", name: "", price: "", description: "" }]);
+    setClasses(gym.classes?.length ? gym.classes : [
+      {
+        id: "",
+        name: "",
+        description: "",
+        price: "",
+        maxCapacity: "",
+        image: "",
+        duration: "",
+        membersOnly: false,
+        difficulty: "",
+        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
+      }
+    ]);
   };
 
   const handleDeleteGym = (index: number) => {
     const updatedGyms = gyms.filter((_, i) => i !== index);
     setGyms(updatedGyms);
+    
     if (selectedGymIndex === index) {
       setSelectedGymIndex(null);
-      setGymForm({ name: "", openingHours: "", address: "", equipments: "", imageUrl: "", websiteUrl: "", description: "" });
-      setMemberships([{ name: "", price: "", description: "" }]);
+      setGymForm({ 
+        name: "", 
+        openingHours: "", 
+        address: "", 
+        location: "", 
+        contactInfo: "", 
+        equipments: "", 
+        imageUrl: "", 
+        websiteUrl: "", 
+        description: "" 
+      });
+      setMemberships([{ id: "", name: "", price: "", description: "" }]);
       setClasses([
         {
+          id: "",
           name: "",
           description: "",
           price: "",
@@ -133,17 +186,47 @@ export default function GymFormPage() {
           duration: "",
           membersOnly: false,
           difficulty: "",
-          schedules: [{ startTime: "", endTime: "", instructor: "" }]
+          schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
         }
       ]);
     }
   };
 
+  const resetForm = () => {
+    setSelectedGymIndex(null);
+    setGymForm({ 
+      name: "", 
+      openingHours: "", 
+      address: "", 
+      location: "", 
+      contactInfo: "", 
+      equipments: "", 
+      imageUrl: "", 
+      websiteUrl: "", 
+      description: "" 
+    });
+    setMemberships([{ id: "", name: "", price: "", description: "" }]);
+    setClasses([
+      {
+        id: "",
+        name: "",
+        description: "",
+        price: "",
+        maxCapacity: "",
+        image: "",
+        duration: "",
+        membersOnly: false,
+        difficulty: "",
+        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
+      }
+    ]);
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Add Your Gyms</h1>
-        <p className="text-gray-600">Fill out the form below to add your gym to our list.</p>
+        <h1 className="text-3xl font-bold">{selectedGymIndex !== null ? "Edit Your Gym" : "Add Your Gyms"}</h1>
+        <p className="text-gray-600">Fill out the form below to {selectedGymIndex !== null ? "update" : "add"} your gym to our list.</p>
       </div>
 
       {/* Gym Cards Section */}
@@ -171,9 +254,12 @@ export default function GymFormPage() {
           <Input placeholder="Gym Name" value={gymForm.name} onChange={(e) => setGymForm({ ...gymForm, name: e.target.value })} />
           <Input placeholder="Opening Hours" value={gymForm.openingHours} onChange={(e) => setGymForm({ ...gymForm, openingHours: e.target.value })} />
           <Textarea placeholder="Address" value={gymForm.address} onChange={(e) => setGymForm({ ...gymForm, address: e.target.value })} />
+          <Input placeholder="Location" value={gymForm.location} onChange={(e) => setGymForm({ ...gymForm, location: e.target.value })} />
+          <Input placeholder="Contact Info" value={gymForm.contactInfo} onChange={(e) => setGymForm({ ...gymForm, contactInfo: e.target.value })} />
           <Textarea placeholder="Available Equipments" value={gymForm.equipments} onChange={(e) => setGymForm({ ...gymForm, equipments: e.target.value })} />
           <Input placeholder="Image URL" value={gymForm.imageUrl} onChange={(e) => setGymForm({ ...gymForm, imageUrl: e.target.value })} />
           <Input placeholder="Website URL" value={gymForm.websiteUrl} onChange={(e) => setGymForm({ ...gymForm, websiteUrl: e.target.value })} />
+          <Textarea placeholder="Description" value={gymForm.description} onChange={(e) => setGymForm({ ...gymForm, description: e.target.value })} />
         </div>
 
         {/* Memberships */}
@@ -186,7 +272,7 @@ export default function GymFormPage() {
                 updated[index].name = e.target.value;
                 setMemberships(updated);
               }} />
-              <Input placeholder="Price" type="number" value={membership.price} onChange={(e) => {
+              <Input placeholder="Price" value={membership.price} onChange={(e) => {
                 const updated = [...memberships];
                 updated[index].price = e.target.value;
                 setMemberships(updated);
@@ -198,7 +284,7 @@ export default function GymFormPage() {
               }} />
             </div>
           ))}
-          <Button onClick={() => setMemberships([...memberships, { name: "", price: "", description: "" }])}>Add Membership Category</Button>
+          <Button onClick={() => setMemberships([...memberships, { id: "", name: "", price: "", description: "" }])}>Add Membership Category</Button>
         </div>
 
         {/* Classes */}
@@ -216,12 +302,12 @@ export default function GymFormPage() {
                 updated[classIndex].description = e.target.value;
                 setClasses(updated);
               }} />
-              <Input placeholder="Price" type="number" value={cls.price} onChange={(e) => {
+              <Input placeholder="Price" value={cls.price} onChange={(e) => {
                 const updated = [...classes];
                 updated[classIndex].price = e.target.value;
                 setClasses(updated);
               }} />
-              <Input placeholder="Max Capacity" type="number" value={cls.maxCapacity} onChange={(e) => {
+              <Input placeholder="Max Capacity" value={cls.maxCapacity} onChange={(e) => {
                 const updated = [...classes];
                 updated[classIndex].maxCapacity = e.target.value;
                 setClasses(updated);
@@ -280,7 +366,12 @@ export default function GymFormPage() {
           <Button onClick={handleAddClass}>Add Class</Button>
         </div>
 
-        <Button className="w-full" onClick={handleAddGym}>Save Gym</Button>
+        <div className="flex gap-2">
+          <Button className="flex-1" onClick={handleAddGym}>{selectedGymIndex !== null ? "Update Gym" : "Save Gym"}</Button>
+          {selectedGymIndex !== null && (
+            <Button variant="outline" onClick={resetForm}>Cancel</Button>
+          )}
+        </div>
       </div>
     </div>
   );
