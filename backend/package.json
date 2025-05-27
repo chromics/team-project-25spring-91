@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
-    "williamStart": "nodemon src/app.js"
+    "start": "node src/index.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

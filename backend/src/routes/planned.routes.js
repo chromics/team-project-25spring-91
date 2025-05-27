@@ -1,7 +1,7 @@
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { plannedController } = require('../controllers/planned.controller');
-const { plannedSchemas } = require('../controllers/planned.validator');
+const { plannedSchemas } = require('../validators/planned.validator');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 const router = express.Router();

@@ -1,7 +1,7 @@
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { userController } = require('../controllers/users.controller');
-const { userSchemas } = require('../controllers/users.validator');
+const { userSchemas } = require('../validators/users.validator');
 const { authMiddleware } = require('../middleware/auth');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { roleCheck } = require('../middleware/roleCheck');
