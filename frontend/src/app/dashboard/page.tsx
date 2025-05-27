@@ -1,57 +1,34 @@
-//app/dashboard/page
+// src/app/dashboard/page.tsx
+"use client";
 
-import { AppSidebar } from "@/components/app-sidebar"
-// import { AuthCheck } from "@/components/auth/auth-check"
-// import { Header } from "@/components/layout/header"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { useAuth } from "@/context/auth-context";
 import { LoadingSpinner } from "@/components/ui/loading";
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { UserRole } from "@/components/auth/sign-up-form";
 
-export default function Page() {
+const getDefaultDashboard = (role: UserRole): string => {
+  switch (role) {
+    case UserRole.ADMIN:
+      return '/dashboard/admin/dashboard';
+    case UserRole.GYM_OWNER:
+      return '/dashboard/gym-owner/dashboard';
+    case UserRole.REGULAR_USER:
+    default:
+      return '/dashboard/dashboard';
+  }
+};
 
-  return (
-    // <AuthCheck requireAuth={true}>
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        {/* <Header />
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">
-                  Building Your Application
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header> */}
+export default function DashboardRedirect() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-      </SidebarInset>
-    </SidebarProvider>
-    // {/*  </AuthCheck> */}
-  )
+  useEffect(() => {
+    if (!loading && user) {
+      const targetDashboard = getDefaultDashboard(user.role);
+      router.replace(targetDashboard);
+    }
+  }, [user, loading, router]);
+
+  return <LoadingSpinner />;
 }

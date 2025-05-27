@@ -44,7 +44,54 @@
 //     </SidebarProvider>
 //   )
 // }
+// app/dashboard/layout.tsx
+// import { AppSidebar } from "@/components/app-sidebar"
+// import { Header } from "@/components/layout/header"
+// import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+// import { Separator } from "@/components/ui/separator"
+// import {
+//   SidebarInset,
+//   SidebarProvider,
+//   SidebarTrigger,
+// } from "@/components/ui/sidebar"
 
+// export default function DashboardLayout({
+//   children
+// }: {
+//   children: React.ReactNode
+// }) {    
+//   return (
+//     <SidebarProvider>
+//       <AppSidebar />
+//       <SidebarInset>
+//       <Header />
+//         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+//           <SidebarTrigger className="-ml-1" />
+//           <Separator
+//             orientation="vertical"
+//             className="mr-2 data-[orientation=vertical]:h-4"
+//           />
+//           <Breadcrumb>
+//             <BreadcrumbList>
+//               <BreadcrumbItem className="hidden md:block">
+//                 <BreadcrumbLink href="#">
+//                   Building Your Application
+//                 </BreadcrumbLink>
+//               </BreadcrumbItem>
+//               <BreadcrumbSeparator className="hidden md:block" />
+//               <BreadcrumbItem>
+//                 <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+//               </BreadcrumbItem>
+//             </BreadcrumbList>
+//           </Breadcrumb>
+//         </header>
+//         {children}
+//       </SidebarInset>
+//     </SidebarProvider>
+//   )
+// }
+
+// app/dashboard/layout.tsx
 // app/dashboard/layout.tsx
 'use client';
 
@@ -75,6 +122,13 @@ const routeNames: Record<string, string> = {
   'challenge': 'Challenge',
   'profile': 'Profile',
   'settings': 'Settings',
+  'admin': 'Admin',
+  'gym-owner': 'Gym Owner',
+  'gym-approval': 'Gym Approval',
+  'users': 'User Management',
+  'my-gyms': 'My Gyms',
+  'chat': 'Ask AI',
+  'logged-meals': 'Logged Meals',
   // add more routes
 };
 
@@ -89,9 +143,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const fetchDynamicName = async () => {
-
       setDynamicName('');
-
 
       const lastSegment = paths[paths.length - 1];
       if (lastSegment?.match(/^[0-9a-fA-F-]+$/)) {
@@ -130,12 +182,14 @@ export default function DashboardLayout({
                 const isLast = index === paths.length - 1;
                 const href = `/${paths.slice(0, index + 1).join('/')}`;
 
-                
                 const isUUID = path.match(/^[0-9a-fA-F-]+$/);
                 const displayName = isUUID ? (dynamicName || '...') : (routeNames[path] || path);
 
+                // Create unique key by combining index and path, or use the full href
+                const uniqueKey = `${index}-${path}`;
+
                 return (
-                  <React.Fragment key={path}> 
+                  <React.Fragment key={uniqueKey}> {/* Changed this line */}
                     <BreadcrumbItem>
                       {!isLast ? (
                         <BreadcrumbLink href={href}>
@@ -149,7 +203,6 @@ export default function DashboardLayout({
                       <BreadcrumbSeparator />
                     )}
                   </React.Fragment>
-
                 );
               })}
             </BreadcrumbList>

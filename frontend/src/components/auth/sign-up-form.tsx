@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 export enum UserRole {
   REGULAR_USER = "regular_user",
   GYM_OWNER = "gym_owner",
+  ADMIN = "admin"
 }
 
 export function SignUpForm() {
@@ -62,7 +63,8 @@ export function SignUpForm() {
         description: "Welcome! Your account has been created." 
       });
 
-      router.push('/dashboard/statistics');
+      // router.push('/dashboard/statistics');
+      router.push('/dashboard');
 
     } catch (error) {
       let errorMessage = 'Failed to sign up';
