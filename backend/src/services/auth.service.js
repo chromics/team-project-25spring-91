@@ -1,3 +1,4 @@
+// src/services/auth.service.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');

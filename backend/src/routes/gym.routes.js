@@ -1,3 +1,4 @@
+// src/routes/gym.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { gymController } = require('../controllers/gym.controller');

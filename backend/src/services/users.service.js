@@ -1,3 +1,4 @@
+// src/services/users.service.js
 const bcrypt = require('bcrypt');
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');

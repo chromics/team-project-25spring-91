@@ -1,3 +1,4 @@
+//src/index.js
 require('dotenv').config(); //need to be at the top, so i can call variables from .env
 const express = require('express');
 const cors = require('cors');

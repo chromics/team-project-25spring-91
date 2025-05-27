@@ -1,3 +1,4 @@
+//src/controllers/auth.controller.js
 const { authService } = require('../services/auth.service');
 const { ApiError } = require('../utils/ApiError');
 const jwt = require('jsonwebtoken');

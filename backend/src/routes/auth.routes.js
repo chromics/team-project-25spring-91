@@ -1,3 +1,4 @@
+// src/routes/auth.routes.js
 const express = require('express');
 const passport = require('passport');
 const { validate } = require('../middleware/validate');

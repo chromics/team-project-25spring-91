@@ -1,3 +1,4 @@
+//src/middleware/errorHandler.js
 const { Prisma } = require('@prisma/client');
 const { ApiError } = require('../utils/ApiError');
 

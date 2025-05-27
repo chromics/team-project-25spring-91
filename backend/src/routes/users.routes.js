@@ -1,3 +1,4 @@
+// src/routes/users.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { userController } = require('../controllers/users.controller');

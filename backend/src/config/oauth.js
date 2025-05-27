@@ -1,3 +1,4 @@
+//src/config/oauth.js
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
