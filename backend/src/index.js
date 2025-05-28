@@ -30,6 +30,9 @@ const competitionRoutes = require('./routes/competition.routes');
 const foodItemRoutes = require('./routes/foodItem.routes');
 const dietEntryRoutes = require('./routes/dietEntry.routes');
 
+//Upload route
+const uploadRoutes = require('./routes/uploads.routes');
+
 // Initialize express app
 const app = express();
 const PORT = 5000;
@@ -90,6 +93,7 @@ app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/competitions', competitionRoutes);
 app.use('/api/food-items', foodItemRoutes);
 app.use('/api/diet', dietEntryRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 
 // Error handling middleware

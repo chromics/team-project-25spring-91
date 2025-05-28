@@ -1,6 +1,8 @@
 // src/controllers/gym.controller.js
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
+const fs = require('fs').promises;
+const path = require('path');
 
 const getAllGyms = async (req, res) => {
   const { search, page = 1, limit = 10 } = req.query;
@@ -59,7 +61,6 @@ const getGymById = async (req, res) => {
 const getGymClasses = async (req, res) => {
   const gymId = parseInt(req.params.id);
   
-  // First check if gym exists
   const gym = await prisma.gym.findUnique({
     where: { id: gymId }
   });
@@ -85,7 +86,6 @@ const getGymClasses = async (req, res) => {
 const getGymMembershipPlans = async (req, res) => {
   const gymId = parseInt(req.params.id);
   
-  // First check if gym exists
   const gym = await prisma.gym.findUnique({
     where: { id: gymId }
   });
@@ -111,13 +111,12 @@ const getGymMembershipPlans = async (req, res) => {
 const createGym = async (req, res) => {
   const userId = req.user.id;
   
-  // Create gym with the current user as owner if they're a gym_owner
-  // Admins can create gyms without being assigned as owner
   const ownerId = req.user.role === 'gym_owner' ? userId : null;
   
   const gymData = {
     ...req.body,
-    ownerId
+    ownerId,
+    imageUrl: req.processedImage ? req.processedImage.url : null
   };
   
   const newGym = await prisma.gym.create({
@@ -134,7 +133,6 @@ const createGym = async (req, res) => {
 const updateGym = async (req, res) => {
   const gymId = parseInt(req.params.id);
   
-  // First check if gym exists
   const gym = await prisma.gym.findUnique({
     where: { id: gymId }
   });
@@ -143,10 +141,28 @@ const updateGym = async (req, res) => {
     throw new ApiError(404, 'Gym not found');
   }
   
-  // Update gym
+  // Prepare update data
+  const updateData = { ...req.body };
+  
+  // If new image is uploaded, update imageUrl and delete old image
+  if (req.processedImage) {
+    // Delete old image if exists
+    if (gym.imageUrl) {
+      try {
+        const oldFilename = gym.imageUrl.split('/').pop();
+        const oldFilepath = path.join(__dirname, '../../uploads/gyms', oldFilename);
+        await fs.unlink(oldFilepath);
+      } catch (error) {
+        console.log('Old image not found or already deleted');
+      }
+    }
+    
+    updateData.imageUrl = req.processedImage.url;
+  }
+  
   const updatedGym = await prisma.gym.update({
     where: { id: gymId },
-    data: req.body
+    data: updateData
   });
   
   res.status(200).json({
@@ -159,7 +175,6 @@ const updateGym = async (req, res) => {
 const deleteGym = async (req, res) => {
   const gymId = parseInt(req.params.id);
   
-  // First check if gym exists
   const gym = await prisma.gym.findUnique({
     where: { id: gymId }
   });
@@ -168,7 +183,17 @@ const deleteGym = async (req, res) => {
     throw new ApiError(404, 'Gym not found');
   }
   
-  // Delete gym
+  // Delete associated image if exists
+  if (gym.imageUrl) {
+    try {
+      const filename = gym.imageUrl.split('/').pop();
+      const filepath = path.join(__dirname, '../../uploads/gyms', filename);
+      await fs.unlink(filepath);
+    } catch (error) {
+      console.log('Image not found or already deleted');
+    }
+  }
+  
   await prisma.gym.delete({
     where: { id: gymId }
   });

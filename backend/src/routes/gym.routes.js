@@ -7,6 +7,7 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const { authMiddleware } = require('../middleware/auth');
 const { roleCheck } = require('../middleware/roleCheck');
 const { ownershipCheck } = require('../middleware/ownershipCheck');
+const { uploadGymImage, processGymImage } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -40,7 +41,9 @@ router.get(
 // Admin and gym owner only routes
 router.post(
   '/',
-  roleCheck(['admin', 'gym_owner']), // Admins and gym owners can create gyms
+  roleCheck(['admin', 'gym_owner']),
+  uploadGymImage,
+  processGymImage,
   validate(gymSchemas.createGym),
   asyncHandler(gymController.createGym)
 );
@@ -48,14 +51,16 @@ router.post(
 // Admin or resource owner only routes
 router.put(
   '/:id',
-  ownershipCheck('gym'), // Owner or admin can update gym
+  ownershipCheck('gym'),
+  uploadGymImage,
+  processGymImage,
   validate(gymSchemas.updateGym),
   asyncHandler(gymController.updateGym)
 );
 
 router.delete(
   '/:id',
-  roleCheck(['admin']), // Only admins can delete gyms
+  roleCheck(['admin']),
   validate(gymSchemas.deleteGym),
   asyncHandler(gymController.deleteGym)
 );
