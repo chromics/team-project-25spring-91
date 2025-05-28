@@ -6,7 +6,7 @@ import { UserRole } from "@/components/auth/sign-up-form";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 
-const getDefaultDashboard = (role: UserRole): string => {
+export const getDefaultDashboard = (role: UserRole): string => {
   switch (role) {
     case UserRole.ADMIN:
       return '/dashboard/admin/dashboard';

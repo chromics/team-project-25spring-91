@@ -108,6 +108,8 @@ import {
 } from "@/components/ui/sidebar"
 import api from '@/lib/api';
 import React from 'react';
+import { UserRole } from '@/components/auth/sign-up-form';
+import { getDefaultDashboard } from "@/hooks/use-role-protection";
 
 // Basic route mapping
 const routeNames: Record<string, string> = {
@@ -117,7 +119,7 @@ const routeNames: Record<string, string> = {
   'set-goals': 'Goals',
   'completed-tasks': 'Completed Tasks',
   'gym-submission-form': 'Gym Submission Form',
-  'my-bookings': 'My Bookings', 
+  'my-bookings': 'My Bookings',
   'leaderboard': 'Leaderboard',
   'challenge': 'Challenge',
   'profile': 'Profile',
@@ -180,13 +182,25 @@ export default function DashboardLayout({
             <BreadcrumbList>
               {paths.map((path, index) => {
                 const isLast = index === paths.length - 1;
-                const href = `/${paths.slice(0, index + 1).join('/')}`;
+                const defaultHref = `/${paths.slice(0, index + 1).join('/')}`;
+                
+                // override segments that don't have their own page:
+                let href: string;
+                if (path === "admin") {
+                  href = getDefaultDashboard(UserRole.ADMIN);
+                } else if (path === "gym-owner") {
+                  href = getDefaultDashboard(UserRole.GYM_OWNER);
+                } else {
+                  href = defaultHref;
+                }
 
                 const isUUID = path.match(/^[0-9a-fA-F-]+$/);
                 const displayName = isUUID ? (dynamicName || '...') : (routeNames[path] || path);
 
                 // Create unique key by combining index and path, or use the full href
                 const uniqueKey = `${index}-${path}`;
+
+
 
                 return (
                   <React.Fragment key={uniqueKey}> {/* Changed this line */}

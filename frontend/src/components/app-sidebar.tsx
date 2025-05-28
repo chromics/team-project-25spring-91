@@ -396,28 +396,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                 {item.items.map((subItem) => {
                   const isActive = pathname === subItem.url;
-                  const isAskAI = subItem.title === 'Ask AI';
 
                   let buttonClasses = 'cursor-pointer';
 
-                  if (isAskAI) {
-                    buttonClasses += ' relative transition-all duration-500 border';
 
-                    if (isActive) {
-                      buttonClasses += ' bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30 border-pink-400 hover:border-pink-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.45] before:blur-lg before:-z-10';
-                    } else {
-                      buttonClasses += ' bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-[#ffffff30] hover:border-[#ffffff50] hover:bg-[#ffffff15] before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#ff2d55] before:via-[#2ac3ff] before:to-[#0a84ff] before:opacity-[0.25] before:blur-xl before:-z-10 before:translate-y-0';
-                    }
+                  if (isActive) {
+                    buttonClasses +=
+                      ' !bg-[var(--primary)] !text-[var(--primary-foreground)]';
                   } else {
-                    if (isActive) {
-                      buttonClasses +=
-                        ' !bg-[var(--primary)] !text-[var(--primary-foreground)]';
-                    } else {
-                      buttonClasses +=
-                        ' bg-transparent text-[var(--sidebar-foreground)]' +
-                        ' hover:bg-[var(--sidebar-hover)]';
-                    }
+                    buttonClasses +=
+                      ' bg-transparent text-[var(--sidebar-foreground)]' +
+                      ' hover:bg-[var(--sidebar-hover)]';
                   }
+
 
                   return (
                     <SidebarMenuItem key={subItem.title}>
