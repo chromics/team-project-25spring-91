@@ -1,3 +1,4 @@
+// src/services/nogifications.service.js
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const prisma = require('../config/prisma');

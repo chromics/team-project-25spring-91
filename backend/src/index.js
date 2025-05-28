@@ -1,3 +1,4 @@
+//src/index.js
 require('dotenv').config(); //need to be at the top, so i can call variables from .env
 const express = require('express');
 const cors = require('cors');
@@ -28,6 +29,9 @@ const competitionRoutes = require('./routes/competition.routes');
 //diet routes
 const foodItemRoutes = require('./routes/foodItem.routes');
 const dietEntryRoutes = require('./routes/dietEntry.routes');
+
+//Upload route
+const uploadRoutes = require('./routes/uploads.routes');
 
 // Initialize express app
 const app = express();
@@ -89,6 +93,7 @@ app.use('/api/bookings', authMiddleware, bookingRoutes);
 app.use('/api/competitions', competitionRoutes);
 app.use('/api/food-items', foodItemRoutes);
 app.use('/api/diet', dietEntryRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 
 // Error handling middleware

@@ -7,6 +7,7 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const { authMiddleware } = require('../middleware/auth');
 const { roleCheck } = require('../middleware/roleCheck');
 const { ownershipCheck } = require('../middleware/ownershipCheck');
+const { uploadCompetitionImage, processCompetitionImage } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -65,6 +66,8 @@ router.get(
 router.post(
   '/',
   roleCheck(['admin', 'gym_owner']),
+  uploadCompetitionImage,
+  processCompetitionImage,
   validate(competitionSchemas.createCompetition),
   asyncHandler(competitionController.createCompetition)
 );
@@ -72,6 +75,8 @@ router.post(
 router.put(
   '/:id',
   roleCheck(['admin', 'gym_owner']),
+  uploadCompetitionImage,
+  processCompetitionImage,
   validate(competitionSchemas.updateCompetition),
   asyncHandler(competitionController.updateCompetition)
 );

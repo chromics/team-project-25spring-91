@@ -33,3 +33,9 @@ yarn-error.log*
 
 # Optional eslint cache
 .eslintcache
+
+uploads/gyms/*
+uploads/gym-classes/*
+uploads/competitions/*
+uploads/users/*
+!uploads/*/.gitkeep

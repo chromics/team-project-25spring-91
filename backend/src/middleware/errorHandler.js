@@ -1,11 +1,23 @@
+// src/middleware/errorHandler.js
 const { Prisma } = require('@prisma/client');
 const { ApiError } = require('../utils/ApiError');
+const { cleanupImageOnError } = require('./upload');
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = async (err, req, res, next) => {
   console.error(err);
+
+  // Clean up processed image if validation failed
+  if (req.processedImage && (err.statusCode === 400 || err.name === 'ZodError')) {
+    await cleanupImageOnError(req);
+  }
 
   // Prisma specific errors
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    // Clean up image for database errors too
+    if (req.processedImage) {
+      await cleanupImageOnError(req);
+    }
+    
     if (err.code === 'P2002') {
       return res.status(409).json({
         status: 'error',

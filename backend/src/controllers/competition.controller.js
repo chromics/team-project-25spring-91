@@ -1,6 +1,9 @@
 // src/controllers/competition.controller.js
 const prisma = require('../config/prisma');
 const { competitionService } = require('../services/competition.service');
+const fs = require('fs').promises;
+const path = require('path');
+const { ApiError } = require('../utils/ApiError');
 
 const competitionController = {
   // Get all competitions
@@ -59,8 +62,13 @@ const competitionController = {
         throw new ApiError(403, 'You can only create competitions for gyms you own');
       }
     }
+
+    const competitionData = {
+    ...req.body,
+    imageUrl: req.processedImage ? req.processedImage.url : null
+  };
     
-    const competition = await competitionService.createCompetition(req.body);
+    const competition = await competitionService.createCompetition(competitionData);
     
     res.status(201).json({
       status: 'success',
@@ -82,7 +90,32 @@ const competitionController = {
       }
     }
     
-    const updatedCompetition = await competitionService.updateCompetition(competitionId, req.body);
+    // Prepare update data
+    const updateData = { ...req.body };
+    
+    // If new image is uploaded, update imageUrl and delete old image
+    if (req.processedImage) {
+      // Get existing competition to access old image
+      const existingCompetition = await prisma.competition.findUnique({
+        where: { id: competitionId },
+        select: { imageUrl: true }
+      });
+      
+      // Delete old image if exists
+      if (existingCompetition && existingCompetition.imageUrl) {
+        try {
+          const oldFilename = existingCompetition.imageUrl.split('/').pop();
+          const oldFilepath = path.join(__dirname, '../../uploads/competitions', oldFilename);
+          await fs.unlink(oldFilepath);
+        } catch (error) {
+          console.log('Old image not found or already deleted');
+        }
+      }
+      
+      updateData.imageUrl = req.processedImage.url;
+    }
+    
+    const updatedCompetition = await competitionService.updateCompetition(competitionId, updateData);
     
     res.status(200).json({
       status: 'success',
@@ -90,17 +123,35 @@ const competitionController = {
       data: updatedCompetition
     });
   },
-  
   // Delete competition
-  deleteCompetition: async (req, res) => {
+deleteCompetition: async (req, res) => {
     const competitionId = parseInt(req.params.id);
+    
+    // Get existing competition
+    const existingCompetition = await prisma.competition.findUnique({
+      where: { id: competitionId },
+      select: { imageUrl: true, gym: { select: { ownerId: true } } }
+    });
+    
+    if (!existingCompetition) {
+      throw new ApiError(404, 'Competition not found');
+    }
     
     // If user is gym owner, verify ownership
     if (req.user.role === 'gym_owner') {
-      const competition = await competitionService.getCompetitionById(competitionId);
-      
-      if (competition.gym.ownerId !== req.user.id) {
+      if (existingCompetition.gym.ownerId !== req.user.id) {
         throw new ApiError(403, 'You can only delete competitions for gyms you own');
+      }
+    }
+    
+    // Delete associated image if exists (before deleting the competition)
+    if (existingCompetition.imageUrl) {
+      try {
+        const filename = existingCompetition.imageUrl.split('/').pop();
+        const filepath = path.join(__dirname, '../../uploads/competitions', filename);
+        await fs.unlink(filepath);
+      } catch (error) {
+        console.log('Image not found or already deleted');
       }
     }
     

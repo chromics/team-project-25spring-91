@@ -1,3 +1,4 @@
+// src/routes/planned.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { plannedController } = require('../controllers/planned.controller');

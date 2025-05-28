@@ -1,3 +1,4 @@
+// src/routes/statistics.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { statisticsController } = require('../controllers/statistics.controller');
