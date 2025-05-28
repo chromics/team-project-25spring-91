@@ -1,3 +1,4 @@
+//src/controllers/statistics.controller.js
 const { statisticsService } = require('../services/statistics.service');
 
 const statisticsController = {

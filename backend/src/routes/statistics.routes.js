@@ -1,7 +1,8 @@
+// src/routes/statistics.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { statisticsController } = require('../controllers/statistics.controller');
-const { statisticsSchemas } = require('../controllers/statistics.validator');
+const { statisticsSchemas } = require('../validators/statistics.validator');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 const router = express.Router();

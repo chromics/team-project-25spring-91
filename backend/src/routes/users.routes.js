@@ -1,10 +1,12 @@
+// src/routes/users.routes.js
 const express = require('express');
 const { validate } = require('../middleware/validate');
 const { userController } = require('../controllers/users.controller');
-const { userSchemas } = require('../controllers/users.validator');
+const { userSchemas } = require('../validators/users.validator');
 const { authMiddleware } = require('../middleware/auth');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { roleCheck } = require('../middleware/roleCheck');
+const { uploadUserImage, processUserImage } = require('../middleware/upload');
 const router = express.Router();
 
 router.get(
@@ -14,8 +16,17 @@ router.get(
 
 router.put(
   '/profile',
+  uploadUserImage,
+  processUserImage,
   validate(userSchemas.updateProfile),
   asyncHandler(userController.updateProfile)
+);
+
+router.put(
+  '/profile/image',
+  uploadUserImage,
+  processUserImage,
+  asyncHandler(userController.updateProfileImage)
 );
 
 router.get(

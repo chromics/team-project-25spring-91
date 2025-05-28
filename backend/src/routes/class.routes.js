@@ -7,6 +7,7 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const { authMiddleware } = require('../middleware/auth');
 const { roleCheck } = require('../middleware/roleCheck');
 const { ownershipCheck } = require('../middleware/ownershipCheck');
+const { uploadGymClassImage, processGymClassImage } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -34,7 +35,9 @@ router.get(
 // Admin and gym owner routes
 router.post(
   '/',
-  roleCheck(['admin', 'gym_owner']), // Admins and gym owners can create classes
+  roleCheck(['admin', 'gym_owner']),
+  uploadGymClassImage,
+  processGymClassImage,
   validate(classSchemas.createClass),
   asyncHandler(classController.createClass)
 );
@@ -42,38 +45,40 @@ router.post(
 // Admin or resource owner only routes
 router.put(
   '/:id',
-  ownershipCheck('gymClass'), // Owner or admin can update class
+  ownershipCheck('gymClass'),
+  uploadGymClassImage,
+  processGymClassImage,
   validate(classSchemas.updateClass),
   asyncHandler(classController.updateClass)
 );
 
 router.delete(
   '/:id',
-  ownershipCheck('gymClass'), // Owner or admin can delete class
+  ownershipCheck('gymClass'),
   validate(classSchemas.deleteClass),
   asyncHandler(classController.deleteClass)
 );
 
-// Schedule management
+// Schedule management routes remain the same...
 router.post(
   '/:id/schedules',
-  ownershipCheck('gymClass'), // Owner or admin can add schedules
+  ownershipCheck('gymClass'),
   validate(classSchemas.createSchedule),
   asyncHandler(classController.createClassSchedule)
 );
 
 router.put(
   '/schedules/:id',
-  ownershipCheck('classSchedule'), // Owner or admin can update schedules
+  ownershipCheck('classSchedule'),
   validate(classSchemas.updateSchedule),
   asyncHandler(classController.updateClassSchedule)
 );
 
 router.delete(
   '/schedules/:id',
-  ownershipCheck('classSchedule'), // Owner or admin can delete schedules
+  ownershipCheck('classSchedule'),
   validate(classSchemas.deleteSchedule),
   asyncHandler(classController.deleteClassSchedule)
 );
 
-module.exports = router;
+module.exports = router;    

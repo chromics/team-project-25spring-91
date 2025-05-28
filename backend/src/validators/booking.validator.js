@@ -1,3 +1,4 @@
+// src/validators/booking.validator.js
 const { z } = require('zod');
 
 const bookingSchemas = {

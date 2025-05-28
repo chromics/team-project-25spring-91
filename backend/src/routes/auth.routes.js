@@ -1,8 +1,9 @@
+// src/routes/auth.routes.js
 const express = require('express');
 const passport = require('passport');
 const { validate } = require('../middleware/validate');
 const { authController } = require('../controllers/auth.controller');
-const { authSchemas } = require('../controllers/auth.validator');
+const { authSchemas } = require('../validators/auth.validator');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 const router = express.Router();

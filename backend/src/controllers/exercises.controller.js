@@ -1,3 +1,4 @@
+//src/controllers/exercises.controller.js
 const { exerciseService } = require('../services/exercises.service');
 
 const exerciseController = {
