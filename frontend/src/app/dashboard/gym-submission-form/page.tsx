@@ -17,13 +17,7 @@ export default function GymFormPage() {
     allowedRoles: [UserRole.ADMIN, UserRole.GYM_OWNER]
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
+
   const [memberships, setMemberships] = useState<Membership[]>([{
     id: "",
     name: "",
@@ -235,6 +229,22 @@ export default function GymFormPage() {
       }
     ]);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">

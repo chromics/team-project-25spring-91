@@ -245,8 +245,8 @@ const getNavigationData = (role: UserRole) => {
                 url: "/dashboard/admin/dashboard",
               },
               {
-                title: "Gym Approval",
-                url: "/dashboard/admin/gym-approval",
+                title: "Create Gym",
+                url: "/dashboard/gym-submission-form",
               },
               {
                 title: "User Management",
@@ -270,7 +270,7 @@ const getNavigationData = (role: UserRole) => {
                 url: "/dashboard/gym-owner/dashboard",
               },
               {
-                title: "Submit Gym",
+                title: "Create Gym",
                 url: "/dashboard/gym-submission-form",
               },
               {
