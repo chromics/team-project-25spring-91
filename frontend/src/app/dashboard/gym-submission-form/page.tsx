@@ -1,234 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import GymOwnerCard from "@/components/gym-owner-card";
-import type { Gym, Membership, GymClass, Schedule, ID } from "@/types/gym";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload, ImageIcon, X } from "lucide-react";
+import api from "@/lib/api";
+import { toast } from "sonner";
 import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
 import ButterflyLoader from "@/components/butterfly-loader";
 
-export default function GymFormPage() {
-  const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.ADMIN, UserRole.GYM_OWNER]
-  });
+interface CreateGymFormData {
+  name: string;
+  address: string;
+  description: string;
+  contactInfo: string;
+}
 
-
-  const [memberships, setMemberships] = useState<Membership[]>([{
-    id: "",
+export default function CreateGymPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [formData, setFormData] = useState<CreateGymFormData>({
     name: "",
-    price: "",
-    description: ""
-  }]);
-
-  const [classes, setClasses] = useState<GymClass[]>([
-    {
-      id: "",
-      name: "",
-      description: "",
-      price: "",
-      maxCapacity: "",
-      image: "",
-      duration: "",
-      membersOnly: false,
-      difficulty: "",
-      schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
-    }
-  ]);
-
-  const [gyms, setGyms] = useState<Gym[]>([]);
-  const [selectedGymIndex, setSelectedGymIndex] = useState<number | null>(null);
-  const [gymForm, setGymForm] = useState({
-    name: "",
-    openingHours: "",
     address: "",
-    location: "",
-    contactInfo: "",
-    equipments: "",
-    imageUrl: "",
-    websiteUrl: "",
     description: "",
+    contactInfo: "",
   });
 
-  const handleAddClass = () => {
-    setClasses([
-      ...classes,
-      {
-        id: "",
-        name: "",
-        description: "",
-        price: "",
-        maxCapacity: "",
-        image: "",
-        duration: "",
-        membersOnly: false,
-        difficulty: "",
-        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }],
-      },
-    ]);
-  };
-
-  const handleAddSchedule = (classIndex: number) => {
-    const updated = [...classes];
-    updated[classIndex].schedules.push({ id: "", startTime: "", endTime: "", instructor: "" });
-    setClasses(updated);
-  };
-
-  const handleAddGym = () => {
-    const newGym: Gym = {
-      id: selectedGymIndex !== null ? gyms[selectedGymIndex].id : "", // Preserve ID when editing
-      name: gymForm.name,
-      openingHours: gymForm.openingHours,
-      address: gymForm.address,
-      location: gymForm.location,
-      contactInfo: gymForm.contactInfo,
-      equipments: gymForm.equipments,
-      imageUrl: gymForm.imageUrl,
-      websiteUrl: gymForm.websiteUrl,
-      description: gymForm.description,
-      memberships: memberships,
-      classes: classes,
-    };
-
-    if (selectedGymIndex !== null) {
-      const updatedGyms = [...gyms];
-      updatedGyms[selectedGymIndex] = newGym;
-      setGyms(updatedGyms);
-    } else {
-      setGyms([...gyms, newGym]);
-    }
-
-    // Reset form
-    setSelectedGymIndex(null);
-    setGymForm({
-      name: "",
-      openingHours: "",
-      address: "",
-      location: "",
-      contactInfo: "",
-      equipments: "",
-      imageUrl: "",
-      websiteUrl: "",
-      description: ""
-    });
-    setMemberships([{ id: "", name: "", price: "", description: "" }]);
-    setClasses([
-      {
-        id: "",
-        name: "",
-        description: "",
-        price: "",
-        maxCapacity: "",
-        image: "",
-        duration: "",
-        membersOnly: false,
-        difficulty: "",
-        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
-      }
-    ]);
-  };
-
-  const handleSelectGym = (index: number) => {
-    const gym = gyms[index];
-    setSelectedGymIndex(index);
-    setGymForm({
-      name: gym.name,
-      openingHours: gym.openingHours || "",
-      address: gym.address || "",
-      location: gym.location || "",
-      contactInfo: gym.contactInfo || "",
-      equipments: gym.equipments || "",
-      imageUrl: gym.imageUrl || "",
-      websiteUrl: gym.websiteUrl || "",
-      description: gym.description || "",
-    });
-
-    // Use memberships and classes from the gym or defaults if none exist
-    setMemberships(gym.memberships?.length ? gym.memberships : [{ id: "", name: "", price: "", description: "" }]);
-    setClasses(gym.classes?.length ? gym.classes : [
-      {
-        id: "",
-        name: "",
-        description: "",
-        price: "",
-        maxCapacity: "",
-        image: "",
-        duration: "",
-        membersOnly: false,
-        difficulty: "",
-        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
-      }
-    ]);
-  };
-
-  const handleDeleteGym = (index: number) => {
-    const updatedGyms = gyms.filter((_, i) => i !== index);
-    setGyms(updatedGyms);
-
-    if (selectedGymIndex === index) {
-      setSelectedGymIndex(null);
-      setGymForm({
-        name: "",
-        openingHours: "",
-        address: "",
-        location: "",
-        contactInfo: "",
-        equipments: "",
-        imageUrl: "",
-        websiteUrl: "",
-        description: ""
-      });
-      setMemberships([{ id: "", name: "", price: "", description: "" }]);
-      setClasses([
-        {
-          id: "",
-          name: "",
-          description: "",
-          price: "",
-          maxCapacity: "",
-          image: "",
-          duration: "",
-          membersOnly: false,
-          difficulty: "",
-          schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
-        }
-      ]);
-    }
-  };
-
-  const resetForm = () => {
-    setSelectedGymIndex(null);
-    setGymForm({
-      name: "",
-      openingHours: "",
-      address: "",
-      location: "",
-      contactInfo: "",
-      equipments: "",
-      imageUrl: "",
-      websiteUrl: "",
-      description: ""
-    });
-    setMemberships([{ id: "", name: "", price: "", description: "" }]);
-    setClasses([
-      {
-        id: "",
-        name: "",
-        description: "",
-        price: "",
-        maxCapacity: "",
-        image: "",
-        duration: "",
-        membersOnly: false,
-        difficulty: "",
-        schedules: [{ id: "", startTime: "", endTime: "", instructor: "" }]
-      }
-    ]);
-  };
+  const { isAuthorized, isLoading } = useRoleProtection({
+    allowedRoles: [UserRole.ADMIN, UserRole.GYM_OWNER],
+  });
 
   if (isLoading) {
     return (
@@ -246,157 +55,252 @@ export default function GymFormPage() {
     );
   }
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+  };
+
+  const handleCancel = () => {
+    router.push("/dashboard");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Debug: Log user data to see the structure
+      console.log("User data:", user);
+      console.log("User ID:", user?.id);
+
+      // Create FormData object to send form-data
+      const submitData = new FormData();
+      
+      // Append text fields
+      submitData.append("name", formData.name);
+      submitData.append("address", formData.address);
+      submitData.append("description", formData.description);
+      submitData.append("contactInfo", formData.contactInfo);
+      
+      // Append ownerId from authenticated user - try different possible field names
+      if (user?.id) {
+        submitData.append("ownerId", user.id.toString());
+        console.log("Appending ownerId:", user.id.toString());
+      } else if (user?.id) {
+        submitData.append("ownerId", user.id.toString());
+        console.log("Appending ownerId from userId:", user.id.toString());
+      } else {
+        console.error("No user ID found in user object:", user);
+        toast.error("User ID not found. Please try logging in again.");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Append image file if selected
+      if (imageFile) {
+        submitData.append("image", imageFile);
+      }
+
+      // Debug: Log FormData contents
+      console.log("FormData contents:");
+      for (let [key, value] of submitData.entries()) {
+        console.log(key, value);
+      }
+
+      const response = await api.post("/gyms", submitData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Response:", response.data);
+      toast.success("Gym created successfully!");
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.error("Error creating gym:", error);
+      console.error("Error response:", error.response?.data);
+      toast.error(
+        error.response?.data?.message || "Failed to create gym. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">{selectedGymIndex !== null ? "Edit Your Gym" : "Add Your Gyms"}</h1>
-        <p className="text-gray-600">Fill out the form below to {selectedGymIndex !== null ? "update" : "add"} your gym to our list.</p>
-      </div>
-
-      {/* Gym Cards Section */}
-      <div className="space-y-4">
-        {gyms.length === 0 ? (
-          <p className="text-center text-gray-500">No gyms added yet.</p>
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {gyms.map((gym, index) => (
-              <div key={index} className="min-w-[200px]">
-                <GymOwnerCard
-                  gym={gym}
-                  onEdit={() => handleSelectGym(index)}
-                  onDelete={() => handleDeleteGym(index)}
-                />
+    <div className="container mx-auto py-8 px-4 max-w-2xl">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create New Gym
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Debug info - remove this in production */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="p-2 bg-gray-100 rounded text-sm">
+                <strong>Debug:</strong> User ID: {user?.id || user?.id || "Not found"}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            )}
 
-      {/* Gym Form */}
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <Input placeholder="Gym Name" value={gymForm.name} onChange={(e) => setGymForm({ ...gymForm, name: e.target.value })} />
-          <Input placeholder="Opening Hours" value={gymForm.openingHours} onChange={(e) => setGymForm({ ...gymForm, openingHours: e.target.value })} />
-          <Textarea placeholder="Address" value={gymForm.address} onChange={(e) => setGymForm({ ...gymForm, address: e.target.value })} />
-          <Input placeholder="Location" value={gymForm.location} onChange={(e) => setGymForm({ ...gymForm, location: e.target.value })} />
-          <Input placeholder="Contact Info" value={gymForm.contactInfo} onChange={(e) => setGymForm({ ...gymForm, contactInfo: e.target.value })} />
-          <Textarea placeholder="Available Equipments" value={gymForm.equipments} onChange={(e) => setGymForm({ ...gymForm, equipments: e.target.value })} />
-          <Input placeholder="Image URL" value={gymForm.imageUrl} onChange={(e) => setGymForm({ ...gymForm, imageUrl: e.target.value })} />
-          <Input placeholder="Website URL" value={gymForm.websiteUrl} onChange={(e) => setGymForm({ ...gymForm, websiteUrl: e.target.value })} />
-          <Textarea placeholder="Description" value={gymForm.description} onChange={(e) => setGymForm({ ...gymForm, description: e.target.value })} />
-        </div>
-
-        {/* Memberships */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Memberships</h2>
-          {memberships.map((membership, index) => (
-            <div key={index} className="space-y-2 border p-4 rounded-xl">
-              <Input placeholder="Category Name" value={membership.name} onChange={(e) => {
-                const updated = [...memberships];
-                updated[index].name = e.target.value;
-                setMemberships(updated);
-              }} />
-              <Input placeholder="Price" value={membership.price} onChange={(e) => {
-                const updated = [...memberships];
-                updated[index].price = e.target.value;
-                setMemberships(updated);
-              }} />
-              <Textarea placeholder="Description" value={membership.description} onChange={(e) => {
-                const updated = [...memberships];
-                updated[index].description = e.target.value;
-                setMemberships(updated);
-              }} />
+            {/* Gym Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Gym Name *</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter gym name"
+                required
+                className="w-full"
+              />
             </div>
-          ))}
-          <Button onClick={() => setMemberships([...memberships, { id: "", name: "", price: "", description: "" }])}>Add Membership Category</Button>
-        </div>
 
-        {/* Classes */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Classes</h2>
-          {classes.map((cls, classIndex) => (
-            <div key={classIndex} className="space-y-2 border p-4 rounded-xl">
-              <Input placeholder="Class Name" value={cls.name} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].name = e.target.value;
-                setClasses(updated);
-              }} />
-              <Textarea placeholder="Description" value={cls.description} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].description = e.target.value;
-                setClasses(updated);
-              }} />
-              <Input placeholder="Price" value={cls.price} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].price = e.target.value;
-                setClasses(updated);
-              }} />
-              <Input placeholder="Max Capacity" value={cls.maxCapacity} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].maxCapacity = e.target.value;
-                setClasses(updated);
-              }} />
-              <Input placeholder="Image URL" value={cls.image} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].image = e.target.value;
-                setClasses(updated);
-              }} />
-              <Input placeholder="Duration (e.g., 1h 30m)" value={cls.duration} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].duration = e.target.value;
-                setClasses(updated);
-              }} />
-              <Input placeholder="Difficulty Level" value={cls.difficulty} onChange={(e) => {
-                const updated = [...classes];
-                updated[classIndex].difficulty = e.target.value;
-                setClasses(updated);
-              }} />
-              <div className="flex items-center space-x-2">
-                <Label>Members Only</Label>
-                <Switch checked={cls.membersOnly} onCheckedChange={(val: boolean) => {
-                  const updated = [...classes];
-                  updated[classIndex].membersOnly = val;
-                  setClasses(updated);
-                }} />
-              </div>
+            {/* Address */}
+            <div className="space-y-2">
+              <Label htmlFor="address">Address *</Label>
+              <Input
+                id="address"
+                name="address"
+                type="text"
+                value={formData.address}
+                onChange={handleInputChange}
+                placeholder="Enter gym address"
+                required
+                className="w-full"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium">Schedules</h3>
-                {cls.schedules.map((schedule, schedIndex) => (
-                  <div key={schedIndex} className="grid grid-cols-3 gap-2">
-                    <Input placeholder="Start Time" type="time" value={schedule.startTime} onChange={(e) => {
-                      const updated = [...classes];
-                      updated[classIndex].schedules[schedIndex].startTime = e.target.value;
-                      setClasses(updated);
-                    }} />
-                    <Input placeholder="End Time" type="time" value={schedule.endTime} onChange={(e) => {
-                      const updated = [...classes];
-                      updated[classIndex].schedules[schedIndex].endTime = e.target.value;
-                      setClasses(updated);
-                    }} />
-                    <Input placeholder="Instructor" value={schedule.instructor} onChange={(e) => {
-                      const updated = [...classes];
-                      updated[classIndex].schedules[schedIndex].instructor = e.target.value;
-                      setClasses(updated);
-                    }} />
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Describe your gym..."
+                required
+                className="w-full min-h-[100px]"
+              />
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-2">
+              <Label htmlFor="contactInfo">Contact Information *</Label>
+              <Input
+                id="contactInfo"
+                name="contactInfo"
+                type="text"
+                value={formData.contactInfo}
+                onChange={handleInputChange}
+                placeholder="Enter contact information (email, phone, etc.)"
+                required
+                className="w-full"
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div className="space-y-2">
+              <Label>Gym Image</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Gym preview"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={removeImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                ))}
-                <Button variant="secondary" onClick={() => handleAddSchedule(classIndex)}>
-                  Add Schedule
-                </Button>
+                ) : (
+                  <div className="text-center">
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="mt-4">
+                      <Label
+                        htmlFor="image-upload"
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Image
+                      </Label>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
-          <Button onClick={handleAddClass}>Add Class</Button>
-        </div>
 
-        <div className="flex gap-2">
-          <Button className="flex-1" onClick={handleAddGym}>{selectedGymIndex !== null ? "Update Gym" : "Save Gym"}</Button>
-          {selectedGymIndex !== null && (
-            <Button variant="outline" onClick={resetForm}>Cancel</Button>
-          )}
-        </div>
-      </div>
+            {/* Submit Button */}
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? (
+                  <>
+                    <ButterflyLoader />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Gym"
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
