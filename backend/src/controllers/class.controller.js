@@ -2,6 +2,8 @@
 const prisma = require('../config/prisma');
 const { classService } = require('../services/class.service');
 const { ApiError } = require('../utils/ApiError');
+const fs = require('fs').promises;
+const path = require('path');
 
 const classController = {
   getAllGymClasses: async (req, res) => {
@@ -75,10 +77,15 @@ const classController = {
         throw new ApiError(403, 'You do not have permission to create classes for this gym');
       }
     }
+
+  const classData = {
+    ...req.body,
+    imageUrl: req.processedImage ? req.processedImage.url : null
+  };
     
     // Create the class
     const newClass = await prisma.gymClass.create({
-      data: req.body
+      data: classData
     });
     
     res.status(201).json({
@@ -99,11 +106,30 @@ const classController = {
     if (!gymClass) {
       throw new ApiError(404, 'Class not found');
     }
+
+      // Prepare update data
+  const updateData = { ...req.body };
+  
+  // If new image is uploaded, update imageUrl and delete old image
+  if (req.processedImage) {
+    // Delete old image if exists
+    if (gymClass.imageUrl) {
+      try {
+        const oldFilename = gymClass.imageUrl.split('/').pop();
+        const oldFilepath = path.join(__dirname, '../../uploads/gym-classes', oldFilename);
+        await fs.unlink(oldFilepath);
+      } catch (error) {
+        console.log('Old image not found or already deleted');
+      }
+    }
+    
+    updateData.imageUrl = req.processedImage.url;
+  }
     
     // Update class
     const updatedClass = await prisma.gymClass.update({
       where: { id: classId },
-      data: req.body
+      data: updateData
     });
     
     res.status(200).json({
@@ -143,6 +169,17 @@ const classController = {
         data: updatedClass
       });
     }
+
+      // Delete associated image if exists
+  if (gymClass.imageUrl) {
+    try {
+      const filename = gymClass.imageUrl.split('/').pop();
+      const filepath = path.join(__dirname, '../../uploads/gym-classes', filename);
+      await fs.unlink(filepath);
+    } catch (error) {
+      console.log('Image not found or already deleted');
+    }
+  }
     
     // If no schedules, perform a hard delete
     await prisma.gymClass.delete({

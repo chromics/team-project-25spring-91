@@ -35,4 +35,7 @@ yarn-error.log*
 .eslintcache
 
 uploads/gyms/*
-!uploads/gyms/.gitkeep
+uploads/gym-classes/*
+uploads/competitions/*
+uploads/users/*
+!uploads/*/.gitkeep

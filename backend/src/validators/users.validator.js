@@ -6,6 +6,7 @@
      */ 
 const { z } = require('zod');
 
+
 const userSchemas = {
   updateProfile: z.object({
     body: z.object({
@@ -16,15 +17,27 @@ const userSchemas = {
       gender: z.string().optional(),
       heightCm: z.number().int().positive().optional(),
       weightKg: z.number().positive().optional(),
-      imageUrl: z.string().url('Image URL must be a valid URL').optional(),
       currentPassword: z.string().optional(),
       newPassword: z.string().min(8).optional()
     }).refine(data => {
-      // If newPassword is provided, currentPassword must also be provided
       return !(data.newPassword && !data.currentPassword);
     }, {
       message: "Current password is required when setting a new password",
       path: ["currentPassword"]
+    })
+  }),
+
+  changeRole: z.object({
+    params: z.object({
+      id: z.string().refine(val => !isNaN(parseInt(val)), {
+        message: 'User ID must be a number'
+      })
+    }),
+    body: z.object({
+      role: z.enum(['admin', 'gym_owner', 'user'], {
+        required_error: 'Role is required',
+        invalid_type_error: 'Role must be admin, gym_owner, or user'
+      })
     })
   })
 };
