@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@/components/ui/loading";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserRole } from "@/components/auth/sign-up-form";
+import ButterflyLoader from "@/components/butterfly-loader";
 
 const getDefaultDashboard = (role: UserRole): string => {
   switch (role) {
@@ -30,5 +31,9 @@ export default function DashboardRedirect() {
     }
   }, [user, loading, router]);
 
-  return <LoadingSpinner />;
+  return (
+    <div className="flex justify-center items-center min-h-[200px]">
+      <ButterflyLoader />
+    </div>
+  );
 }

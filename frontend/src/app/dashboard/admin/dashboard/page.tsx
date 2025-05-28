@@ -4,6 +4,7 @@
 import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
 import { LoadingSpinner } from "@/components/ui/loading";
+import ButterflyLoader from "@/components/butterfly-loader";
 
 export default function AdminDashboard() {
   const { isAuthorized, isLoading, user } = useRoleProtection({
@@ -11,11 +12,19 @@ export default function AdminDashboard() {
   });
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
   }
 
   if (!isAuthorized) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
   }
 
   return (
@@ -26,7 +35,7 @@ export default function AdminDashboard() {
           Welcome {user?.displayName}! Manage your application from here.
         </p>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Total Users</h3>

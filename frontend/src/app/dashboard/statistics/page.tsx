@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import ButterflyLoader from '@/components/butterfly-loader';
 import axios from 'axios';
+import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 interface WorkoutStats {
     completedWorkoutSessions: number;
@@ -75,6 +77,26 @@ const StatsPage = () => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<WorkoutStats | null>(null);
 
+    const { isAuthorized, isLoading, user } = useRoleProtection({
+        allowedRoles: [UserRole.REGULAR_USER]
+    });
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
     useEffect(() => {
         fetchStats();
     }, []);
@@ -82,16 +104,7 @@ const StatsPage = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            // const token = localStorage.getItem('auth-token');
-            // const response = await fetch('http://localhost:5000/api/statistics/dashboard', {
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`
-            //     }
-            // });
 
-            // if (!response.ok) throw new Error('Failed to fetch statistics');
-
-            // const data = await response.json();
             const { data } = await api.get('/statistics/dashboard');
             setStats(data.data);
         } catch (error) {

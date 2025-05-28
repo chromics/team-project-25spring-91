@@ -15,17 +15,39 @@ import api from '@/lib/api';
 import { BookingCard } from '@/components/booking-card';
 import { MembershipCard } from '@/components/gym-membership-card';
 import ButterflyLoader from '@/components/butterfly-loader';
+import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 export default function BookingsAndMembershipsPage() {
   const [activeTab, setActiveTab] = useState('bookings');
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<any[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
   const [bookingHistory, setBookingHistory] = useState<any[]>([]);
 
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER]
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       const [bookingsRes, upcomingRes, historyRes, membershipsRes] =
         await Promise.all([
@@ -42,7 +64,7 @@ export default function BookingsAndMembershipsPage() {
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 

@@ -184,7 +184,7 @@ export default function DashboardLayout({
                 const isLast = index === paths.length - 1;
                 const defaultHref = `/${paths.slice(0, index + 1).join('/')}`;
                 
-                // override segments that don't have their own page:
+
                 let href: string;
                 if (path === "admin") {
                   href = getDefaultDashboard(UserRole.ADMIN);
@@ -197,13 +197,12 @@ export default function DashboardLayout({
                 const isUUID = path.match(/^[0-9a-fA-F-]+$/);
                 const displayName = isUUID ? (dynamicName || '...') : (routeNames[path] || path);
 
-                // Create unique key by combining index and path, or use the full href
                 const uniqueKey = `${index}-${path}`;
 
 
 
                 return (
-                  <React.Fragment key={uniqueKey}> {/* Changed this line */}
+                  <React.Fragment key={uniqueKey}> 
                     <BreadcrumbItem>
                       {!isLast ? (
                         <BreadcrumbLink href={href}>

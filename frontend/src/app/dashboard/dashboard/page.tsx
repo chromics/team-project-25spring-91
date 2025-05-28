@@ -4,6 +4,7 @@
 import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
 import { LoadingSpinner } from "@/components/ui/loading";
+import ButterflyLoader from "@/components/butterfly-loader";
 
 export default function RegularUserDashboard() {
   const { isAuthorized, isLoading, user } = useRoleProtection({
@@ -11,11 +12,19 @@ export default function RegularUserDashboard() {
   });
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
   }
 
   if (!isAuthorized) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
   }
 
   console.log('Rendering dashboard content');
@@ -28,7 +37,7 @@ export default function RegularUserDashboard() {
         </p>
         <p className="text-sm text-gray-500">User Role: {user?.role}</p>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Workouts This Week</h3>
