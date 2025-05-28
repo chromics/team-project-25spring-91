@@ -11,6 +11,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-context";
 import axios, { AxiosError } from "axios";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+
+export enum UserRole {
+  REGULAR_USER = "user",
+  GYM_OWNER = "gym_owner",
+  ADMIN = "admin"
+}
 
 export function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -20,6 +28,7 @@ export function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { loginWithOAuth, signUp } = useAuth();
   const router = useRouter();
+  const [role, setRole] = useState<UserRole>(UserRole.REGULAR_USER);
 
 
   const handleOAuthSignIn = (provider: 'github' | 'microsoft') => {
@@ -48,13 +57,14 @@ export function SignUpForm() {
         return;
       }
 
-      await signUp(email, password, displayName);
+      await signUp(email, password, displayName, role);
 
       toast.success("Sign up successful!", {
         description: "Welcome! Your account has been created." 
       });
 
-      router.push('/dashboard/statistics');
+      // router.push('/dashboard/statistics');
+      router.push('/dashboard');
 
     } catch (error) {
       let errorMessage = 'Failed to sign up';
@@ -138,6 +148,38 @@ export function SignUpForm() {
               disabled={isLoading}
             />
           </div>
+
+          {/* Role Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Select Your Role</Label>
+            <RadioGroup
+              defaultValue={UserRole.REGULAR_USER}
+              onValueChange={(value) => setRole(value as UserRole)}
+              className="flex pt-2 space-x-4"
+              disabled={isLoading}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value={UserRole.REGULAR_USER}
+                  id="role-regular"
+                />
+                <Label htmlFor="role-regular" className="font-normal">
+                  Regular User
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value={UserRole.GYM_OWNER}
+                  id="role-gym-owner"
+                />
+                <Label htmlFor="role-gym-owner" className="font-normal">
+                  Gym Owner
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Create Account"}
           </Button>

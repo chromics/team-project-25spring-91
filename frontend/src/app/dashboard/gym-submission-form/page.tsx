@@ -8,15 +8,23 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import GymOwnerCard from "@/components/gym-owner-card";
 import type { Gym, Membership, GymClass, Schedule, ID } from "@/types/gym";
+import { useRoleProtection } from "@/hooks/use-role-protection";
+import { UserRole } from "@/components/auth/sign-up-form";
+import ButterflyLoader from "@/components/butterfly-loader";
 
 export default function GymFormPage() {
-  const [memberships, setMemberships] = useState<Membership[]>([{ 
-    id: "", 
-    name: "", 
-    price: "", 
-    description: "" 
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.ADMIN, UserRole.GYM_OWNER]
+  });
+
+
+  const [memberships, setMemberships] = useState<Membership[]>([{
+    id: "",
+    name: "",
+    price: "",
+    description: ""
   }]);
-  
+
   const [classes, setClasses] = useState<GymClass[]>([
     {
       id: "",
@@ -96,16 +104,16 @@ export default function GymFormPage() {
 
     // Reset form
     setSelectedGymIndex(null);
-    setGymForm({ 
-      name: "", 
-      openingHours: "", 
-      address: "", 
-      location: "", 
-      contactInfo: "", 
-      equipments: "", 
-      imageUrl: "", 
-      websiteUrl: "", 
-      description: "" 
+    setGymForm({
+      name: "",
+      openingHours: "",
+      address: "",
+      location: "",
+      contactInfo: "",
+      equipments: "",
+      imageUrl: "",
+      websiteUrl: "",
+      description: ""
     });
     setMemberships([{ id: "", name: "", price: "", description: "" }]);
     setClasses([
@@ -138,7 +146,7 @@ export default function GymFormPage() {
       websiteUrl: gym.websiteUrl || "",
       description: gym.description || "",
     });
-    
+
     // Use memberships and classes from the gym or defaults if none exist
     setMemberships(gym.memberships?.length ? gym.memberships : [{ id: "", name: "", price: "", description: "" }]);
     setClasses(gym.classes?.length ? gym.classes : [
@@ -160,19 +168,19 @@ export default function GymFormPage() {
   const handleDeleteGym = (index: number) => {
     const updatedGyms = gyms.filter((_, i) => i !== index);
     setGyms(updatedGyms);
-    
+
     if (selectedGymIndex === index) {
       setSelectedGymIndex(null);
-      setGymForm({ 
-        name: "", 
-        openingHours: "", 
-        address: "", 
-        location: "", 
-        contactInfo: "", 
-        equipments: "", 
-        imageUrl: "", 
-        websiteUrl: "", 
-        description: "" 
+      setGymForm({
+        name: "",
+        openingHours: "",
+        address: "",
+        location: "",
+        contactInfo: "",
+        equipments: "",
+        imageUrl: "",
+        websiteUrl: "",
+        description: ""
       });
       setMemberships([{ id: "", name: "", price: "", description: "" }]);
       setClasses([
@@ -194,16 +202,16 @@ export default function GymFormPage() {
 
   const resetForm = () => {
     setSelectedGymIndex(null);
-    setGymForm({ 
-      name: "", 
-      openingHours: "", 
-      address: "", 
-      location: "", 
-      contactInfo: "", 
-      equipments: "", 
-      imageUrl: "", 
-      websiteUrl: "", 
-      description: "" 
+    setGymForm({
+      name: "",
+      openingHours: "",
+      address: "",
+      location: "",
+      contactInfo: "",
+      equipments: "",
+      imageUrl: "",
+      websiteUrl: "",
+      description: ""
     });
     setMemberships([{ id: "", name: "", price: "", description: "" }]);
     setClasses([
@@ -221,6 +229,22 @@ export default function GymFormPage() {
       }
     ]);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">

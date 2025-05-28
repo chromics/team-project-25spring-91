@@ -39,7 +39,7 @@ const GymCard: FC<GymCardProps> = ({ gym }) => {
         </div>
         <CardContent className="px-0 pt-2 pb-0 space-y-1">
           <CardTitle className="text-sm truncate">{gym.name}</CardTitle>
-          <CardDescription className="text-xs truncate">{gym.location}</CardDescription>
+          <CardDescription className="text-xs truncate">{gym.address}</CardDescription>
           <CardDescription className="text-xs line-clamp-1">{gym.description}</CardDescription>
         </CardContent>
         <CardFooter className="px-0 mt-2 gap-2">

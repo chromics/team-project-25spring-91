@@ -29,6 +29,8 @@ import {
 import router from 'next/router';
 
 import { PlannedWorkout, WorkoutGroup, Goal } from '@/types/workout';
+import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 
 const ITEMS_PER_PAGE = 10;
@@ -45,10 +47,14 @@ const SetGoalPage = () => {
         past: 1
     });
     const [isExpanded, setIsExpanded] = useState(false);
-
     useEffect(() => {
         fetchWorkouts();
     }, []);
+
+    const { isAuthorized, isLoading, user } = useRoleProtection({
+        allowedRoles: [UserRole.REGULAR_USER]
+    });
+
 
     // At the component level where you manage state
 
@@ -453,6 +459,22 @@ const SetGoalPage = () => {
         );
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+    
     const groupedWorkouts = groupWorkouts(workouts);
 
     return (

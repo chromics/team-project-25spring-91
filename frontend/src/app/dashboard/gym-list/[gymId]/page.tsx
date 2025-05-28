@@ -9,6 +9,8 @@ import type { Gym, GymClass } from '@/types/gym';
 import { GymHeader } from '../../../../components/gym/gym-header';
 import { ClassSection } from '../../../../components/gym/class-section';
 import ButterflyLoader from '@/components/butterfly-loader';
+import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 export default function GymPage() {
   const params = useParams();
@@ -17,8 +19,6 @@ export default function GymPage() {
   const [gym, setGym] = useState<Gym | null>(null);
   const [classes, setClasses] = useState<GymClass[]>([]);
   const [loading, setLoading] = useState(true);
-
-
   useEffect(() => {
     const fetchGymData = async () => {
       try {
@@ -45,6 +45,29 @@ export default function GymPage() {
     }
   }, [gymId]);
 
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER]
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -56,6 +79,8 @@ export default function GymPage() {
   if (!gym) {
     notFound();
   }
+
+
 
   return (
     <div className="flex flex-col min-h-screen">

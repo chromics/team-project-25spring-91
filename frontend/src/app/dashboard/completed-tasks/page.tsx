@@ -20,6 +20,8 @@ import ButterflyLoader from '@/components/butterfly-loader';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CompletedWorkout, CompletedWorkoutGroup } from '@/types/completed-workout';
+import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@/components/auth/sign-up-form';
 
 
 
@@ -39,6 +41,11 @@ const CompletedWorkoutsPage = () => {
     useEffect(() => {
         fetchCompletedWorkouts();
     }, []);
+
+    const { isAuthorized, isLoading, user } = useRoleProtection({
+        allowedRoles: [UserRole.REGULAR_USER]
+    });
+
 
 
     const toggleExpansion = (workoutId: number) => {
@@ -398,6 +405,23 @@ const CompletedWorkoutsPage = () => {
                 <ButterflyLoader />
             </div>
 
+        );
+    }
+
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
         );
     }
 

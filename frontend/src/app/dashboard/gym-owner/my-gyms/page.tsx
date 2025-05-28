@@ -1,19 +1,13 @@
-// src/app/chat/page.tsx
-'use client';
+"use client";
 
 import { UserRole } from '@/components/auth/sign-up-form';
 import ButterflyLoader from '@/components/butterfly-loader';
 import { useRoleProtection } from '@/hooks/use-role-protection';
-import dynamic from 'next/dynamic';
+import React from 'react'
 
-const ChatInterface = dynamic(
-  () => import('@/components/ChatInterface'),
-  { ssr: false }
-);
-
-export default function ChatPage() {
-  const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER]
+const OwnerGymPage = () => {
+    const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.GYM_OWNER]
   });
 
   if (isLoading) {
@@ -32,9 +26,8 @@ export default function ChatPage() {
     );
   }
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6 text-center">SUSTracker Health Assistant</h1>
-      <ChatInterface />
-    </div>
-  );
+    <div>OwnerGymPage</div>
+  )
 }
+
+export default OwnerGymPage

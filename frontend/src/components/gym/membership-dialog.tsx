@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
-import { Gym, Membership } from '@/types/gym';
+import { Gym, MembershipPlan } from '@/types/gym';
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import axios from 'axios';
@@ -26,8 +26,8 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
   const { user } = useAuth();
   const [step, setStep] = React.useState<StepNumber>(1);
   const [loading, setLoading] = React.useState<boolean>(true);
-  const [membershipPlans, setMembershipPlans] = React.useState<Membership[]>([]);
-  const [selectedPlan, setSelectedPlan] = React.useState<Membership | null>(null);
+  const [membershipPlans, setMembershipPlans] = React.useState<MembershipPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = React.useState<MembershipPlan | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -53,7 +53,7 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
   const handleFetchPlans = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get<{ data: Membership[] }>(`/gyms/${gym.id}/membership-plans`);
+      const { data } = await api.get<{ data: MembershipPlan[] }>(`/gyms/${gym.id}/membership-plans`);
       setMembershipPlans(data.data);
     } catch (error) {
       console.error("Error details:", error);
