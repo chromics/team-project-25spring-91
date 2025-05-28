@@ -24,8 +24,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import api from '@/lib/api';
+import { MembershipStatus, UserMembership } from '@/types/gym';
 
-type MembershipStatus = 'active' | 'cancelled' | 'expired';
 
 const statusStyles: Record<MembershipStatus, string> = {
   active: 'bg-accent text-accent-foreground',
@@ -49,19 +49,10 @@ interface Gym {
   imageUrl: string | null;
 }
 
-interface Membership {
-  id: number;
-  status: MembershipStatus;
-  startDate: string;
-  endDate: string;
-  autoRenew: boolean;
-  bookingsUsedThisWeek: number;
-  gym: Gym;
-  membershipPlan: MembershipPlan;
-}
+
 
 interface MembershipCardProps {
-  membership: Membership;
+  membership: UserMembership;
   onCancelSuccess?: () => void;
 }
 

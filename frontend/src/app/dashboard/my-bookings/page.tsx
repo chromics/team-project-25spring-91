@@ -12,39 +12,26 @@ import {
   CreditCard,
 } from 'lucide-react';
 import api from '@/lib/api';
-import { BookingCard } from '@/components/booking-card';
-import { MembershipCard } from '@/components/gym-membership-card';
+import { BookingCard } from '@/components/gym/booking-card';
+import { MembershipCard } from '@/components/gym/gym-membership-card';
 import ButterflyLoader from '@/components/butterfly-loader';
 import { useRoleProtection } from '@/hooks/use-role-protection';
 import { UserRole } from '@/components/auth/sign-up-form';
+import { Booking, BookingHistory, UserMembership } from '@/types/gym';
 
 export default function BookingsAndMembershipsPage() {
   const [activeTab, setActiveTab] = useState('bookings');
   const [loading, setLoading] = useState(true);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [memberships, setMemberships] = useState<any[]>([]);
-  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
-  const [bookingHistory, setBookingHistory] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [memberships, setMemberships] = useState<UserMembership[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
+  const [bookingHistory, setBookingHistory] = useState<Booking[]>([]);
 
   const { isAuthorized, isLoading, user } = useRoleProtection({
     allowedRoles: [UserRole.REGULAR_USER]
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
 
-  if (!isAuthorized) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -91,7 +78,40 @@ export default function BookingsAndMembershipsPage() {
     activeMemberships: memberships.filter((m) => m.status === 'active').length,
   };
 
-  if (isLoading && bookings.length === 0 && memberships.length === 0) {
+
+  // include cancelled status to booking history because backend only compare time
+  // sort as well 
+  const cancelledUpcomingBookings = bookings.filter(
+    (booking) => booking.bookingStatus === 'cancelled',
+  );
+  const bookingHistoryToDisplay = [
+    ...bookingHistory,
+    ...cancelledUpcomingBookings,
+  ].sort(
+    (a, b) =>
+      new Date(b.schedule.startTime).getTime() -
+      new Date(a.schedule.startTime).getTime(),
+  );
+
+
+
+  if (loading && bookings.length === 0 && memberships.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <ButterflyLoader />
@@ -221,21 +241,24 @@ export default function BookingsAndMembershipsPage() {
                     </Card>
                   ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {upcomingBookings.map((booking) => (
-                        <BookingCard
+                      {upcomingBookings.map((booking) =>
+                        booking.bookingStatus !== 'cancelled' && (<BookingCard
+
                           key={booking.id}
                           booking={booking}
                           onCancelSuccess={handleBookingCancelSuccess}
                           onAttendSuccess={handleBookingAttendSuccess}
                         />
-                      ))}
+                        )
+
+                      )}
                     </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="history" className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {bookingHistory.map((booking) => (
+                    {bookingHistoryToDisplay.map((booking) => (
                       <BookingCard
                         key={booking.id}
                         booking={booking}

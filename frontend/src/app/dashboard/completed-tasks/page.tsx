@@ -46,21 +46,7 @@ const CompletedWorkoutsPage = () => {
         allowedRoles: [UserRole.REGULAR_USER]
     });
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
 
-    if (!isAuthorized) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
 
     const toggleExpansion = (workoutId: number) => {
         setExpandedWorkouts((prev) => {
@@ -419,6 +405,23 @@ const CompletedWorkoutsPage = () => {
                 <ButterflyLoader />
             </div>
 
+        );
+    }
+
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
         );
     }
 

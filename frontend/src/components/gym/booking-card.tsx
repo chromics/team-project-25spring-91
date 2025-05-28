@@ -1,3 +1,4 @@
+// booking-card.tsx
 'use client';
 
 import { format } from 'date-fns';
@@ -34,7 +35,7 @@ const statusStyles: Record<BookingStatus, string> = {
 };
 
 interface BookingCardProps {
-  booking: Booking;
+  booking: Booking ;
   onCancelSuccess?: () => void;
   onAttendSuccess?: () => void;
 }

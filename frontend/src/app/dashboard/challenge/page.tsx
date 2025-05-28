@@ -251,21 +251,7 @@ const ChallengesPage: React.FC = () => {
     allowedRoles: [UserRole.REGULAR_USER]
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
 
-  if (!isAuthorized) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
 
   const [completedPersonalChallenges, setCompletedPersonalChallenges] = useState<Challenge[]>([
     {
@@ -631,6 +617,22 @@ const ChallengesPage: React.FC = () => {
 
     return items;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6">

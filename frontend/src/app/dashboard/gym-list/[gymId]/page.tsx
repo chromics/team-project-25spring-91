@@ -19,28 +19,6 @@ export default function GymPage() {
   const [gym, setGym] = useState<Gym | null>(null);
   const [classes, setClasses] = useState<GymClass[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER]
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
-
-  if (!isAuthorized) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
-      </div>
-    );
-  }
-
-
   useEffect(() => {
     const fetchGymData = async () => {
       try {
@@ -66,6 +44,29 @@ export default function GymPage() {
       fetchGymData();
     }
   }, [gymId]);
+
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER]
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <ButterflyLoader />
+      </div>
+    );
+  }
+
+
+
 
   if (loading) {
     return (

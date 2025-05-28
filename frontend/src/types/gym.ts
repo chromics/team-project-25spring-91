@@ -9,31 +9,18 @@ export interface Pagination {
   totalItems: number;
 }
 
-// // GymClass interface
-// export interface GymClass {
-//   id: ID;
-//   name: string;
-//   description: string;
-//   maxCapacity: number | null;
-//   durationMinutes: number;
-//   imageUrl: string;
-//   membersOnly: boolean;
-//   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
-//   createdAt: string;
-//   gym?: {
-//     id: ID;
-//     name: string;
-//     address?: string;
-//     contactInfo?: string;
-//   };
-//   schedules?: Schedule[];
-//   // Additional fields for frontend use
-//   isSelected?: boolean;
-//   temporaryData?: any;
-//   metadata?: Record<string, any>;
-// }
+export type Gym = {
+  id: number;
+  name: string;
+  address: string;
+  description: string;
+  contactInfo: string;
+  imageUrl: string | null;
+  ownerId: number;
+  createdAt: string;
+};
 
-export interface GymClass {
+export interface GymClass { // this is called from getclass by gym
   id: number;
   gymId: number;
   name: string;
@@ -46,111 +33,98 @@ export interface GymClass {
   isActive: boolean;
 }
 
-// Schedule interface
-export interface Schedule {
-  id: ID;
-  classId: ID;
-  startTime: string;
-  endTime: string;
-  instructor: string;
+export type GymClassWithDetails = { // this is called from getclass, class section api
+  id: number;
+  gymId: number;
+  name: string;
+  description: string;
+  maxCapacity: number | null;
+  durationMinutes: number;
+  imageUrl: string | null;
+  membersOnly: boolean;
+  difficultyLevel: 'beginner' | 'intermediate' | 'advanced'; 
+  isActive: boolean;
+  createdAt: string;
+  gym: { 
+    id: number;
+    name: string;
+    address: string;
+  };
+  schedules: Schedule[]; 
+}
+
+
+export type Schedule = {
+  id: number;
+  classId: number;
+  startTime: string; 
+  endTime: string; 
+  instructor: string | null;
   currentBookings: number;
   isCancelled: boolean;
   cancellationReason: string | null;
-  createdAt: string;
-  gymClass?: {
+  createdAt: string; 
+  gymClass: { 
     name: string;
     maxCapacity: number | null;
     durationMinutes: number;
     membersOnly: boolean;
-    description?: string;
-    imageUrl?: string;
   };
-  _count?: {
+  _count: { 
     userBookings: number;
   };
   spotsAvailable: number;
   isFull: boolean;
-  // Additional fields for frontend use
-  isBooked?: boolean;
-  isWaitlisted?: boolean;
-  userNote?: string;
-  temporaryData?: any;
-}
+};
 
-// Gym interface
-export interface Gym {
-  id: ID;
-  name: string;
-  address: string;
-  description: string;
-  contactInfo: string;
-  imageUrl: string;
-  createdAt: string;
-  // Optional fields that might be useful
-  location?: string;
-  openingHours?: string;
-  websiteUrl?: string;
-  equipments?: string[];
-  amenities?: string[];
-  _count?: {
-    classes: number;
-    membershipPlans: number;
-  };
-  // Related data
-  classes?: GymClass[];
-  memberships?: UserMembership[];
-  // Additional fields for frontend use
-  isFavorite?: boolean;
-  lastVisited?: string;
-  userNotes?: string;
-  temporaryData?: any;
-}
-export interface GymInfo {
-  id: ID;
-  name: string;
-  address: string;
-  imageUrl: string | null;
-}
 export type MembershipStatus = "active" | "cancelled" | "expired" | string; // Added string for potential future statuses
 
-// Membership interface
+
 export interface MembershipPlan {
   id: ID;
   gymId: ID;
   name: string;
   description: string;
   durationDays: number;
-  price: string; // API response shows price as a string (e.g., "47")
-  maxBookingsPerWeek: number | null; // API response shows this can be null
+  price: string; 
+  maxBookingsPerWeek: number | null;
   isActive: boolean;
-  createdAt: string; // ISO date string
-  // Note: Fields like `benefits`, `restrictions`, `discounts` from your
-  // original `Membership` interface are not present in this specific API's
-  // `membershipPlan` object. If they are part of a plan's definition
-  // in other contexts (e.g., a detailed plan view), they could be added here
-  // (possibly as optional) or in a separate, more detailed interface.
+  createdAt: string;
 }
 
-export interface UserMembership {
-  id: ID;
-  userId: ID;
-  gymId: ID; // Corresponds to gym.id
-  planId: ID; // Corresponds to membershipPlan.id
-  startDate: string; // ISO date string
-  endDate: string; // ISO date string
-  status: MembershipStatus;
+export type UserMembership = { // this is called from get my-membership, membership section
+  id: number;
+  userId: number;
+  gymId: number;
+  planId: number;
+  startDate: string; 
+  endDate: string; 
+  status: MembershipStatus; 
   autoRenew: boolean;
   bookingsUsedThisWeek: number;
-  lastBookingCountReset: string; // ISO date string
-  createdAt: string; // ISO date string
-  gym: GymInfo;
-  membershipPlan: MembershipPlan;
+  lastBookingCountReset: string;
+  createdAt: string; 
+  gym: { 
+    id: number;
+    name: string;
+    address: string;
+    imageUrl: string | null;
+  };
+  membershipPlan: {
+    id: number;
+    gymId: number;
+    name: string;
+    description: string;
+    durationDays: number;
+    price: string; 
+    maxBookingsPerWeek: number;
+    isActive: boolean;
+    createdAt: string;
+  };
+};
 
-  // Frontend-specific fields from your original `Membership` interface
-  // could be added here if you intend to augment this data on the client:
-  // isSelected?: boolean;
-  // temporaryData?: any;
-}
+
+
 
 // API Response interfaces
 export interface ApiResponse<T> {
@@ -161,13 +135,10 @@ export interface ApiResponse<T> {
 }
 
 
+
 export type BookingStatus = 'confirmed' | 'cancelled' | 'attended';
 
-
-
-
-
-export interface Booking {
+export interface Booking { // from get my-bookings and same for upcoming booking
   id: number;
   userId: number;
   membershipId: number;
@@ -205,9 +176,118 @@ export interface Booking {
       };
     };
   };
+
+  // there is data is from backend but not used, so that we can match with booking history 
+  // userMembership: {
+  //   id: number;
+  //   status: string;
+  // };
+}
+
+export interface BookingHistory { // this is from get booking history  
+  id: number;
+  userId: number;
+  membershipId: number | null;
+  scheduleId: number;
+  bookingTime: string; 
+  bookingStatus: BookingStatus;
+  cancellationReason: string | null;
+  attended: boolean;
+  createdAt: string; 
+  schedule: { 
+    id: number;
+    classId: number;
+    startTime: string;
+    endTime: string; 
+    instructor: string | null; 
+    currentBookings: number;
+    isCancelled: boolean;
+    cancellationReason: string | null;
+    createdAt: string; 
+    gymClass: { 
+      id: number;
+      gymId: number;
+      name: string;
+      description: string;
+      maxCapacity: number | null;
+      durationMinutes: number;
+      imageUrl: string | null;
+      membersOnly: boolean;
+      difficultyLevel: string;
+      isActive: boolean;
+      createdAt: string; 
+      gym: { 
+        id: number;
+        name: string;
+      };
+    };
+  };
+  // no userMembership for booking history
+}
+
+export interface DetailedBooking { // this is from get booking by booking id
+  id: number;
+  userId: number;
+  membershipId: number | null;
+  scheduleId: number;
+  bookingTime: string;
+  bookingStatus: string;
+  cancellationReason: string | null;
+  attended: boolean;
+  createdAt: string;
+  schedule: {
+    id: number;
+    classId: number;
+    startTime: string;
+    endTime: string;
+    instructor: string | null;
+    currentBookings: number;
+    isCancelled: boolean;
+    cancellationReason: string | null;
+    createdAt: string;
+    gymClass: {
+      id: number;
+      gymId: number;
+      name: string;
+      description: string;
+      maxCapacity: number | null;
+      durationMinutes: number;
+      imageUrl: string | null;
+      membersOnly: boolean;
+      difficultyLevel: string;
+      isActive: boolean;
+      createdAt: string;
+      gym: {
+        id: number;
+        name: string;
+        address: string;
+        contactInfo: string;
+      };
+    };
+  };
   userMembership: {
     id: number;
+    userId: number;
+    gymId: number;
+    planId: number;
+    startDate: string;
+    endDate: string;
     status: string;
+    autoRenew: boolean;
+    bookingsUsedThisWeek: number;
+    lastBookingCountReset: string;
+    createdAt: string;
+    membershipPlan: {
+      id: number;
+      gymId: number;
+      name: string;
+      description: string;
+      durationDays: number;
+      price: string;
+      maxBookingsPerWeek: number;
+      isActive: boolean;
+      createdAt: string;
+    };
   };
 }
 

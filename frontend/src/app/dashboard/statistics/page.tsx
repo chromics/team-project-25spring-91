@@ -81,22 +81,6 @@ const StatsPage = () => {
         allowedRoles: [UserRole.REGULAR_USER]
     });
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
-
-    if (!isAuthorized) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
-
     useEffect(() => {
         fetchStats();
     }, []);
@@ -124,6 +108,22 @@ const StatsPage = () => {
     };
 
     if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
         return (
             <div className="flex justify-center items-center min-h-[200px]">
                 <ButterflyLoader />

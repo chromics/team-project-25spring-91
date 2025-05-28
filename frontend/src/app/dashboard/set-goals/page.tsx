@@ -47,7 +47,6 @@ const SetGoalPage = () => {
         past: 1
     });
     const [isExpanded, setIsExpanded] = useState(false);
-
     useEffect(() => {
         fetchWorkouts();
     }, []);
@@ -56,21 +55,6 @@ const SetGoalPage = () => {
         allowedRoles: [UserRole.REGULAR_USER]
     });
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
-
-    if (!isAuthorized) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
 
     // At the component level where you manage state
 
@@ -475,6 +459,22 @@ const SetGoalPage = () => {
         );
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex justify-center items-center min-h-[200px]">
+                <ButterflyLoader />
+            </div>
+        );
+    }
+    
     const groupedWorkouts = groupWorkouts(workouts);
 
     return (
