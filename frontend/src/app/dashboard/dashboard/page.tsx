@@ -1,65 +1,32 @@
 // src/app/dashboard/dashboard/page.tsx
 "use client";
 
-import { useAuth } from "@/context/auth-context";
+import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { LoadingSpinner } from "@/components/ui/loading";
 
-const getDefaultDashboard = (role: UserRole): string => {
-  switch (role) {
-    case UserRole.ADMIN:
-      return '/dashboard/admin/dashboard';
-    case UserRole.GYM_OWNER:
-      return '/dashboard/gym-owner/dashboard';
-    case UserRole.REGULAR_USER:
-    default:
-      return '/dashboard/dashboard';
-  }
-};
-
 export default function RegularUserDashboard() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER]
+  });
 
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/sign-in');
-        return;
-      }
-
-      if (user.role !== UserRole.REGULAR_USER) {
-        // Redirect to appropriate dashboard instead of showing error
-        const redirectTo = getDefaultDashboard(user.role);
-        console.log(`Redirecting ${user.role} from regular user dashboard to ${redirectTo}`);
-        router.push(redirectTo);
-        return;
-      }
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (!user) {
+  if (!isAuthorized) {
     return <LoadingSpinner />;
   }
 
-  if (user.role !== UserRole.REGULAR_USER) {
-    // Show loading while redirecting
-    return <LoadingSpinner />;
-  }
-
+  console.log('Rendering dashboard content');
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user.displayName}!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.displayName}!</h1>
         <p className="text-muted-foreground">
           Track your fitness journey and achieve your goals.
         </p>
+        <p className="text-sm text-gray-500">User Role: {user?.role}</p>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

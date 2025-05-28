@@ -275,18 +275,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (user && !loading && !hasRedirected.current && isInitialized.current) {
       const currentPath = window.location.pathname;
-      
-      // Only redirect from these specific paths
+
+      // Only redirect from these very specific paths to avoid conflicts
       const shouldRedirect = [
-        '/dashboard/statistics',
+        '/dashboard/statistics', // to be remove
         '/dashboard',
         '/'
       ].includes(currentPath);
-      
+
       if (shouldRedirect) {
         hasRedirected.current = true;
         const expectedDashboard = getDefaultDashboard(user.role);
-        console.log(`Redirecting ${user.role} from ${currentPath} to ${expectedDashboard}`);
+        console.log(`Auth Context: Redirecting ${user.role} from ${currentPath} to ${expectedDashboard}`);
         router.push(expectedDashboard);
       }
     }
@@ -299,7 +299,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, displayName: string, role: UserRole) => {
     try {
       setLoading(true);
-      const { data } = await api.post('/auth/register', { email, password, displayName, role});
+      const { data } = await api.post('/auth/register', { email, password, displayName, role });
 
       const newToken = data.data.token;
 
@@ -334,7 +334,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(newToken);
       hasRedirected.current = true;
       isInitialized.current = false; // Reset for new user
-      
+
     } catch (error) {
       console.error('Login Error:', error);
       throw error;

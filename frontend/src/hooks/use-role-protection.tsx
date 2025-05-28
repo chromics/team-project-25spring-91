@@ -4,7 +4,7 @@
 import { useAuth } from "@/context/auth-context";
 import { UserRole } from "@/components/auth/sign-up-form";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const getDefaultDashboard = (role: UserRole): string => {
   switch (role) {
@@ -28,19 +28,26 @@ export function useRoleProtection({ allowedRoles, redirectTo }: UseRoleProtectio
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const hasCheckedRef = useRef(false);
+
 
   useEffect(() => {
-    if (!loading) {
+
+
+    if (!loading && !hasCheckedRef.current) {
+      hasCheckedRef.current = true;
       if (!user) {
         router.push('/sign-in');
         return;
       }
 
+
+
+      // return true if the user role exists in allowedRoles that paste from the page components 
       const hasPermission = allowedRoles.includes(user.role);
       
       if (!hasPermission) {
         const redirectRoute = redirectTo || getDefaultDashboard(user.role);
-        console.log(`Redirecting ${user.role} to ${redirectRoute} - not authorized for this page`);
         router.push(redirectRoute);
         return;
       }

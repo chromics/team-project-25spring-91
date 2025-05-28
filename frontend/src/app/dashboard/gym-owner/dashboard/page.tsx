@@ -1,56 +1,21 @@
 // src/app/dashboard/gym-owner/dashboard/page.tsx
 "use client";
 
-import { useAuth } from "@/context/auth-context";
+import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { LoadingSpinner } from "@/components/ui/loading";
 
-const getDefaultDashboard = (role: UserRole): string => {
-  switch (role) {
-    case UserRole.ADMIN:
-      return '/dashboard/admin/dashboard';
-    case UserRole.GYM_OWNER:
-      return '/dashboard/gym-owner/dashboard';
-    case UserRole.REGULAR_USER:
-    default:
-      return '/dashboard/dashboard';
-  }
-};
-
 export default function GymOwnerDashboard() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { isAuthorized, isLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.GYM_OWNER]
+  });
 
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/sign-in');
-        return;
-      }
-
-      if (user.role !== UserRole.GYM_OWNER) {
-        // Redirect to appropriate dashboard instead of showing error
-        const redirectTo = getDefaultDashboard(user.role);
-        console.log(`Redirecting ${user.role} from gym-owner dashboard to ${redirectTo}`);
-        router.push(redirectTo);
-        return;
-      }
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (!user) {
-    return <LoadingSpinner />;
-  }
-
-  if (user.role !== UserRole.GYM_OWNER) {
-    // Show loading while redirecting
-    return <LoadingSpinner />;
+  if (!isAuthorized) {
+    return <LoadingSpinner />; // Will redirect automatically
   }
 
   return (
@@ -58,7 +23,7 @@ export default function GymOwnerDashboard() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Gym Owner Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome {user.displayName}! Manage your gyms and bookings from here.
+          Welcome {user?.displayName}! Manage your gyms and bookings from here.
         </p>
       </div>
       

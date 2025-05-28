@@ -15,7 +15,7 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 export enum UserRole {
-  REGULAR_USER = "regular_user",
+  REGULAR_USER = "user",
   GYM_OWNER = "gym_owner",
   ADMIN = "admin"
 }
