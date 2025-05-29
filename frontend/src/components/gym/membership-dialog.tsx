@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { Gym, MembershipPlan } from '@/types/gym';
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/context/auth-context";
 import axios from 'axios';
 import { toast } from 'sonner';
 import api from '@/lib/api';
@@ -23,7 +22,6 @@ const stepTitles: Record<StepNumber, string> = {
 };
 
 const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenChange }) => {
-  const { user } = useAuth();
   const [step, setStep] = React.useState<StepNumber>(1);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [membershipPlans, setMembershipPlans] = React.useState<MembershipPlan[]>([]);
@@ -83,62 +81,78 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground">Loading plans...</div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
-                {membershipPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className={`
+            ) : membershipPlans.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4">
+                  <div className="text-6xl opacity-20">📋</div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold text-muted-foreground">
+                      No Plans Available
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      This gym doesn't have any membership plans available at the
+                      moment. 
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) :
+              (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
+                  {membershipPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className={`
                       rounded-lg border transition-all duration-300 ease-in-out
                       hover:shadow-lg hover:shadow-accent/5
-                      ${selectedPlan?.id === plan.id 
-                        ? 'border-primary/50 bg-accent/5 shadow-lg shadow-accent/10' 
-                        : 'border-border/50 bg-card hover:border-accent/30'
-                      }
+                      ${selectedPlan?.id === plan.id
+                          ? 'border-primary/50 bg-accent/5 shadow-lg shadow-accent/10'
+                          : 'border-border/50 bg-card hover:border-accent/30'
+                        }
                     `}
-                  >
-                    <div className="p-6 flex flex-col h-full">
-                      <div className="mb-6">
-                        <h3 className="text-xl font-semibold tracking-tight">{plan.name}</h3>
-                        <div className="mt-3 flex items-baseline gap-1">
-                          <span className="text-4xl font-bold tracking-tight">${plan.price}</span>
-                          <span className="text-sm text-muted-foreground">
-                            /{plan.durationDays} days
-                          </span>
+                    >
+                      <div className="p-6 flex flex-col h-full">
+                        <div className="mb-6">
+                          <h3 className="text-xl font-semibold tracking-tight">{plan.name}</h3>
+                          <div className="mt-3 flex items-baseline gap-1">
+                            <span className="text-4xl font-bold tracking-tight">${plan.price}</span>
+                            <span className="text-sm text-muted-foreground">
+                              /{plan.durationDays} days
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-4 flex-1">
-                        <div className="flex items-start gap-3">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm leading-relaxed">{plan.description}</span>
+                        <div className="space-y-4 flex-1">
+                          <div className="flex items-start gap-3">
+                            <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-sm leading-relaxed">{plan.description}</span>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                            <span className="text-sm leading-relaxed">
+                              Max {plan.maxBookingsPerWeek} bookings per week
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-start gap-3">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm leading-relaxed">
-                            Max {plan.maxBookingsPerWeek} bookings per week
-                          </span>
-                        </div>
-                      </div>
 
-                      <Button
-                        variant={selectedPlan?.id === plan.id ? "default" : "outline"}
-                        className={`
+                        <Button
+                          variant={selectedPlan?.id === plan.id ? "default" : "outline"}
+                          className={`
                           w-full mt-6 transition-all duration-300
-                          ${selectedPlan?.id === plan.id 
-                            ? 'bg-primary text-primary-foreground shadow-md' 
-                            : 'hover:bg-accent/10'
-                          }
+                          ${selectedPlan?.id === plan.id
+                              ? 'bg-primary text-primary-foreground shadow-md'
+                              : 'hover:bg-accent/10'
+                            }
                         `}
-                        onClick={() => setSelectedPlan(plan)}
-                      >
-                        {selectedPlan?.id === plan.id ? "Selected" : "Select"}
-                      </Button>
+                          onClick={() => setSelectedPlan(plan)}
+                        >
+                          {selectedPlan?.id === plan.id ? "Selected" : "Select"}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
           </motion.div>
         );
 
@@ -175,7 +189,7 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
             {gym.name} - {stepTitles[step]}
           </DialogTitle>
           <div className="h-1 w-full bg-accent rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-primary transition-all duration-500 ease-in-out rounded-full"
               style={{ width: `${(step / 2) * 100}%` }}
             />

@@ -14,7 +14,7 @@ export function GymHeader({ gym }: GymHeaderProps) {
     <div className="relative w-full">
       <div className="relative h-[300px] w-full overflow-hidden">
         <Image
-          src={gym.imageUrl}
+          src={`http://localhost:5000${gym.imageUrl}`}
           alt={gym.name}
           fill
           className="object-cover"

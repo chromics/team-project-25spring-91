@@ -32,7 +32,7 @@ const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym }) => {
         <div className="aspect-square relative w-full overflow-hidden rounded-lg">
           {gym.imageUrl && (
             <Image
-              src={gym.imageUrl}
+              src={`http://localhost:5000${gym.imageUrl}`}
               alt={gym.name}
               fill
               className="object-cover"
@@ -53,7 +53,7 @@ const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym }) => {
           <Button
 
             variant="outline"
-           size="sm"
+            size="sm"
             className="w-full text-xs cursor-pointer"
             onClick={() => setMembershipOpen(true)}
           >
