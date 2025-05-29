@@ -326,7 +326,7 @@ model DietEntry {
   foodId         Int
   quantity       Decimal   @db.Decimal(10, 2)
   calories       Decimal?  @db.Decimal(10, 2)
-  consumptionDate DateTime @db.Date
+  consumptionDate DateTime 
   mealType       String?
   notes          String?
   createdAt      DateTime  @default(now())
