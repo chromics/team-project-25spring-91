@@ -115,7 +115,12 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
       setActiveTab("view");
       setTitle(meal.title);
       setMealItems(meal.foodItems || []);
-      setSelectedDateTime(meal.date);
+      
+      const combinedDateTime = new Date(meal.date);
+      const [hours, minutes] = meal.time.split(':');
+      combinedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      
+      setSelectedDateTime(combinedDateTime);
     }
   }, [open, meal]);
 
@@ -155,7 +160,12 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
     // Reset form to original meal data
     setTitle(meal.title);
     setMealItems(meal.foodItems || []);
-    setSelectedDateTime(meal.date);
+    
+    const combinedDateTime = new Date(meal.date);
+    const [hours, minutes] = meal.time.split(':');
+    combinedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    setSelectedDateTime(combinedDateTime);
   };
 
   const handleAddFoodItem = () => {
