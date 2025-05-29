@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from "@/lib/utils";
 
 const DEFAULT_TITLE_SUGGESTIONS = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+const MAX_VISIBLE_SUGGESTIONS = 2;
 
 interface TitleInputWithSuggestionsProps {
   value: string;
@@ -31,12 +32,14 @@ export const TitleInputWithSuggestions: React.FC<TitleInputWithSuggestionsProps>
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Filter suggestions based on input
+  // Filter suggestions based on input (keep all filtered results for scrolling)
   const filteredSuggestions = value.trim() === ""
     ? suggestions
     : suggestions.filter(suggestion => 
         suggestion.toLowerCase().includes(value.toLowerCase())
       );
+
+  const maxHeight = `${MAX_VISIBLE_SUGGESTIONS * 2 + 0.5}rem`;
 
   // Handle clicks outside the component
   useEffect(() => {
@@ -78,7 +81,6 @@ export const TitleInputWithSuggestions: React.FC<TitleInputWithSuggestionsProps>
   const handleInputBlur = () => {
     if (!enableSuggestions) return;
     
-    // Only close if we're not in the middle of a mousedown inside the component
     if (!isMouseDown) {
       setTimeout(() => {
         setShowSuggestions(false);
@@ -112,7 +114,11 @@ export const TitleInputWithSuggestions: React.FC<TitleInputWithSuggestionsProps>
       
       {shouldShowSuggestions && (
         <div className="absolute z-50 w-full rounded-md border bg-popover text-popover-foreground shadow-md mt-1">
-          <ScrollArea className="max-h-40 overflow-auto" type="auto">
+          <ScrollArea 
+            className="overflow-auto" 
+            type="auto"
+            style={{ maxHeight }}
+          >
             <div className="p-1">
               {filteredSuggestions.map((suggestion) => (
                 <div
