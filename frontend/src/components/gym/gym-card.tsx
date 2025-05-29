@@ -23,7 +23,6 @@ interface GymCardProps {
 const GymCard: FC<GymCardProps> = ({ gym }) => {
   const router = useRouter();
   const [membershipOpen, setMembershipOpen] = useState(false)
-
   return (
     <>
       <Card className="w-full border-0 shadow-none flex flex-col">
