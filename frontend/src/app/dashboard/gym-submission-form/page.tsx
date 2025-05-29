@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, ImageIcon, X } from "lucide-react";
+import { Upload, ImageIcon, X, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRoleProtection } from "@/hooks/use-role-protection";
@@ -91,23 +90,18 @@ export default function CreateGymPage() {
     setIsSubmitting(true);
 
     try {
-
-
       const submitData = new FormData();
-      
+
       submitData.append("name", formData.name);
       submitData.append("address", formData.address);
       submitData.append("description", formData.description);
       submitData.append("contactInfo", formData.contactInfo);
-      
 
-      
       // Append image file if selected
       if (imageFile) {
         submitData.append("image", imageFile);
       }
 
-      
       const response = await api.post("/gyms", submitData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -120,7 +114,8 @@ export default function CreateGymPage() {
       console.error("Error creating gym:", error);
       console.error("Error response:", error.response?.data);
       toast.error(
-        error.response?.data?.message || "Failed to create gym. Please try again."
+        error.response?.data?.message ||
+          "Failed to create gym. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -128,152 +123,186 @@ export default function CreateGymPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Create New Gym
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-6 px-4 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={handleCancel}
+            className="mb-6 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Create New Gym
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Fill in the details below to create your gym profile
+            </p>
+          </div>
+        </div>
 
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-12">
+          {/* Basic Information Section */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
+              Basic Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Gym Name */}
+              <div className="space-y-3">
+                <Label htmlFor="name" className="text-base font-medium">
+                  Gym Name *
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter gym name"
+                  required
+                  className="h-12 text-base"
+                />
+              </div>
 
-            {/* Gym Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Gym Name *</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter gym name"
-                required
-                className="w-full"
-              />
+              {/* Address */}
+              <div className="space-y-3">
+                <Label htmlFor="address" className="text-base font-medium">
+                  Address *
+                </Label>
+                <Input
+                  id="address"
+                  name="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Enter gym address"
+                  required
+                  className="h-12 text-base"
+                />
+              </div>
+
+              {/* Contact Info - Full Width */}
+              <div className="space-y-3 md:col-span-2">
+                <Label htmlFor="contactInfo" className="text-base font-medium">
+                  Contact Information *
+                </Label>
+                <Input
+                  id="contactInfo"
+                  name="contactInfo"
+                  type="text"
+                  value={formData.contactInfo}
+                  onChange={handleInputChange}
+                  placeholder="Enter contact information (email, phone, etc.)"
+                  required
+                  className="h-12 text-base"
+                />
+              </div>
             </div>
+          </div>
 
-            {/* Address */}
-            <div className="space-y-2">
-              <Label htmlFor="address">Address *</Label>
-              <Input
-                id="address"
-                name="address"
-                type="text"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="Enter gym address"
-                required
-                className="w-full"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
+          {/* Description Section */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
+              Description
+            </h2>
+            <div className="space-y-3">
+              <Label htmlFor="description" className="text-base font-medium">
+                Tell us about your gym *
+              </Label>
               <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Describe your gym..."
+                placeholder="Describe your gym, facilities, atmosphere, and what makes it special..."
                 required
-                className="w-full min-h-[100px]"
+                className="min-h-[150px] text-base resize-none"
               />
             </div>
+          </div>
 
-            {/* Contact Info */}
-            <div className="space-y-2">
-              <Label htmlFor="contactInfo">Contact Information *</Label>
-              <Input
-                id="contactInfo"
-                name="contactInfo"
-                type="text"
-                value={formData.contactInfo}
-                onChange={handleInputChange}
-                placeholder="Enter contact information (email, phone, etc.)"
-                required
-                className="w-full"
-              />
-            </div>
-
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <Label>Gym Image</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                {imagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Gym preview"
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={removeImage}
+          {/* Image Upload Section */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
+              Gym Image
+            </h2>
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 bg-muted/20 hover:bg-muted/30 transition-colors">
+              {imagePreview ? (
+                <div className="relative max-w-2xl mx-auto">
+                  <img
+                    src={imagePreview}
+                    alt="Gym preview"
+                    className="w-full h-80 object-cover rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-3 right-3 shadow-lg"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <ImageIcon className="mx-auto h-20 w-20 text-muted-foreground/50 mb-6" />
+                  <div className="space-y-4">
+                    <Label
+                      htmlFor="image-upload"
+                      className="cursor-pointer inline-flex items-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-colors shadow-sm"
                     >
-                      <X className="h-4 w-4" />
-                    </Button>
+                      <Upload className="h-5 w-5 mr-3" />
+                      Choose Image
+                    </Label>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
                   </div>
-                ) : (
-                  <div className="text-center">
-                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="mt-4">
-                      <Label
-                        htmlFor="image-upload"
-                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Image
-                      </Label>
-                      <Input
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-gray-500">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
-                  </div>
-                )}
-              </div>
+                  <p className="mt-4 text-muted-foreground">
+                    PNG, JPG, or GIF up to 10MB
+                  </p>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Submit Button */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {isSubmitting ? (
-                  <>
-                    <ButterflyLoader />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Gym"
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          {/* Submit Buttons */}
+          <div className="flex gap-6 pt-8 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              className="flex-1 h-12 text-base"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 h-12 text-base"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <span className="ml-3">Creating...</span>
+                </div>
+              ) : (
+                "Create Gym"
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
