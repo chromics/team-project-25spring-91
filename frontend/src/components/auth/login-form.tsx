@@ -187,7 +187,7 @@ export function LoginForm({
               <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
             </svg>
 
-            Mricrosoft
+            Microsoft
           </Button>
           <Button
             variant="outline"
