@@ -10,7 +10,7 @@ import { TrashIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import DateTimePicker from './date-time-picker';
 import { TitleInputWithSuggestions } from './title-input-with-suggestions';
-import { QuantityInput } from './quantity-input';
+import { QuantityInput, DEFAULT_QUANTITY, EMPTY_INPUT_DEFAULT } from './quantity-input';
 
 interface FoodItem {
   label: string;
@@ -73,7 +73,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   const [title, setTitle] = useState<string>('');
   const [mealItems, setMealItems] = useState<FoodEntry[]>([]);
   const [selectedFood, setSelectedFood] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(100);
+  const [quantity, setQuantity] = useState<number>(DEFAULT_QUANTITY);
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
   const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
@@ -127,7 +127,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
       {
         id: Date.now().toString(),
         name: foodItem.label,
-        quantity,
+        quantity: Math.round(quantity * 100) / 100,
         calories,
         foodValue: foodItem.value,
         servingUnit: foodItem.servingUnit
@@ -135,7 +135,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     ]);
     
     setSelectedFood('');
-    setQuantity(100);
+    setQuantity(DEFAULT_QUANTITY);
   };
 
   const handleRemoveFoodItem = (id: string) => {
@@ -156,7 +156,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   };
 
   const handleEditQuantitySave = (itemId: string) => {
-    const finalQuantity = !editQuantity  || editQuantity < 1 ? 1 : editQuantity;
+    const finalQuantity = !editQuantity ? EMPTY_INPUT_DEFAULT : editQuantity < 0.01 ? 0.01 : Math.round(editQuantity * 100) / 100;
     
     setMealItems(prev => prev.map(item => {
       if (item.id === itemId) {
@@ -202,7 +202,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setTitle('');
     setMealItems([]);
     setSelectedFood('');
-    setQuantity(100);
+    setQuantity(DEFAULT_QUANTITY);
     setSelectedDateTime(new Date());
     setEditingQuantity(null);
   };
@@ -315,7 +315,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                               onDoubleClick={() => handleQuantityDoubleClick(item)}
                               title="Double-click to edit"
                             >
-                              {item.quantity} {formatServingUnit(item.servingUnit || 'g')}
+                              {item.quantity % 1 === 0 ? item.quantity : item.quantity.toFixed(2)} {formatServingUnit(item.servingUnit || 'g')}
                             </span>
                           )}
                         </TableCell>

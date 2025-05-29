@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pencil, Trash, TrashIcon, ArrowLeft } from 'lucide-react';
 import DateTimePicker from './date-time-picker';
 import { TitleInputWithSuggestions } from './title-input-with-suggestions';
-import { QuantityInput } from './quantity-input';
+import { QuantityInput, DEFAULT_QUANTITY, EMPTY_INPUT_DEFAULT  } from './quantity-input';
 
 interface FoodItem {
   label: string;
@@ -80,7 +80,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   const [title, setTitle] = useState<string>("");
   const [mealItems, setMealItems] = useState<FoodEntry[]>([]);
   const [selectedFood, setSelectedFood] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(100);
+  const [quantity, setQuantity] = useState<number>(DEFAULT_QUANTITY);
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
   const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
@@ -171,7 +171,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
       {
         id: Date.now().toString(),
         name: foodItem.label,
-        quantity,
+        quantity: Math.round(quantity * 100) / 100,
         calories,
         foodValue: foodItem.value,
         servingUnit: foodItem.servingUnit
@@ -179,7 +179,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
     ]);
     
     setSelectedFood('');
-    setQuantity(100);
+    setQuantity(DEFAULT_QUANTITY);
   };
 
   const handleRemoveFoodItem = (id: string) => {
@@ -200,7 +200,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
   };
 
   const handleEditQuantitySave = (itemId: string) => {
-    const finalQuantity = !editQuantity  || editQuantity < 1 ? 1 : editQuantity;
+    const finalQuantity = !editQuantity ? EMPTY_INPUT_DEFAULT : editQuantity < 0.01 ? 0.01 : Math.round(editQuantity * 100) / 100;
     
     setMealItems(prev => prev.map(item => {
       if (item.id === itemId) {
@@ -430,7 +430,7 @@ export const ViewEditMealDialog: React.FC<MealDialogProps> = ({
                                   onDoubleClick={() => handleQuantityDoubleClick(item)}
                                   title="Double-click to edit"
                                 >
-                                  {item.quantity} {formatServingUnit(item.servingUnit || 'g')}
+                                  {item.quantity % 1 === 0 ? item.quantity : item.quantity.toFixed(2)} {formatServingUnit(item.servingUnit || 'g')}
                                 </span>
                               )}
                             </TableCell>
