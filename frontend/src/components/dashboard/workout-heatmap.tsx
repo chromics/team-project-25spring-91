@@ -18,7 +18,7 @@ export function WorkoutHeatmap() {
     for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
       data.push({
         date: d.toISOString().split("T")[0],
-        count: Math.floor(Math.random() * 4), // 0-3 workouts per day
+        count: Math.random() < 0.5 ? 0 : 1, // 50% chance of workout
       });
     }
     return data;
@@ -26,9 +26,7 @@ export function WorkoutHeatmap() {
 
   const getIntensityClass = (count: number) => {
     if (count === 0) return "bg-muted";
-    if (count === 1) return "bg-green-200 dark:bg-green-900";
-    if (count === 2) return "bg-green-400 dark:bg-green-700";
-    return "bg-green-600 dark:bg-green-500";
+    return "bg-blue-600 dark:bg-blue-400";
   };
 
   const getWeeksArray = () => {
@@ -151,12 +149,8 @@ export function WorkoutHeatmap() {
           <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
             <span>Less</span>
             <div className="flex gap-1">
-              {[0, 1, 2, 3].map((level) => (
-                <div
-                  key={level}
-                  className={`w-3 h-3 rounded-sm ${getIntensityClass(level)}`}
-                />
-              ))}
+              <div className={`w-3 h-3 rounded-sm ${getIntensityClass(0)}`} />
+              <div className={`w-3 h-3 rounded-sm ${getIntensityClass(1)}`} />
             </div>
             <span>More</span>
           </div>
