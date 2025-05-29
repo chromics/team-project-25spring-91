@@ -132,7 +132,6 @@ export const QuantityInput: React.FC<QuantityInputProps> = ({
     
     // Handle numbers
     if (/^[0-9]$/.test(e.key)) {
-      // Check if adding this digit would create an invalid input
       const cursorPosition = (e.target as HTMLInputElement).selectionStart || 0;
       const newValue = displayValue.slice(0, cursorPosition) + e.key + displayValue.slice(cursorPosition);
       

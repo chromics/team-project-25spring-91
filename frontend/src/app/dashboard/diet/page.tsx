@@ -38,7 +38,7 @@ interface DayLog {
 interface FoodItem {
   label: string;
   value: string;
-  caloriesPerGram: number;
+  caloriesperquantity: number;
   servingUnit: string;
   id?: number; 
 }
@@ -141,7 +141,7 @@ const MealLogger: React.FC = () => {
       const transformedFoodItems: FoodItem[] = data.data.map((item: BackendFoodItem) => ({
         label: item.name,
         value: item.name.toLowerCase().replace(/\s+/g, '-'),
-        caloriesPerGram: parseFloat(item.caloriesPerUnit),
+        caloriesperquantity: parseFloat(item.caloriesPerUnit),
         servingUnit: item.servingUnit,
         id: item.id
       }));

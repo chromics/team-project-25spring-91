@@ -15,7 +15,7 @@ import { QuantityInput, DEFAULT_QUANTITY, EMPTY_INPUT_DEFAULT } from './quantity
 interface FoodItem {
   label: string;
   value: string;
-  caloriesPerGram: number;
+  caloriesperquantity: number;
   servingUnit: string;
 }
 
@@ -120,7 +120,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
     if (!foodItem) return;
     
-    const calories = Math.round(foodItem.caloriesPerGram * quantity);
+    const calories = Math.round(foodItem.caloriesperquantity * quantity);
     
     setMealItems(prev => [
       ...prev,
@@ -161,7 +161,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setMealItems(prev => prev.map(item => {
       if (item.id === itemId) {
         const foodItem = sortedFoodItems.find(f => f.value === item.foodValue);
-        const newCalories = foodItem ? Math.round(foodItem.caloriesPerGram * finalQuantity) : item.calories;
+        const newCalories = foodItem ? Math.round(foodItem.caloriesperquantity * finalQuantity) : item.calories;
         return { ...item, quantity: finalQuantity, calories: newCalories };
       }
       return item;
