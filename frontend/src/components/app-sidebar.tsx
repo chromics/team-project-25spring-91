@@ -334,8 +334,8 @@ const getNavigationData = (role: UserRole) => {
             url: "#",
             items: [
               {
-                title: "Logged Meals",
-                url: "/dashboard/logged-meals",
+                title: "Log Meals",
+                url: "/dashboard/diet",
               },
             ],
           },
