@@ -15,6 +15,7 @@ import type { Gym } from '@/types/gym'
 import { Button } from '@/components/ui/button'
 import MembershipDialog from '@/components/gym/membership-dialog'
 
+
 interface GymCardProps {
   gym: Gym
 }

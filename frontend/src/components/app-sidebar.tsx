@@ -252,6 +252,10 @@ const getNavigationData = (role: UserRole) => {
                 title: "User Management",
                 url: "/dashboard/admin/users",
               },
+              {
+                title: "All Gyms",
+                url: "/dashboard/gym-list",
+              },
             ],
           },
         ],
@@ -276,6 +280,10 @@ const getNavigationData = (role: UserRole) => {
               {
                 title: "My Gyms",
                 url: "/dashboard/gym-owner/my-gyms",
+              },
+              {
+                title: "All Gyms",
+                url: "/dashboard/gym-list",
               },
             ],
           },

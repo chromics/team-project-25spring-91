@@ -46,7 +46,7 @@ export default function GymPage() {
   }, [gymId]);
 
   const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER]
+    allowedRoles: [UserRole.REGULAR_USER, UserRole.ADMIN, UserRole.GYM_OWNER]
   });
 
   if (isLoading) {
