@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,19 +10,22 @@ import { TrashIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import DateTimePicker from './date-time-picker';
 import { TitleInputWithSuggestions } from './title-input-with-suggestions';
+import { QuantityInput } from './quantity-input';
 
 interface FoodItem {
   label: string;
   value: string;
   caloriesPerGram: number;
+  servingUnit: string;
 }
 
 interface FoodEntry {
   id: string;
   name: string;
-  weight: number;
+  quantity: number;
   calories: number;
   foodValue: string; 
+  servingUnit: string;
 }
 
 interface AddMealDialogProps {
@@ -39,9 +42,26 @@ interface AddMealDialogProps {
   enableTitleSuggestions?: boolean;
 }
 
-const MAX_WEIGHT = 2000;
+const MAX_QUANTITY = 2000;
 const MAX_TITLE_LENGTH = 15;
 const MAX_FOOD_ITEMS = 20;
+
+const formatServingUnit = (unit: string): string => {
+  const unitMap: { [key: string]: string } = {
+    'g': 'gram',
+    'ml': 'ml',
+    'cup': 'cup',
+    'slice': 'slice',
+    'piece': 'piece',
+    'tbsp': 'tbsp',
+    'tsp': 'tsp',
+    'oz': 'oz',
+    'lb': 'lb',
+    'kg': 'kg',
+    'l': 'liter'
+  };
+  return unitMap[unit] || unit;
+};
 
 export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   open,
@@ -53,9 +73,11 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   const [title, setTitle] = useState<string>('');
   const [mealItems, setMealItems] = useState<FoodEntry[]>([]);
   const [selectedFood, setSelectedFood] = useState<string>('');
-  const [weight, setWeight] = useState<number>(100);
+  const [quantity, setQuantity] = useState<number>(100);
   const [totalCalories, setTotalCalories] = useState<number>(0);
   const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
+  const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
+  const [editQuantity, setEditQuantity] = useState<number>(0);
 
   const sortedFoodItems = [...foodItems].sort((a, b) => 
     a.label.localeCompare(b.label)
@@ -74,6 +96,12 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   const isAtFoodLimit = mealItems.length >= MAX_FOOD_ITEMS;
   const isDuplicateFood = Boolean(selectedFood) && mealItems.some(item => item.foodValue === selectedFood);
 
+  const currentServingUnit = useMemo(() => {
+    if (!selectedFood) return 'gram';
+    const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
+    return foodItem ? formatServingUnit(foodItem.servingUnit) : 'gram';
+  }, [selectedFood, sortedFoodItems]);
+
   useEffect(() => {
     // Set current date and time when dialog opens
     if (open) {
@@ -87,30 +115,72 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
   }, [mealItems]);
 
   const handleAddFoodItem = () => {
-    if (!selectedFood || weight <= 0 || weight > MAX_WEIGHT || isAtFoodLimit || isDuplicateFood) return;
+    if (!selectedFood || quantity <= 0 || quantity > MAX_QUANTITY || isAtFoodLimit || isDuplicateFood) return;
     
     const foodItem = sortedFoodItems.find(item => item.value === selectedFood);
     if (!foodItem) return;
     
-    const calories = Math.round(foodItem.caloriesPerGram * weight);
+    const calories = Math.round(foodItem.caloriesPerGram * quantity);
     
     setMealItems(prev => [
       ...prev,
       {
         id: Date.now().toString(),
         name: foodItem.label,
-        weight,
+        quantity,
         calories,
-        foodValue: foodItem.value
+        foodValue: foodItem.value,
+        servingUnit: foodItem.servingUnit
       }
     ]);
     
     setSelectedFood('');
-    setWeight(100);
+    setQuantity(100);
   };
 
   const handleRemoveFoodItem = (id: string) => {
     setMealItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleQuantityDoubleClick = (item: FoodEntry) => {
+    setEditingQuantity(item.id);
+    setEditQuantity(item.quantity);
+  };
+
+  const handleEditQuantityChange = (value: number) => {
+    if (isNaN(value) || value < 0) {
+      setEditQuantity(0);
+    } else {
+      setEditQuantity(value);
+    }
+  };
+
+  const handleEditQuantitySave = (itemId: string) => {
+    const finalQuantity = !editQuantity  || editQuantity < 1 ? 1 : editQuantity;
+    
+    setMealItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const foodItem = sortedFoodItems.find(f => f.value === item.foodValue);
+        const newCalories = foodItem ? Math.round(foodItem.caloriesPerGram * finalQuantity) : item.calories;
+        return { ...item, quantity: finalQuantity, calories: newCalories };
+      }
+      return item;
+    }));
+    
+    setEditingQuantity(null);
+  };
+
+  const handleEditQuantityCancel = () => {
+    setEditingQuantity(null);
+    setEditQuantity(0);
+  };
+
+  const handleEditQuantityKeyDown = (e: React.KeyboardEvent, itemId: string) => {
+    if (e.key === 'Enter') {
+      handleEditQuantitySave(itemId);
+    } else if (e.key === 'Escape') {
+      handleEditQuantityCancel();
+    }
   };
 
   const handleSubmitMeal = () => {
@@ -132,8 +202,9 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
     setTitle('');
     setMealItems([]);
     setSelectedFood('');
-    setWeight(100);
+    setQuantity(100);
     setSelectedDateTime(new Date());
+    setEditingQuantity(null);
   };
 
   const handleDialogClose = () => {
@@ -184,36 +255,19 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                 emptyText="No food found"
               />
             </div>
-            <div className="col-span-4 flex items-center space-x-1">
-              <Input
-                type="number"
-                value={weight || ''}
-                onChange={(e) => {
-                  if (e.target.value === '') {
-                    setWeight(0);
-                  } else {
-                    const val = parseInt(e.target.value);
-                    if (!isNaN(val) && val >= 0 && val <= MAX_WEIGHT) {
-                      setWeight(val);
-                    }
-                  }
-                }}
-                onBlur={() => {
-                  if (weight < 1) {
-                    setWeight(1);
-                  }
-                }}
-                min={1}
-                max={MAX_WEIGHT}
-                className="w-full"
+            <div className="col-span-4">
+              <QuantityInput
+                value={quantity}
+                onChange={setQuantity}
                 disabled={isAtFoodLimit}
+                showUnit={true}
+                unitText={currentServingUnit}
               />
-              <span className="text-sm text-muted-foreground mr-2">gram</span>
             </div>
             <div className="col-span-3">
               <Button 
                 onClick={handleAddFoodItem}
-                disabled={!selectedFood || weight <= 0 || isAtFoodLimit || isDuplicateFood}
+                disabled={!selectedFood || quantity <= 0 || isAtFoodLimit || isDuplicateFood}
                 className="w-full"
               >
                 Add
@@ -227,7 +281,7 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[200px]">Meal</TableHead>
-                    <TableHead className="w-[100px]">Weight</TableHead>
+                    <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[100px]">Calories</TableHead>
                     <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
@@ -243,7 +297,28 @@ export const AddMealDialog: React.FC<AddMealDialogProps> = ({
                     mealItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.weight} gr</TableCell>
+                        <TableCell>
+                          {editingQuantity === item.id ? (
+                            <QuantityInput
+                              value={editQuantity}
+                              onChange={handleEditQuantityChange}
+                              onBlur={() => handleEditQuantitySave(item.id)}
+                              onKeyDown={(e) => handleEditQuantityKeyDown(e, item.id)}
+                              className="w-20 h-6 text-xs"
+                              autoFocus={true}
+                              showUnit={true}
+                              unitText={formatServingUnit(item.servingUnit || 'g')}
+                            />
+                          ) : (
+                            <span 
+                              className="cursor-pointer hover:bg-muted px-1 py-0.5 rounded"
+                              onDoubleClick={() => handleQuantityDoubleClick(item)}
+                              title="Double-click to edit"
+                            >
+                              {item.quantity} {formatServingUnit(item.servingUnit || 'g')}
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell>{item.calories}</TableCell>
                         <TableCell>
                           <Button
