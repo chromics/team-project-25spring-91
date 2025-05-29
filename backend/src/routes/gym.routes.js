@@ -25,8 +25,8 @@ router.use(authMiddleware); // All routes below require authentication
 
 // New route for admins to get ALL gyms (no pagination)
 router.get(
-  '/all/admin-view', // Changed path to be more descriptive
-  roleCheck(['admin']),
+  '/all/user-view', // Changed path to be more descriptive
+  roleCheck(['admin', 'gym_owner', 'user']),
   asyncHandler(gymController.getAllGymsAdmin),
 );
 

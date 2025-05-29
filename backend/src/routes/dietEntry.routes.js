@@ -8,48 +8,50 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
-// Get user's diet entries and summary
+// Get user's diet entries (paginated)
 router.get(
   '/',
-  validate(dietSchemas.getUserDietEntries),
-  asyncHandler(dietEntryController.getUserDietEntries)
+  validate(dietSchemas.getUserDietEntries), // Uses the paginated schema
+  asyncHandler(dietEntryController.getUserDietEntries),
+);
+
+// New: Get all user's diet entries (no pagination)
+router.get(
+  '/all', // New route path
+  validate(dietSchemas.getAllUserDietEntries), // Uses the non-paginated schema
+  asyncHandler(dietEntryController.getAllUserDietEntries),
 );
 
 router.get(
   '/summary',
   validate(dietSchemas.getUserDietSummary),
-  asyncHandler(dietEntryController.getUserDietSummary)
+  asyncHandler(dietEntryController.getUserDietSummary),
 );
 
-// Get specific diet entry
 router.get(
   '/:id',
   validate(dietSchemas.getDietEntry),
-  asyncHandler(dietEntryController.getDietEntryById)
+  asyncHandler(dietEntryController.getDietEntryById),
 );
 
-// Create diet entry
 router.post(
   '/',
   validate(dietSchemas.createDietEntry),
-  asyncHandler(dietEntryController.createDietEntry)
+  asyncHandler(dietEntryController.createDietEntry),
 );
 
-// Update diet entry
 router.put(
   '/:id',
   validate(dietSchemas.updateDietEntry),
-  asyncHandler(dietEntryController.updateDietEntry)
+  asyncHandler(dietEntryController.updateDietEntry),
 );
 
-// Delete diet entry
 router.delete(
   '/:id',
-  validate(dietSchemas.getDietEntry),
-  asyncHandler(dietEntryController.deleteDietEntry)
+  validate(dietSchemas.getDietEntry), // Schema for getting by ID is fine for delete param validation
+  asyncHandler(dietEntryController.deleteDietEntry),
 );
 
 module.exports = router;
