@@ -7,12 +7,13 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'example.com',
-        pathname: '/images/**',
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000", 
+        pathname: "/api/uploads/gyms/**", 
       },
     ],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

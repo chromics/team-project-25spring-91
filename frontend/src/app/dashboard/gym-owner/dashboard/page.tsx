@@ -1,18 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRoleProtection } from "@/hooks/use-role-protection";
 import { UserRole } from "@/components/auth/sign-up-form";
 import ButterflyLoader from "@/components/butterfly-loader";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import GymOwnerCard from "@/components/gym/admin-gym-card";
+import { useRouter } from "next/navigation";
+import { Gym } from "@/types/gym";
+import api from "@/lib/api";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function GymOwnerDashboard() {
+  const router = useRouter();
+  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [loading, setLoading] = useState(true);
   const { isAuthorized, isLoading, user } = useRoleProtection({
     allowedRoles: [UserRole.GYM_OWNER]
   });
 
-  const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
-  const [selectedGymName, setSelectedGymName] = useState<string>("");
+  useEffect(() => {
+    const fetchMyGyms = async () => {
+      try {
 
+        const response = await api.get('/gyms/owned/my-gyms');
+
+        let gymData = response.data.data || response.data;
+
+        // Filter gyms by current user if not admin
+        if (user?.role !== UserRole.ADMIN && user?.id) {
+          gymData = gymData.filter((gym: any) => gym.ownerId === user.id);
+        }
+
+        const formattedGyms = gymData.map((gym: any) => ({
+          id: gym.id,
+          name: gym.name,
+          address: gym.address,
+          description: gym.description,
+          contactInfo: gym.contactInfo,
+          imageUrl: gym.imageUrl,
+          ownerId: gym.ownerId,
+          createdAt: gym.createdAt,
+          _count: gym._count,
+        }));
+
+        setGyms(formattedGyms);
+
+      } catch (error: unknown) {
+        console.error("Error details:", error);
+
+        let errorMessage = "Failed to load gyms";
+
+        if (axios.isAxiosError(error) && error.response && error.response.data) {
+          errorMessage = error.response.data.message || errorMessage;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isAuthorized && user) {
+      fetchMyGyms();
+    }
+  }, [isAuthorized, user]);
   if (isLoading || !isAuthorized) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -23,7 +79,7 @@ export default function GymOwnerDashboard() {
 
   return (
     <div className="flex justify-center w-full px-4 py-[35px]">
-      <div className="space-y-6 max-w-4xl w-full">
+      <div className="space-y-6 max-w-6xl w-full">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gym Owner Dashboard</h1>
           <p className="text-muted-foreground mt-2">
@@ -46,76 +102,59 @@ export default function GymOwnerDashboard() {
           </div>
         </div>
 
-        {/* Manage Gyms Section */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-2">Manage Gyms</h2>
-          <div className="flex space-x-4 overflow-x-auto pb-2 pt-2">
-            {[1, 2, 3, 4, 5, 6].map((id) => {
-              const gymName = `Gym ${id}`;
-              return (
-                <div
-                  key={id}
-                  className="min-w-[200px] h-32 bg-muted rounded-lg flex flex-col items-center justify-center text-sm text-muted-foreground p-2"
+
+        {/* owner gym  */}
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">My Gyms</h1>
+              <p className="text-muted-foreground">
+                Manage your gym locations and settings
+              </p>
+            </div>
+            <Button
+              onClick={() => router.push('/dashboard/gym-submission-form')}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Create Gym
+            </Button>
+          </div>
+
+          {/* Gyms Grid */}
+          <div className="
+        grid
+        sm:grid-cols-2
+        md:grid-cols-3
+        lg:grid-cols-5
+        xl:grid-cols-6
+        gap-7
+        [grid-template-columns:repeat(auto-fit,minmax(10rem,1fr))]
+        max-w-full
+        animate-fade-in
+      ">
+            {gyms.length > 0 ? (
+              gyms.map((gym) => (
+                <GymOwnerCard key={gym.id} gym={gym} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <h3 className="text-lg font-medium">No gyms found</h3>
+                <p className="text-muted-foreground mt-2 mb-4">
+                  You haven't created any gyms yet. Start by creating your first gym!
+                </p>
+                <Button
+                  onClick={() => router.push('/dashboard/create-gym')}
+                  className="flex items-center gap-2"
                 >
-                  {gymName}
-                  <button
-                    className="mt-2 text-xs text-blue-600 underline"
-                    onClick={() => {
-                      setSelectedGymId(`gym-${id}`);
-                      setSelectedGymName(gymName);
-                    }}
-                  >
-                    Show Details
-                  </button>
-                </div>
-              );
-            })}
+                  <Plus className="h-4 w-4" />
+                  Create Your First Gym
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Expanded Gym Edit Section */}
-        {selectedGymId && (
-          <div className="p-6 border rounded-lg bg-background text-foreground space-y-6">
-            <h3 className="text-xl font-semibold">Edit {selectedGymName}</h3>
-
-            {/* Manage Memberships */}
-            <div>
-              <h4 className="text-lg font-medium mb-1">Manage Memberships</h4>
-              <p className="text-sm text-muted-foreground">
-                There are currently no memberships.
-              </p>
-            </div>
-
-            {/* Manage Classes */}
-            <div>
-              <h4 className="text-lg font-medium mb-1">Manage Classes</h4>
-              <p className="text-sm text-muted-foreground">
-                There are currently no classes.
-              </p>
-            </div>
-
-            {/* Manage Competitions */}
-            <div>
-              <h4 className="text-lg font-medium mb-1">Manage Competitions</h4>
-              <p className="text-sm text-muted-foreground">
-                There are currently no competitions.
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-4 pt-4">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-                Save Updates
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm"
-                onClick={() => setSelectedGymId(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
