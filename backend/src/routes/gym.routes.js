@@ -9,10 +9,17 @@ const { roleCheck } = require('../middleware/roleCheck');
 const { ownershipCheck } = require('../middleware/ownershipCheck');
 const { uploadGymImage, processGymImage } = require('../middleware/upload');
 
+const {
+  membershipPlanController,
+} = require('../controllers/membershipPlan.controller');
+const {
+  membershipPlanSchemas,
+} = require('../validators/membershipPlan.validator');
+
 const router = express.Router();
 
 // --- Public routes ---
-router.get('/', asyncHandler(gymController.getAllGyms)); // Paginated list for everyone
+router.get('/', asyncHandler(gymController.getAllGyms));
 
 router.get(
   '/:id',
@@ -21,20 +28,25 @@ router.get(
 );
 
 // --- Protected routes ---
-router.use(authMiddleware); // All routes below require authentication
+router.use(authMiddleware);
 
-// New route for admins to get ALL gyms (no pagination)
+// New route for admins to get total gym count
 router.get(
-  '/all/user-view', // Changed path to be more descriptive
+  '/statistics/total-count', // A more descriptive path for statistics
+  roleCheck(['admin']),
+  asyncHandler(gymController.getTotalGymCount),
+);
+
+router.get(
+  '/all/user-view',
   roleCheck(['admin', 'gym_owner', 'user']),
   asyncHandler(gymController.getAllGymsAdmin),
 );
 
-// New route for gym owners to get THEIR gyms (paginated)
 router.get(
-  '/owned/my-gyms', // Changed path to be more descriptive
-  roleCheck(['gym_owner', 'admin']), // Admin can also see this for a specific owner if ownerId is a param, or their own if they are also an owner
-  asyncHandler(gymController.getMyGyms), // Controller will use req.user.id
+  '/owned/my-gyms',
+  roleCheck(['gym_owner', 'admin']),
+  asyncHandler(gymController.getMyGyms),
 );
 
 router.get(
@@ -46,35 +58,39 @@ router.get(
 router.get(
   '/:id/membership-plans',
   validate(gymSchemas.getGym),
-  asyncHandler(gymController.getGymMembershipPlans),
+  asyncHandler(membershipPlanController.getMembershipPlansByGym),
 );
 
 // --- Admin and gym owner only routes for CREATION ---
 router.post(
   '/',
-  roleCheck(['admin', 'gym_owner']), // Both admin and gym_owner can create gyms
+  roleCheck(['admin', 'gym_owner']),
   uploadGymImage,
   processGymImage,
   validate(gymSchemas.createGym),
   asyncHandler(gymController.createGym),
 );
 
+router.post(
+  '/:gymId/membership-plans',
+  roleCheck(['admin', 'gym_owner']),
+  validate(membershipPlanSchemas.createMembershipPlan),
+  asyncHandler(membershipPlanController.createMembershipPlan),
+);
+
 // --- Admin or RESOURCE OWNER only routes for MODIFICATION ---
 router.put(
   '/:id',
-  ownershipCheck('gym'), // Checks if user is admin or owns the gym
+  ownershipCheck('gym'),
   uploadGymImage,
   processGymImage,
   validate(gymSchemas.updateGym),
   asyncHandler(gymController.updateGym),
 );
 
-// --- Admin only for DELETION ---
-// ownershipCheck could also be used here if gym_owners should delete their own gyms
-// but current setup is admin only for deletion.
 router.delete(
   '/:id',
-  roleCheck(['admin']), // Or use ownershipCheck('gym') if owners can delete
+  roleCheck(['admin']),
   validate(gymSchemas.deleteGym),
   asyncHandler(gymController.deleteGym),
 );

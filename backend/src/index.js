@@ -22,6 +22,7 @@ const gymRoutes = require('./routes/gym.routes');
 const membershipRoutes = require('./routes/membership.routes');
 const classRoutes = require('./routes/class.routes');
 const bookingRoutes = require('./routes/booking.routes');
+const membershipPlanRoutes = require('./routes/membershipPlan.routes');
 
 // Add this to your routes setup
 const competitionRoutes = require('./routes/competition.routes');
@@ -86,10 +87,11 @@ app.use('/api/exercises', authMiddleware, exerciseRoutes);
 app.use('/api/planned-workouts', authMiddleware, plannedRoutes);
 app.use('/api/actual-workouts', authMiddleware, actualRoutes);
 app.use('/api/statistics', authMiddleware, statisticsRoutes);
-app.use('/api/gyms', authMiddleware, gymRoutes);
-app.use('/api/memberships', authMiddleware, membershipRoutes);
-app.use('/api/classes', authMiddleware, classRoutes);
-app.use('/api/bookings', authMiddleware, bookingRoutes);
+app.use('/api/gyms', gymRoutes); 
+app.use('/api/memberships', membershipRoutes); 
+app.use('/api/membership-plans', membershipPlanRoutes); 
+app.use('/api/classes', classRoutes);
+app.use('/api/bookings', bookingRoutes);
 app.use('/api/competitions', competitionRoutes);
 app.use('/api/food-items', foodItemRoutes);
 app.use('/api/diet', dietEntryRoutes);
