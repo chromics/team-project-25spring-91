@@ -1,10 +1,11 @@
 // src/controllers/gym.controller.js
-const prisma = require('../config/prisma'); // Keep for direct prisma use if any
-const { gymService } = require('../services/gym.service'); // Import the service
+const prisma = require('../config/prisma');
+const { gymService } = require('../services/gym.service');
 const { ApiError } = require('../utils/ApiError');
 const fs = require('fs').promises;
 const path = require('path');
 
+// ... (getAllGyms, getAllGymsAdmin, getMyGyms, getGymById, etc. remain the same) ...
 const getAllGyms = async (req, res) => {
   const { search, page = 1, limit = 10 } = req.query;
   const result = await gymService.getAllGyms({
@@ -26,7 +27,6 @@ const getAllGyms = async (req, res) => {
   });
 };
 
-// New controller for admins to get all gyms
 const getAllGymsAdmin = async (req, res) => {
   const gyms = await gymService.getAllGymsAdmin();
   res.status(200).json({
@@ -36,7 +36,6 @@ const getAllGymsAdmin = async (req, res) => {
   });
 };
 
-// New controller for gym owners to get their gyms
 const getMyGyms = async (req, res) => {
   const ownerId = req.user.id;
   const { search, page = 1, limit = 10 } = req.query;
@@ -63,7 +62,7 @@ const getMyGyms = async (req, res) => {
 
 const getGymById = async (req, res) => {
   const gymId = parseInt(req.params.id);
-  const gym = await gymService.getGymById(gymId); // Use service
+  const gym = await gymService.getGymById(gymId);
   res.status(200).json({
     status: 'success',
     data: gym,
@@ -72,7 +71,7 @@ const getGymById = async (req, res) => {
 
 const getGymClasses = async (req, res) => {
   const gymId = parseInt(req.params.id);
-  const classes = await gymService.getGymClasses(gymId); // Use service
+  const classes = await gymService.getGymClasses(gymId);
   res.status(200).json({
     status: 'success',
     results: classes.length,
@@ -82,7 +81,7 @@ const getGymClasses = async (req, res) => {
 
 const getGymMembershipPlans = async (req, res) => {
   const gymId = parseInt(req.params.id);
-  const plans = await gymService.getGymMembershipPlans(gymId); // Use service
+  const plans = await gymService.getGymMembershipPlans(gymId);
   res.status(200).json({
     status: 'success',
     results: plans.length,
@@ -92,21 +91,14 @@ const getGymMembershipPlans = async (req, res) => {
 
 const createGym = async (req, res) => {
   const userId = req.user.id;
-  // Assign ownerId if the user creating is a 'gym_owner' or 'admin'
-  // Admins can create gyms and assign them, or create unassigned ones.
-  // Gym owners create gyms for themselves.
   let ownerIdToSet = null;
   if (req.user.role === 'gym_owner') {
     ownerIdToSet = userId;
   } else if (req.user.role === 'admin' && req.body.ownerId) {
-    // Admin can optionally specify an ownerId
     ownerIdToSet = parseInt(req.body.ownerId);
   } else if (req.user.role === 'admin' && !req.body.ownerId) {
-    // Admin creates a gym, could be unassigned or assigned to self if desired
-    // For now, let's make it assign to self if no ownerId is provided by admin
-    ownerIdToSet = userId; // Or keep null if admin-created gyms can be unowned
+    ownerIdToSet = userId;
   }
-
 
   const gymData = {
     ...req.body,
@@ -114,12 +106,10 @@ const createGym = async (req, res) => {
     imageUrl: req.processedImage ? req.processedImage.url : null,
   };
 
-  // Ensure ownerId is not part of req.body if user is gym_owner to avoid conflict
   if (req.user.role === 'gym_owner') {
-    delete gymData.ownerId; // ownerIdToSet will handle this
+    delete gymData.ownerId;
     gymData.ownerId = userId;
   }
-
 
   const newGym = await prisma.gym.create({
     data: gymData,
@@ -134,7 +124,6 @@ const createGym = async (req, res) => {
 
 const updateGym = async (req, res) => {
   const gymId = parseInt(req.params.id);
-
   const gym = await prisma.gym.findUnique({
     where: { id: gymId },
   });
@@ -144,7 +133,6 @@ const updateGym = async (req, res) => {
   }
 
   const updateData = { ...req.body };
-
   if (req.processedImage) {
     if (gym.imageUrl) {
       try {
@@ -162,11 +150,9 @@ const updateGym = async (req, res) => {
     updateData.imageUrl = req.processedImage.url;
   }
 
-  // Prevent gym_owner from changing ownerId
   if (req.user.role === 'gym_owner' && updateData.ownerId) {
     delete updateData.ownerId;
   }
-
 
   const updatedGym = await prisma.gym.update({
     where: { id: gymId },
@@ -182,7 +168,6 @@ const updateGym = async (req, res) => {
 
 const deleteGym = async (req, res) => {
   const gymId = parseInt(req.params.id);
-
   const gym = await prisma.gym.findUnique({
     where: { id: gymId },
   });
@@ -211,16 +196,28 @@ const deleteGym = async (req, res) => {
   });
 };
 
+// New controller for getting total gym count
+const getTotalGymCount = async (req, res) => {
+  const count = await gymService.getTotalGymCount();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      totalGyms: count,
+    },
+  });
+};
+
 const gymController = {
   getAllGyms,
-  getAllGymsAdmin, // Export new controller
-  getMyGyms, // Export new controller
+  getAllGymsAdmin,
+  getMyGyms,
   getGymById,
   getGymClasses,
   getGymMembershipPlans,
   createGym,
   updateGym,
   deleteGym,
+  getTotalGymCount, // Export the new controller
 };
 
 module.exports = { gymController };

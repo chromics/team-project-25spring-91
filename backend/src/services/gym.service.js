@@ -2,7 +2,7 @@
 const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 
-// Common select clause for gym listings
+// Common select clause for gym listings (remains the same)
 const gymListSelect = {
   id: true,
   name: true,
@@ -11,7 +11,7 @@ const gymListSelect = {
   contactInfo: true,
   imageUrl: true,
   createdAt: true,
-  ownerId: true, // Good to include ownerId
+  ownerId: true,
   _count: {
     select: {
       classes: true,
@@ -21,6 +21,8 @@ const gymListSelect = {
 };
 
 const gymService = {
+  // ... (getAllGyms, getAllGymsAdmin, getMyGyms, getGymById, etc. remain the same) ...
+
   getAllGyms: async ({ search, page = 1, limit = 10 }) => {
     const skip = (page - 1) * limit;
     const filters = {};
@@ -53,7 +55,6 @@ const gymService = {
     };
   },
 
-  // New method for admins to get all gyms without pagination
   getAllGymsAdmin: async () => {
     const gyms = await prisma.gym.findMany({
       select: gymListSelect,
@@ -64,7 +65,6 @@ const gymService = {
     return gyms;
   },
 
-  // New method for gym owners to get their gyms (with pagination)
   getMyGyms: async ({ ownerId, search, page = 1, limit = 10 }) => {
     const skip = (page - 1) * limit;
     const filters = { ownerId };
@@ -101,7 +101,6 @@ const gymService = {
     const gym = await prisma.gym.findUnique({
       where: { id: gymId },
       select: {
-        // Include owner details if needed
         ...gymListSelect,
         owner: {
           select: {
@@ -110,15 +109,14 @@ const gymService = {
             email: true,
           },
         },
-        classes: { where: { isActive: true } }, // Example of including related active classes
-        membershipPlans: { where: { isActive: true } }, // Example of including related active plans
+        classes: { where: { isActive: true } },
+        membershipPlans: { where: { isActive: true } },
       },
     });
 
     if (!gym) {
       throw new ApiError(404, 'Gym not found');
     }
-
     return gym;
   },
 
@@ -127,11 +125,9 @@ const gymService = {
       where: { id: gymId },
       select: { id: true },
     });
-
     if (!gym) {
       throw new ApiError(404, 'Gym not found');
     }
-
     const classes = await prisma.gymClass.findMany({
       where: {
         gymId,
@@ -158,7 +154,6 @@ const gymService = {
         name: 'asc',
       },
     });
-
     return classes;
   },
 
@@ -167,11 +162,9 @@ const gymService = {
       where: { id: gymId },
       select: { id: true },
     });
-
     if (!gym) {
       throw new ApiError(404, 'Gym not found');
     }
-
     const plans = await prisma.membershipPlan.findMany({
       where: {
         gymId,
@@ -181,8 +174,13 @@ const gymService = {
         price: 'asc',
       },
     });
-
     return plans;
+  },
+
+  // New service method for getting total gym count
+  getTotalGymCount: async () => {
+    const count = await prisma.gym.count();
+    return count;
   },
 };
 
