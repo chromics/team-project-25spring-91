@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Gym } from '@/types/gym';
-import GymCard from '@/components/gym/gym-card';
+import GymOwnerCard from '@/components/gym/admin-gym-card';
 import ButterflyLoader from '@/components/butterfly-loader';
 import api from '@/lib/api';
 import axios from 'axios';
@@ -25,8 +25,8 @@ export default function MyGymsPage() {
   useEffect(() => {
     const fetchMyGyms = async () => {
       try {
-        // TODO: change this endpoint to get my gym 
-        const response = await api.get('/gyms');
+       
+        const response = await api.get('/gyms/owned/my-gyms');
 
         let gymData = response.data.data || response.data;
         
@@ -107,8 +107,8 @@ export default function MyGymsPage() {
           </p>
         </div>
         <Button 
-          onClick={() => router.push('/dashboard/create-gym')}
-          className="flex items-center gap-2"
+          onClick={() => router.push('/dashboard/gym-submission-form')}
+          className="flex items-center gap-2 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           Create Gym
@@ -129,7 +129,7 @@ export default function MyGymsPage() {
       ">
         {gyms.length > 0 ? (
           gyms.map((gym) => (
-            <GymCard key={gym.id} gym={gym} />
+            <GymOwnerCard key={gym.id} gym={gym} />
           ))
         ) : (
           <div className="col-span-full text-center py-10">

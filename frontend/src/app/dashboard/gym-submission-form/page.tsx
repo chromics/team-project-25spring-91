@@ -91,51 +91,29 @@ export default function CreateGymPage() {
     setIsSubmitting(true);
 
     try {
-      // Debug: Log user data to see the structure
-      console.log("User data:", user);
-      console.log("User ID:", user?.id);
 
-      // Create FormData object to send form-data
+
       const submitData = new FormData();
       
-      // Append text fields
       submitData.append("name", formData.name);
       submitData.append("address", formData.address);
       submitData.append("description", formData.description);
       submitData.append("contactInfo", formData.contactInfo);
       
-      // Append ownerId from authenticated user - try different possible field names
-      if (user?.id) {
-        submitData.append("ownerId", user.id.toString());
-        console.log("Appending ownerId:", user.id.toString());
-      } else if (user?.id) {
-        submitData.append("ownerId", user.id.toString());
-        console.log("Appending ownerId from userId:", user.id.toString());
-      } else {
-        console.error("No user ID found in user object:", user);
-        toast.error("User ID not found. Please try logging in again.");
-        setIsSubmitting(false);
-        return;
-      }
+
       
       // Append image file if selected
       if (imageFile) {
         submitData.append("image", imageFile);
       }
 
-      // Debug: Log FormData contents
-      console.log("FormData contents:");
-      for (let [key, value] of submitData.entries()) {
-        console.log(key, value);
-      }
-
+      
       const response = await api.post("/gyms", submitData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      console.log("Response:", response.data);
       toast.success("Gym created successfully!");
       router.push("/dashboard");
     } catch (error: any) {
@@ -159,12 +137,7 @@ export default function CreateGymPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Debug info - remove this in production */}
-            {process.env.NODE_ENV === "development" && (
-              <div className="p-2 bg-gray-100 rounded text-sm">
-                <strong>Debug:</strong> User ID: {user?.id || user?.id || "Not found"}
-              </div>
-            )}
+
 
             {/* Gym Name */}
             <div className="space-y-2">
