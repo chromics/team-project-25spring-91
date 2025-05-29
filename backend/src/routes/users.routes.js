@@ -3,51 +3,64 @@ const express = require('express');
 const { validate } = require('../middleware/validate');
 const { userController } = require('../controllers/users.controller');
 const { userSchemas } = require('../validators/users.validator');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth'); // Already here
 const { asyncHandler } = require('../utils/asyncHandler');
 const { roleCheck } = require('../middleware/roleCheck');
 const { uploadUserImage, processUserImage } = require('../middleware/upload');
+
 const router = express.Router();
 
-router.get(
-  '/profile',
-  asyncHandler(userController.getProfile)
-);
+// These routes are already protected by authMiddleware in src/index.js
+// app.use('/api/users', authMiddleware, userRoutes);
+// So, individual authMiddleware here is redundant unless a specific route under /api/users was public.
+
+router.get('/profile', asyncHandler(userController.getProfile));
 
 router.put(
   '/profile',
   uploadUserImage,
   processUserImage,
   validate(userSchemas.updateProfile),
-  asyncHandler(userController.updateProfile)
+  asyncHandler(userController.updateProfile),
 );
 
 router.put(
   '/profile/image',
   uploadUserImage,
   processUserImage,
-  asyncHandler(userController.updateProfileImage)
+  asyncHandler(userController.updateProfileImage),
 );
 
-router.get(
-  '/stats',
-  asyncHandler(userController.getWorkoutStats)
-);
+router.get('/stats', asyncHandler(userController.getWorkoutStats));
 
-// Admin-only routes
+// --- Admin-only routes ---
+// The authMiddleware is applied at the router level in index.js,
+// so roleCheck is sufficient here.
+
 router.get(
   '/admin/all-users',
-  authMiddleware,
   roleCheck(['admin']), // Only admins can list all users
-  asyncHandler(userController.getAllUsers)
+  asyncHandler(userController.getAllUsers),
 );
 
 router.put(
   '/admin/change-role/:id',
-  authMiddleware,
   roleCheck(['admin']), // Only admins can change roles
   validate(userSchemas.changeRole),
-  asyncHandler(userController.changeUserRole)
+  asyncHandler(userController.changeUserRole),
+);
+
+// New Admin Statistics Routes
+router.get(
+  '/admin/statistics/counts',
+  roleCheck(['admin']),
+  asyncHandler(userController.getUserCounts),
+);
+
+router.get(
+  '/admin/statistics/monthly-signups',
+  roleCheck(['admin']),
+  asyncHandler(userController.getNewUserSignups),
 );
 
 module.exports = router;
