@@ -460,27 +460,7 @@ const MealLogger: React.FC = () => {
     try {
       setLoading(true);
 
-      // Delete old diet entries
-      console.log('Step 1: Deleting old diet entries...');
-      const deletePromises = oldMeal.foodItems?.map(async (foodItem, index) => {
-        console.log(`Deleting old food item ${index + 1}:`, foodItem);
-        
-        if (foodItem.dietEntryId) {
-          console.log(`Deleting old diet entry ID: ${foodItem.dietEntryId}`);
-          const response = await api.delete(`/diet/${foodItem.dietEntryId}`);
-          console.log(`Successfully deleted old diet entry ${foodItem.dietEntryId}:`, response.data);
-          return response;
-        } else {
-          console.warn(`Old food item ${index + 1} has no dietEntryId:`, foodItem);
-          return null;
-        }
-      }).filter(Boolean) || [];
-
-      const deleteResults = await Promise.all(deletePromises);
-      console.log('All old diet entries deleted:', deleteResults.map(r => r?.data));
-
-      // Create new diet entries
-      console.log('Step 2: Creating new diet entries...');
+      console.log('Step 1: Creating new diet entries...');
       const createPromises = updatedMeal.foodItems?.map(async (foodItem, index) => {
         console.log(`Creating new food item ${index + 1}:`, foodItem);
         
@@ -516,7 +496,25 @@ const MealLogger: React.FC = () => {
       }) || [];
 
       const createResults = await Promise.all(createPromises);
-      console.log('All new diet entries created:', createResults.map(r => r.data));
+      console.log('All new diet entries created successfully:', createResults.map(r => r.data));
+
+      console.log('Step 2: Deleting old diet entries...');
+      const deletePromises = oldMeal.foodItems?.map(async (foodItem, index) => {
+        console.log(`Deleting old food item ${index + 1}:`, foodItem);
+        
+        if (foodItem.dietEntryId) {
+          console.log(`Deleting old diet entry ID: ${foodItem.dietEntryId}`);
+          const response = await api.delete(`/diet/${foodItem.dietEntryId}`);
+          console.log(`Successfully deleted old diet entry ${foodItem.dietEntryId}:`, response.data);
+          return response;
+        } else {
+          console.warn(`Old food item ${index + 1} has no dietEntryId:`, foodItem);
+          return null;
+        }
+      }).filter(Boolean) || [];
+
+      const deleteResults = await Promise.all(deletePromises);
+      console.log('All old diet entries deleted:', deleteResults.map(r => r?.data));
 
       await fetchDietEntries(); 
       setSelectedMeal(updatedMeal);
@@ -527,6 +525,9 @@ const MealLogger: React.FC = () => {
       toast.success('Meal updated successfully');
     } catch (error) {
       logError('handleUpdateMeal', error, { oldMeal, updatedMeal });
+      
+      console.warn('Update failed. If creation succeeded but deletion failed, you may have duplicate entries.');
+      
       let errorMessage = 'Failed to update meal';
       if (axios.isAxiosError(error) && error.response?.data) {
         errorMessage = error.response.data.message || errorMessage;
