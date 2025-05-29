@@ -34,7 +34,7 @@ export default function GymOwnerDashboard() {
           gymData = gymData.filter((gym: any) => gym.ownerId === user.id);
         }
 
-        const formattedGyms = gymData.map((gym: any) => ({
+        const formattedGyms = gymData.map((gym: Gym) => ({
           id: gym.id,
           name: gym.name,
           address: gym.address,
@@ -43,7 +43,6 @@ export default function GymOwnerDashboard() {
           imageUrl: gym.imageUrl,
           ownerId: gym.ownerId,
           createdAt: gym.createdAt,
-          _count: gym._count,
         }));
 
         setGyms(formattedGyms);

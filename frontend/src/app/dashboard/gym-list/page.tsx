@@ -17,18 +17,19 @@ export default function GymsPage() {
   useEffect(() => {
     const fetchGyms = async () => {
       try {
-        const response = await api.get('/gyms');
+        const response = await api.get('/gyms/all/user-view');
 
 
-        const formattedGyms = response.data.data.map((gym: any) => ({
+        const formattedGyms = response.data.data.map((gym: Gym) => ({
           id: gym.id,
           name: gym.name,
           description: gym.description,
           contactInfo: gym.contactInfo,
-          imageURL: gym.imageUrl,
-          _count: gym._count,
+          imageUrl: gym.imageUrl,
+          // _count: gym._count,
         }));
         setGyms(formattedGyms);
+
 
       } catch (error: unknown) {
         console.error("Error details:", error);
@@ -94,9 +95,17 @@ export default function GymsPage() {
       animate-fade-in
     ">
       {gyms.length > 0 ? (
-        gyms.map((gym) => (
-          <GymCard key={gym.id} gym={gym} />
-        ))
+        gyms.map((gym: Gym) => {
+          // --- Debugging Logs ---
+          console.log("PARENT: Iterating over gym:", gym);
+          console.log(
+            "PARENT: imageUrl for this gym before passing to GymCard:",
+            gym.imageUrl,
+          );
+          // --- End Debugging Logs ---
+
+          return <GymCard key={gym.id} gym={gym} />;
+        })
       ) : (
         <div className="col-span-full text-center py-10">
           <h3 className="text-lg font-medium">No gyms found</h3>
@@ -105,6 +114,7 @@ export default function GymsPage() {
           </p>
         </div>
       )}
+
     </div>
   );
 }
