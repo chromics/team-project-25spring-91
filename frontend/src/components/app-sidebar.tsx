@@ -277,14 +277,6 @@ const getNavigationData = (role: UserRole) => {
                 title: "Create Gym",
                 url: "/dashboard/gym-submission-form",
               },
-              {
-                title: "My Gyms",
-                url: "/dashboard/gym-owner/my-gyms",
-              },
-              {
-                title: "All Gyms",
-                url: "/dashboard/gym-list",
-              },
             ],
           },
         ],
