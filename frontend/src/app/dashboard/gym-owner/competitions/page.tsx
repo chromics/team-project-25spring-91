@@ -16,10 +16,6 @@ import {
 import Image from 'next/image'
 import { toast } from 'sonner'
 import api from '@/lib/api'
-import type { Gym } from '@/types/gym'
-import { useRoleProtection } from '@/hooks/use-role-protection'
-import { UserRole } from '@/components/auth/sign-up-form'
-import ButterflyLoader from '@/components/butterfly-loader'
 
 interface Competition {
     id: number
@@ -30,7 +26,7 @@ interface Competition {
     maxParticipants: number
     imageUrl?: string
     gymId: number
-    tasks: Task[]
+    tasks?: Task[]
 }
 
 interface Task {
@@ -45,54 +41,97 @@ interface Task {
     pointsValue: number
 }
 
-interface CompetitionsPageProps {
-    gym: Gym
+interface Gym {
+    id: number
+    name: string
+    address: string
+    description: string
+    imageUrl?: string
+    ownerId: number
 }
 
-const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
+const CompetitionsPage = () => {
     const [competitions, setCompetitions] = useState<Competition[]>([])
+    const [gym, setGym] = useState<Gym | null>(null)
     const [loading, setLoading] = useState(true)
-    const { isAuthorized, isLoading, user } = useRoleProtection({
-        allowedRoles: [UserRole.GYM_OWNER]
-    });
 
     useEffect(() => {
-        fetchCompetitions()
-    }, [gym.id])
+        fetchGymAndCompetitions()
+    }, [])
 
-    const fetchCompetitions = async () => {
+    const fetchGymAndCompetitions = async () => {
         try {
             setLoading(true)
-            const response = await api.get(`/gyms/${gym.id}/competitions`)
-            setCompetitions(response.data.data || response.data)
-        } catch (error) {
-            console.error('Error fetching competitions:', error)
-            toast.error('Failed to load competitions')
-            setCompetitions([
-                {
-                    id: 1,
-                    name: 'Winter Strength Challenge',
-                    description: 'Build strength during the winter months.',
-                    startDate: '2025-12-01T00:00:00Z',
-                    endDate: '2025-12-31T23:59:59Z',
-                    maxParticipants: 50,
-                    imageUrl: '/images/winter-challenge.jpg',
-                    gymId: gym.id,
-                    tasks: [
-                        {
-                            id: 1,
-                            name: 'Deadlift Challenge',
-                            description: 'Lift a total of 5000kg in deadlifts',
-                            exerciseName: 'Deadlift',
-                            exerciseCategory: 'strength',
-                            metric: 'Weight',
-                            targetValue: 5000,
-                            unit: 'kg',
-                            pointsValue: 200
-                        }
-                    ]
+
+            // Get user's gym using your existing endpoint
+            const gymResponse = await api.get('/gyms/owned/my-gyms')
+            console.log('Gym response:', gymResponse.data) // Debug log
+
+            let currentGym = null
+
+            // Handle different possible response structures
+            if (gymResponse.data) {
+                // If it's an array
+                if (Array.isArray(gymResponse.data) && gymResponse.data.length > 0) {
+                    currentGym = gymResponse.data[0]
                 }
-            ])
+                // If it's wrapped in a data property
+                else if (gymResponse.data.data && Array.isArray(gymResponse.data.data) && gymResponse.data.data.length > 0) {
+                    currentGym = gymResponse.data.data[0]
+                }
+                // If it's a single gym object
+                else if (gymResponse.data.id) {
+                    currentGym = gymResponse.data
+                }
+                // If it's wrapped and is a single object
+                else if (gymResponse.data.data && gymResponse.data.data.id) {
+                    currentGym = gymResponse.data.data
+                }
+            }
+
+            console.log('Current gym:', currentGym) // Debug log
+
+            if (currentGym) {
+                setGym(currentGym)
+
+                // TODO: Replace with your actual competitions endpoint
+                // const competitionsResponse = await api.get(`/gyms/${currentGym.id}/competitions`)
+                // setCompetitions(competitionsResponse.data)
+
+                // Mock data for now
+                setCompetitions([
+                    {
+                        id: 1,
+                        name: 'Winter Strength Challenge',
+                        description: 'Build strength during the winter months.',
+                        startDate: '2025-12-01T00:00:00Z',
+                        endDate: '2025-12-31T23:59:59Z',
+                        maxParticipants: 50,
+                        // imageUrl: '/uploads/competitions/winter-challenge.jpg',
+                        gymId: currentGym.id,
+                        tasks: [
+                            {
+                                id: 1,
+                                name: 'Deadlift Challenge',
+                                description: 'Lift a total of 5000kg in deadlifts',
+                                exerciseName: 'Deadlift',
+                                exerciseCategory: 'strength',
+                                metric: 'Weight',
+                                targetValue: 5000,
+                                unit: 'kg',
+                                pointsValue: 200
+                            }
+                        ]
+                    }
+                ])
+            } else {
+                console.error('No gym found in response:', gymResponse.data)
+                toast.error('No gym found for this owner')
+            }
+
+        } catch (error) {
+            console.error('Error fetching data:', error)
+            toast.error('Failed to load data')
         } finally {
             setLoading(false)
         }
@@ -100,9 +139,9 @@ const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
 
     const handleDeleteCompetition = async (competitionId: number) => {
         try {
-            console.log('Delete competition:', competitionId)
+            await api.delete(`/competitions/${competitionId}`)
             toast.success('Competition deleted successfully')
-            fetchCompetitions()
+            fetchGymAndCompetitions()
         } catch (error) {
             console.error('Error deleting competition:', error)
             toast.error('Failed to delete competition')
@@ -110,15 +149,16 @@ const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
     }
 
     const handleUpdateCompetition = (competitionId: number) => {
+        // TODO: Open update competition dialog
         console.log('Update competition:', competitionId)
         toast.info('Update competition feature coming soon')
     }
 
     const handleDeleteTask = async (competitionId: number, taskId: number) => {
         try {
-            console.log('Delete task:', taskId, 'from competition:', competitionId)
+            await api.delete(`/competitions/tasks/${taskId}`)
             toast.success('Task deleted successfully')
-            fetchCompetitions()
+            fetchGymAndCompetitions()
         } catch (error) {
             console.error('Error deleting task:', error)
             toast.error('Failed to delete task')
@@ -126,6 +166,7 @@ const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
     }
 
     const handleUpdateTask = (competitionId: number, taskId: number) => {
+        // TODO: Open update task dialog
         console.log('Update task:', taskId, 'from competition:', competitionId)
         toast.info('Update task feature coming soon')
     }
@@ -163,28 +204,38 @@ const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
         )
     }
 
+    if (!gym) {
+        return (
+            <div className="text-center py-12">
+                <Trophy className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No gym found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                    Please create a gym first to manage competitions.
+                </p>
+            </div>
+        )
+    }
+
     if (competitions.length === 0) {
         return (
             <div className="text-center py-12">
                 <Trophy className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No competitions</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                    Get started by creating your first competition.
+                    Get started by creating your first competition for {gym.name}.
                 </p>
             </div>
         )
     }
 
-    if (isLoading || !isAuthorized) {
-        return (
-            <div className="flex justify-center items-center min-h-[200px]">
-                <ButterflyLoader />
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
+            {/* Page Header */}
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold">Competitions</h1>
+                <p className="text-gray-600">Manage competitions for {gym.name}</p>
+            </div>
+
             {competitions.map((competition) => {
                 const statusInfo = getCompetitionStatus(competition.startDate, competition.endDate)
 
@@ -255,58 +306,60 @@ const CompetitionsPage = ({ gym }: CompetitionsPageProps) => {
                                     </div>
 
                                     {/* Tasks Section */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Target className="h-4 w-4" />
-                                            <h4 className="font-medium">Tasks ({competition.tasks.length})</h4>
-                                        </div>
+                                    {competition.tasks && competition.tasks.length > 0 && (
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Target className="h-4 w-4" />
+                                                <h4 className="font-medium">Tasks ({competition.tasks.length})</h4>
+                                            </div>
 
-                                        <div className="space-y-2">
-                                            {competition.tasks.map((task) => (
-                                                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="font-medium text-sm">{task.name}</span>
-                                                            <Badge variant="secondary" className="text-xs">
-                                                                {task.exerciseName}
-                                                            </Badge>
-                                                            <Badge variant="outline" className="text-xs">
-                                                                {task.metric}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="flex items-center gap-4 text-xs text-gray-600">
-                                                            <span>Target: {task.targetValue} {task.unit}</span>
-                                                            <div className="flex items-center gap-1">
-                                                                <Award className="h-3 w-3" />
-                                                                <span>{task.pointsValue} points</span>
+                                            <div className="space-y-2">
+                                                {competition.tasks.map((task) => (
+                                                    <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="font-medium text-sm">{task.name}</span>
+                                                                <Badge variant="secondary" className="text-xs">
+                                                                    {task.exerciseName}
+                                                                </Badge>
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {task.metric}
+                                                                </Badge>
                                                             </div>
+                                                            <div className="flex items-center gap-4 text-xs text-gray-600">
+                                                                <span>Target: {task.targetValue} {task.unit}</span>
+                                                                <div className="flex items-center gap-1">
+                                                                    <Award className="h-3 w-3" />
+                                                                    <span>{task.pointsValue} points</span>
+                                                                </div>
+                                                            </div>
+                                                            {task.description && (
+                                                                <p className="text-xs text-gray-500 mt-1">{task.description}</p>
+                                                            )}
                                                         </div>
-                                                        {task.description && (
-                                                            <p className="text-xs text-gray-500 mt-1">{task.description}</p>
-                                                        )}
-                                                    </div>
 
-                                                    {/* Task Actions */}
-                                                    <div className="flex gap-1 ml-4">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleUpdateTask(competition.id, task.id)}
-                                                        >
-                                                            <Edit className="h-3 w-3" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleDeleteTask(competition.id, task.id)}
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </Button>
+                                                        {/* Task Actions */}
+                                                        <div className="flex gap-1 ml-4">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleUpdateTask(competition.id, task.id)}
+                                                            >
+                                                                <Edit className="h-3 w-3" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteTask(competition.id, task.id)}
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
