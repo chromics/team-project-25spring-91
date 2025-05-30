@@ -30,6 +30,7 @@ model User {
   ownedGyms        Gym[]            @relation("GymOwner") // New relation for gym owners
   competitionHistory CompetitionUser[]
   dietEntries    DietEntry[]
+  aiInteractions     AiInteraction[]
 
   @@map("users")
 }
@@ -336,4 +337,18 @@ model DietEntry {
   foodItem       FoodItem  @relation(fields: [foodId], references: [id], onDelete: Cascade)
 
   @@map("diet_entries")
+}
+
+model AiInteraction {
+  id              Int      @id @default(autoincrement()) @map("interaction_id")
+  userId          Int      @map("user_id")
+  prompt          String   @db.Text // User's input to the AI
+  response        String   @db.Text // AI's generated response
+  interactionType String?  @map("interaction_type") // e.g., "WORKOUT_PLAN", "DIET_ADVICE", "GENERAL_QA"
+  // contextualData  Json?    @map("contextual_data") // Optional: For storing structured context if needed (Let's keep it commented out for now unless you explicitly need it for the first version)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_interactions")
 }

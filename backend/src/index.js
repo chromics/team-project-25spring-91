@@ -31,6 +31,9 @@ const competitionRoutes = require('./routes/competition.routes');
 const foodItemRoutes = require('./routes/foodItem.routes');
 const dietEntryRoutes = require('./routes/dietEntry.routes');
 
+//ai route
+const aiRoutes = require('./routes/ai.routes');
+
 //Upload route
 const uploadRoutes = require('./routes/uploads.routes');
 
@@ -95,6 +98,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/competitions', competitionRoutes);
 app.use('/api/food-items', foodItemRoutes);
 app.use('/api/diet', dietEntryRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/uploads', uploadRoutes);
 
 
