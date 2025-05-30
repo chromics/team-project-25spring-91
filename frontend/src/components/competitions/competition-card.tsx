@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, MapPin, Users, Trophy, Target } from "lucide-react";
+import { Calendar, MapPin, Trophy, Target } from "lucide-react";
 import { Competition, UserCompetition } from "@/types/competition";
 
 interface CompetitionCardProps {
@@ -44,7 +44,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
         />
         <div className="absolute top-4 right-4">
           {type === "completed" && (
-            <Badge variant="secondary" className="bg-completed">
+            <Badge variant="default" className="bg-completed text-completed-foreground">
               Completed
             </Badge>
           )}
@@ -69,17 +69,9 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span>{comp.gym.name}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            <span>
-              {comp._count?.participants || 0}/{comp.maxParticipants}
-            </span>
-          </div>
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" />
+          <span>{comp.gym.name}</span>
         </div>
 
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
