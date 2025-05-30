@@ -29,8 +29,28 @@ router.get(
   asyncHandler(competitionController.getLeaderboard)
 );
 
+router.get(
+  '/:competitionId/tasks-list', // Distinct path
+  validate(competitionSchemas.getCompetitionTasks),
+  asyncHandler(competitionController.getTasksByCompetitionId),
+);
+
 // Protected routes - require authentication
 router.use(authMiddleware);
+
+// New User Route: Discoverable competitions from subscribed gyms (not yet joined)
+router.get(
+  '/user/discover-subscribed-gym-competitions',
+  validate(competitionSchemas.listUserCompetitionView),
+  asyncHandler(competitionController.getDiscoverableCompetitionsForSubscribedGyms),
+);
+
+// New User Route: Joined competitions from subscribed gyms
+router.get(
+  '/user/joined-subscribed-gym-competitions',
+  validate(competitionSchemas.listUserCompetitionView),
+  asyncHandler(competitionController.getJoinedCompetitionsForSubscribedGyms),
+);
 
 // User actions for competitions
 router.post(
