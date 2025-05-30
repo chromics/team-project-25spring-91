@@ -1,6 +1,6 @@
 'use client';
 
-import { CompetitionsPage } from "@/components/competitions/CompetitionsPage";
+import { CompetitionsPage } from "@/components/competitions/competitions-page";
 import ButterflyLoader from '@/components/butterfly-loader';
 import { useRoleProtection } from '@/hooks/use-role-protection'
 import { UserRole } from '@/components/auth/sign-up-form';
@@ -10,8 +10,6 @@ export default function CompetitionsPageRoute() {
       allowedRoles: [UserRole.REGULAR_USER]
     });
     
-    return <CompetitionsPage />;
-  
     if (isLoading) {
       return (
         <div className="flex justify-center items-center min-h-[200px]">
@@ -27,4 +25,6 @@ export default function CompetitionsPageRoute() {
         </div>
       );
     }
+
+    return <CompetitionsPage />;
 }
