@@ -1,3 +1,4 @@
+// components/competitions/competition-details.tsx
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -18,6 +19,9 @@ import {
   Users,
   Medal,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
 } from "lucide-react";
 import api from "@/lib/api";
 import {
@@ -26,7 +30,7 @@ import {
   CompetitionTask,
   LeaderboardEntry,
 } from "@/types/competition";
-import { TaskProgressDialog } from "./TaskProgressDialog";
+import { TaskProgressDialog } from "./task-progress-dialog";
 
 interface CompetitionDetailsProps {
   competition: Competition | UserCompetition;
@@ -43,17 +47,39 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   onOpenChange,
   onJoin,
 }) => {
-  const [tasks, setTasks] = useState<CompetitionTask[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [allTasks, setAllTasks] = useState<CompetitionTask[]>([]);
+  const [allLeaderboard, setAllLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState<CompetitionTask | null>(
     null
   );
   const [progressDialogOpen, setProgressDialogOpen] = useState(false);
+  const [competitionData, setCompetitionData] = useState<Competition | null>(
+    null
+  );
+
+  // Pagination states
+  const [tasksPage, setTasksPage] = useState(1);
+  const [leaderboardPage, setLeaderboardPage] = useState(1);
+  const itemsPerPage = 5;
 
   const isUserCompetition = "totalPoints" in competition;
   const comp = isUserCompetition ? competition.competition : competition;
   const userProgress = isUserCompetition ? competition : null;
+
+  // Calculate pagination for tasks
+  const totalTasksPages = Math.ceil(allTasks.length / itemsPerPage);
+  const paginatedTasks = allTasks.slice(
+    (tasksPage - 1) * itemsPerPage,
+    tasksPage * itemsPerPage
+  );
+
+  // Calculate pagination for leaderboard
+  const totalLeaderboardPages = Math.ceil(allLeaderboard.length / itemsPerPage);
+  const paginatedLeaderboard = allLeaderboard.slice(
+    (leaderboardPage - 1) * itemsPerPage,
+    leaderboardPage * itemsPerPage
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -66,24 +92,28 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   useEffect(() => {
     if (open) {
       fetchCompetitionData();
+      // Reset pagination when opening
+      setTasksPage(1);
+      setLeaderboardPage(1);
     }
   }, [open, comp.id]);
 
   const fetchCompetitionData = async () => {
     setLoading(true);
     try {
-      // Fetch competition details with tasks
+      // Fetch competition details by ID to get participant count and tasks
       const competitionResponse = await api.get(`/competitions/${comp.id}`);
       const competitionData = competitionResponse.data.data;
+      setCompetitionData(competitionData);
       
-      // Set tasks from competition details
-      setTasks(competitionData.competitionTasks || []);
+      // Set all tasks
+      setAllTasks(competitionData.competitionTasks || []);
 
       // Fetch leaderboard
       const leaderboardResponse = await api.get(
         `/competitions/${comp.id}/leaderboard`
       );
-      setLeaderboard(leaderboardResponse.data.data.leaderboard || []);
+      setAllLeaderboard(leaderboardResponse.data.data.leaderboard || []);
     } catch (error) {
       console.error("Error fetching competition data:", error);
     } finally {
@@ -99,6 +129,52 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   const handleProgressUpdated = () => {
     fetchCompetitionData();
     setProgressDialogOpen(false);
+  };
+
+  const getCurrentProgress = (task: CompetitionTask): number => {
+    if (!task.taskProgress || task.taskProgress.length === 0) return 0;
+    const progress = task.taskProgress[0];
+    return parseFloat(progress.currentValue) || 0;
+  };
+
+  const getProgressPercentage = (task: CompetitionTask): number => {
+    const current = getCurrentProgress(task);
+    const target = parseFloat(task.targetValue);
+    return target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  };
+
+  const handleTasksPageChange = (newPage: number) => {
+    setTasksPage(Math.max(1, Math.min(totalTasksPages, newPage)));
+  };
+
+  const handleLeaderboardPageChange = (newPage: number) => {
+    setLeaderboardPage(Math.max(1, Math.min(totalLeaderboardPages, newPage)));
+  };
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return <Crown className="h-4 w-4 text-white" />;
+      case 2:
+        return <Medal className="h-4 w-4 text-white" />;
+      case 3:
+        return <Medal className="h-4 w-4 text-white" />;
+      default:
+        return <span className="text-sm font-semibold">#{rank}</span>;
+    }
+  };
+
+  const getRankBadgeClass = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "bg-gold-badge text-white";
+      case 2:
+        return "bg-silver-badge text-white";
+      case 3:
+        return "bg-bronze-badge text-white";
+      default:
+        return "bg-primary text-primary-foreground";
+    }
   };
 
   return (
@@ -119,7 +195,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
               />
               <div className="absolute top-4 right-4">
                 {type === "completed" && (
-                  <Badge variant="secondary" className="bg-completed">
+                  <Badge variant="default" className="bg-completed text-completed-foreground">
                     Completed
                   </Badge>
                 )}
@@ -151,7 +227,8 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {comp._count?.participants || 0}/{comp.maxParticipants}{" "}
+                        {competitionData?._count?.participants || 
+                         comp._count?.participants || 0}/{comp.maxParticipants}{" "}
                         participants
                       </span>
                     </div>
@@ -174,7 +251,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Medal className="h-4 w-4 text-muted-foreground" />
+                          {getRankIcon(userProgress.rank)}
                           <span className="text-sm">Current Rank</span>
                         </div>
                         <span className="font-semibold">
@@ -205,8 +282,12 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
             {/* Tabs for Tasks and Leaderboard */}
             <Tabs defaultValue="tasks" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                <TabsTrigger value="tasks">
+                  Tasks ({allTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="leaderboard">
+                  Leaderboard ({allLeaderboard.length})
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="tasks" className="space-y-4">
@@ -219,53 +300,116 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
 
                 {loading ? (
                   <div className="text-center py-8">Loading tasks...</div>
-                ) : tasks.length === 0 ? (
+                ) : allTasks.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
                       No tasks available for this competition.
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-4">
-                    {tasks.map((task) => (
-                      <Card key={task.id}>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">
-                              {task.name}
-                            </CardTitle>
-                            <Badge variant="outline">
-                              {task.pointsValue} points
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {task.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm">
-                              <span className="text-muted-foreground">
-                                Target:{" "}
-                              </span>
-                              <span className="font-medium">
-                                {task.targetValue} {task.unit}
-                              </span>
-                            </div>
-                            {type === "ongoing" && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleUpdateProgress(task)}
-                              >
-                                <TrendingUp className="h-4 w-4 mr-1" />
-                                Update Progress
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid gap-4">
+                      {paginatedTasks.map((task) => {
+                        const currentProgress = getCurrentProgress(task);
+                        const progressPercentage = getProgressPercentage(task);
+                        const target = parseFloat(task.targetValue);
+
+                        return (
+                          <Card key={task.id}>
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-base">
+                                  {task.name}
+                                </CardTitle>
+                                <Badge variant="outline">
+                                  {task.pointsValue} points
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {task.description}
+                              </p>
+                              
+                              {/* Progress bar for ongoing/completed competitions */}
+                              {(type === "ongoing" || type === "completed") && (
+                                <div className="space-y-2 mb-3">
+                                  <div className="flex justify-between text-sm">
+                                    <span>Progress</span>
+                                    <span>
+                                      {currentProgress} / {target} {task.unit} ({progressPercentage.toFixed(1)}%)
+                                    </span>
+                                  </div>
+                                  <Progress value={progressPercentage} />
+                                  {progressPercentage >= 100 && (
+                                    <div className="flex items-center gap-1 text-sm text-green-600">
+                                      <Trophy className="h-4 w-4" />
+                                      <span>Task Completed! 🎉</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm">
+                                  <span className="text-muted-foreground">
+                                    Target:{" "}
+                                  </span>
+                                  <span className="font-medium">
+                                    {task.targetValue} {task.unit}
+                                  </span>
+                                </div>
+                                {type === "ongoing" && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleUpdateProgress(task)}
+                                  >
+                                    <TrendingUp className="h-4 w-4 mr-1" />
+                                    Update Progress
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    {/* Tasks Pagination */}
+                    {totalTasksPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTasksPageChange(tasksPage - 1)}
+                          disabled={tasksPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: totalTasksPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={page === tasksPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleTasksPageChange(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTasksPageChange(tasksPage + 1)}
+                          disabled={tasksPage === totalTasksPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
 
@@ -273,44 +417,87 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                 <h3 className="text-lg font-semibold">Leaderboard</h3>
                 {loading ? (
                   <div className="text-center py-8">Loading leaderboard...</div>
-                ) : leaderboard.length === 0 ? (
+                ) : allLeaderboard.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
                       No participants yet.
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {leaderboard.map((entry, index) => (
-                      <Card key={entry.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-                                {entry.rank}
+                  <>
+                    <div className="space-y-2">
+                      {paginatedLeaderboard.map((entry, index) => {
+                        const globalIndex = (leaderboardPage - 1) * itemsPerPage + index;
+                        const isCurrentUser = userProgress && entry.userId === userProgress.userId;
+                        
+                        return (
+                          <Card key={entry.id} className={isCurrentUser ? "ring-2 ring-primary" : ""}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${getRankBadgeClass(entry.rank)}`}>
+                                    {entry.rank <= 3 ? getRankIcon(entry.rank) : entry.rank}
+                                  </div>
+                                  <div>
+                                    <p className={`font-medium ${isCurrentUser ? "text-primary" : ""}`}>
+                                      {entry.user.displayName}
+                                      {isCurrentUser && " (You)"}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {entry.completionPct}% complete
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold">
+                                    {entry.totalPoints} pts
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {entry._count.taskProgress} tasks
+                                  </p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium">
-                                  {entry.user.displayName}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {entry.completionPct}% complete
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold">
-                                {entry.totalPoints} pts
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {entry._count.taskProgress} tasks
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    {/* Leaderboard Pagination */}
+                    {totalLeaderboardPages > 1 && (
+                      <div className="flex items-center justify-center gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleLeaderboardPageChange(leaderboardPage - 1)}
+                          disabled={leaderboardPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: totalLeaderboardPages }, (_, i) => i + 1).map((page) => (
+                            <Button
+                              key={page}
+                              variant={page === leaderboardPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleLeaderboardPageChange(page)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleLeaderboardPageChange(leaderboardPage + 1)}
+                          disabled={leaderboardPage === totalLeaderboardPages}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
             </Tabs>
