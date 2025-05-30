@@ -129,6 +129,24 @@ const competitionSchemas = {
       limit: z.string().optional().transform(val => val ? parseInt(val) : 10),
       page: z.string().optional().transform(val => val ? parseInt(val) : 1)
     })
+  }),
+
+  getCompetitionTasks: z.object({
+    params: z.object({
+      competitionId: z.string().refine((val) => !isNaN(parseInt(val)), {
+        message: 'Competition ID must be a number',
+      }),
+    }),
+  }),
+
+  listSubscribedGymCompetitions: z.object({
+    query: z.object({
+      isActive: z.string().optional().transform(val => val === 'true' ? true : (val === 'false' ? false : undefined)),
+      search: z.string().optional(),
+      page: z.string().optional().transform(val => (val ? parseInt(val) : 1)),
+      limit: z.string().optional().transform(val => (val ? parseInt(val) : 10)),
+      includeEnded: z.string().optional().transform(val => val === 'true'),
+    }),
   })
 };
 

@@ -29,8 +29,20 @@ router.get(
   asyncHandler(competitionController.getLeaderboard)
 );
 
+router.get(
+  '/:competitionId/tasks-list', // Distinct path
+  validate(competitionSchemas.getCompetitionTasks),
+  asyncHandler(competitionController.getTasksByCompetitionId),
+);
+
 // Protected routes - require authentication
 router.use(authMiddleware);
+
+router.get(
+  '/user/subscribed-gym-competitions',
+  validate(competitionSchemas.listSubscribedGymCompetitions),
+  asyncHandler(competitionController.getCompetitionsForSubscribedGyms),
+);
 
 // User actions for competitions
 router.post(
