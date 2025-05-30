@@ -1,43 +1,81 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { CohereClient } from 'cohere-ai';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Helper function to verify JWT token
+async function verifyToken(token: string) {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-jwt-secret");
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const cohere = new CohereClient({
-      token: process.env.COHERE_API_KEY || '',
-      timeout: 4000
-    });
+    // Get token from cookies
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("token")?.value;
 
-    const { messages } = await request.json();
+    if (!token) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
-    // include last 3 message + current user message in request
-    const recentMessages = messages.slice(-4);
-    const lastMessage = recentMessages[recentMessages.length - 1].content.toLowerCase().trim();
+    // Verify token
+    const user = await verifyToken(token);
+    if (!user) {
+      return NextResponse.json(
+        { error: "Invalid token" },
+        { status: 401 }
+      );
+    }
 
-    const chatHistory = recentMessages
-      .slice(0, -1)
-      .map((msg: { role: string; content: string }) => ({
-        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
-        message: msg.content
-      }));
+    const { prompt, conversationId, interactionType } = await request.json();
 
-    const response = await cohere.chat({
-      message: lastMessage,
-      model: 'command',
+    if (!prompt) {
+      return NextResponse.json(
+        { error: "Prompt is required" },
+        { status: 400 }
+      );
+    }
+
+    // Get OpenAI response
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant. Be concise and friendly in your responses.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
       max_tokens: 500,
-      temperature: 0.6,
-      chat_history: chatHistory,
-      preamble: `You're a knowledgeable but approachable fitness coach. Always stay on topic. When responding to a greeting/goodbye/thankyou, be VERY CONCISE (under 2 sentences). Be friendly and clear.`,
-      stop_sequences: ['###END###']
+      temperature: 0.7,
     });
+
+    const aiResponse = completion.choices[0]?.message?.content || "";
 
     return NextResponse.json({
-      response: response.text.replace(/^(great!|awesome!)\s*/i, '')
+      response: aiResponse,
+      conversationId: conversationId || Date.now().toString(),
     });
-
   } catch (error) {
+    console.error("OpenAI API error:", error);
     return NextResponse.json(
-      { response: "Sorry, I'm currently having trouble processing your request." },
+      { error: "Failed to get AI response" },
       { status: 500 }
     );
   }
