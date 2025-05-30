@@ -17,7 +17,6 @@ interface PreviewDialogProps {
   data: any
   onConfirm: () => void
   isSubmitting: boolean
-  confirmText?: string
 }
 
 const PreviewDialog = ({
@@ -27,7 +26,6 @@ const PreviewDialog = ({
   data,
   onConfirm,
   isSubmitting,
-  confirmText = 'Confirm & Create', // Default value
 }: PreviewDialogProps) => {
   const renderPreviewContent = () => {
     if (title.includes('Subscription')) {
@@ -118,15 +116,7 @@ const PreviewDialog = ({
                 <div className="space-y-1">
                   {data.tasks.map((task: any, index: number) => (
                     <div key={index} className="text-sm border-l-2 border-gray-200 pl-2">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{task.name}</p>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
-                          {task.exerciseName}
-                        </span>
-                        <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded">
-                          {task.metric}
-                        </span>
-                      </div>
+                      <p className="font-medium">{task.name}</p>
                       <p>Target: {task.targetValue} {task.unit} • Points: {task.pointsValue}</p>
                       {task.description && <p className="text-gray-600">{task.description}</p>}
                     </div>
@@ -139,8 +129,6 @@ const PreviewDialog = ({
       )
     }
 
-
-
     return null
   }
 
@@ -150,7 +138,7 @@ const PreviewDialog = ({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-
+        
         <ScrollArea className="max-h-[60vh]">
           {renderPreviewContent()}
         </ScrollArea>
@@ -164,7 +152,7 @@ const PreviewDialog = ({
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : confirmText}
+            {isSubmitting ? 'Creating...' : 'Confirm & Create'}
           </Button>
         </DialogFooter>
       </DialogContent>

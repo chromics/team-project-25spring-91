@@ -96,13 +96,6 @@ export default function GymsPage() {
     ">
       {gyms.length > 0 ? (
         gyms.map((gym: Gym) => {
-          // --- Debugging Logs ---
-          console.log("PARENT: Iterating over gym:", gym);
-          console.log(
-            "PARENT: imageUrl for this gym before passing to GymCard:",
-            gym.imageUrl,
-          );
-          // --- End Debugging Logs ---
 
           return <GymCard key={gym.id} gym={gym} />;
         })
