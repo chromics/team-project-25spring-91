@@ -59,6 +59,67 @@ getAllCompetitions: async ({
   };
 },
 
+// Feature 2: Get competitions for gyms a user is subscribed to
+  getCompetitionsForSubscribedGyms: async (
+    userId,
+    { isActive, search = '', page = 1, limit = 10, includeEnded = false },
+  ) => {
+    // 1. Find active memberships for the user
+    const userMemberships = await prisma.userMembership.findMany({
+      where: {
+        userId,
+        status: 'active', // Only consider active memberships
+        // endDate: { gte: new Date() } // Optionally ensure membership is not expired
+      },
+      select: {
+        gymId: true,
+      },
+    });
+
+    if (userMemberships.length === 0) {
+      return { competitions: [], totalItems: 0, totalPages: 0 }; // No subscribed gyms
+    }
+
+    const subscribedGymIds = userMemberships.map((mem) => mem.gymId);
+
+    // 2. Build where clause for competitions
+    const where = {
+      gymId: { in: subscribedGymIds },
+      ...(isActive !== undefined && { isActive }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+      ...(!includeEnded && { endDate: { gt: new Date() } }), // By default, only show ongoing/upcoming
+    };
+
+    const totalItems = await prisma.competition.count({ where });
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const competitions = await prisma.competition.findMany({
+      where,
+      orderBy: { startDate: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        gym: {
+          select: { id: true, name: true, imageUrl: true },
+        },
+        _count: {
+          select: { participants: true, competitionTasks: true },
+        },
+      },
+    });
+
+    return {
+      competitions,
+      totalItems,
+      totalPages,
+    };
+  },
+
   // Get competition by ID
   getCompetitionById: async (competitionId, includeLeaderboard = false) => {
     const competition = await prisma.competition.findUnique({
@@ -201,6 +262,33 @@ getAllCompetitions: async ({
       where: { id: competitionId }
     });
   },
+
+  getTasksByCompetitionId: async (competitionId) => {
+    const competition = await prisma.competition.findUnique({
+      where: { id: competitionId },
+    });
+    if (!competition) {
+      throw new ApiError(404, 'Competition not found');
+    }
+
+    const tasks = await prisma.competitionTask.findMany({
+      where: { competitionId },
+      orderBy: { name: 'asc' }, // Or any other preferred order
+      include: {
+        exercise: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
+    return tasks;
+  },
+
+  
 
   // Create a task for a competition
   createTask: async (competitionId, taskData) => {
