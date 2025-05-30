@@ -44,7 +44,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
         />
         <div className="absolute top-4 right-4">
           {type === "completed" && (
-            <Badge variant="default" className="bg-completed text-completed-foreground">
+            <Badge variant="default">
               Completed
             </Badge>
           )}
@@ -54,7 +54,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
             </Badge>
           )}
           {type === "available" && (
-            <Badge variant="outline">
+            <Badge variant="default">
               {isStarted ? "Started" : "Upcoming"}
             </Badge>
           )}
