@@ -139,15 +139,19 @@ const competitionSchemas = {
     }),
   }),
 
-  listSubscribedGymCompetitions: z.object({
+
+listUserCompetitionView: z.object({
     query: z.object({
-      isActive: z.string().optional().transform(val => val === 'true' ? true : (val === 'false' ? false : undefined)),
+      isActive: z // For the competition's active status
+        .string()
+        .optional()
+        .transform(val => val === 'true' ? true : (val === 'false' ? false : undefined)),
       search: z.string().optional(),
       page: z.string().optional().transform(val => (val ? parseInt(val) : 1)),
       limit: z.string().optional().transform(val => (val ? parseInt(val) : 10)),
-      includeEnded: z.string().optional().transform(val => val === 'true'),
+      includeEnded: z.string().optional().transform(val => val === 'true'), // To see past competitions
     }),
-  })
+  }),
 };
 
 module.exports = { competitionSchemas };

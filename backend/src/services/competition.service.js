@@ -59,66 +59,111 @@ getAllCompetitions: async ({
   };
 },
 
-// Feature 2: Get competitions for gyms a user is subscribed to
-  getCompetitionsForSubscribedGyms: async (
+// Refined: Competitions from subscribed gyms NOT YET JOINED by the user
+  getDiscoverableCompetitionsForSubscribedGyms: async (
     userId,
     { isActive, search = '', page = 1, limit = 10, includeEnded = false },
   ) => {
-    // 1. Find active memberships for the user
     const userMemberships = await prisma.userMembership.findMany({
-      where: {
-        userId,
-        status: 'active', // Only consider active memberships
-        // endDate: { gte: new Date() } // Optionally ensure membership is not expired
-      },
-      select: {
-        gymId: true,
-      },
+      where: { userId, status: 'active' }, // Consider only active memberships
+      select: { gymId: true },
     });
 
     if (userMemberships.length === 0) {
-      return { competitions: [], totalItems: 0, totalPages: 0 }; // No subscribed gyms
+      return { competitions: [], totalItems: 0, totalPages: 0, page, limit };
     }
-
     const subscribedGymIds = userMemberships.map((mem) => mem.gymId);
 
-    // 2. Build where clause for competitions
+    // Get IDs of competitions the user has an active or inactive participation record for
+    const participatedCompetitionIds = (
+      await prisma.competitionUser.findMany({
+        where: { userId },
+        select: { competitionId: true },
+      })
+    ).map((cu) => cu.competitionId);
+
     const where = {
       gymId: { in: subscribedGymIds },
-      ...(isActive !== undefined && { isActive }),
+      id: { notIn: participatedCompetitionIds.length > 0 ? participatedCompetitionIds : [-1] }, // Exclude all participated
+      ...(isActive !== undefined && { isActive }), // Filter by competition's active status
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },
         ],
       }),
-      ...(!includeEnded && { endDate: { gt: new Date() } }), // By default, only show ongoing/upcoming
+      // By default, only show ongoing/upcoming unless includeEnded is true
+      ...(!includeEnded && { endDate: { gt: new Date() } }),
     };
 
     const totalItems = await prisma.competition.count({ where });
     const totalPages = Math.ceil(totalItems / limit);
-
     const competitions = await prisma.competition.findMany({
       where,
-      orderBy: { startDate: 'desc' },
+      orderBy: { startDate: 'desc' }, // Or perhaps by proximity to start date, or newest created
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        gym: {
-          select: { id: true, name: true, imageUrl: true },
-        },
-        _count: {
-          select: { participants: true, competitionTasks: true },
+        gym: { select: { id: true, name: true, imageUrl: true } },
+        _count: { select: { participants: true, competitionTasks: true } },
+      },
+    });
+    return { competitions, totalItems, totalPages, page, limit };
+  },
+
+  // New: Competitions from subscribed gyms ALREADY JOINED (and active participation) by the user
+  getJoinedCompetitionsForSubscribedGyms: async (
+    userId,
+    { isActiveCompetition, search = '', page = 1, limit = 10, includeEnded = false },
+  ) => {
+    const userMemberships = await prisma.userMembership.findMany({
+      where: { userId, status: 'active' },
+      select: { gymId: true },
+    });
+
+    if (userMemberships.length === 0) {
+      return { participations: [], totalItems: 0, totalPages: 0, page, limit };
+    }
+    const subscribedGymIds = userMemberships.map((mem) => mem.gymId);
+
+    const whereCompetitionUser = {
+      userId,
+      isActive: true, // User's participation is active
+      competition: {
+        gymId: { in: subscribedGymIds },
+        ...(isActiveCompetition !== undefined && { isActive: isActiveCompetition }), // Competition's active status
+        ...(search && {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+          ],
+        }),
+        ...(!includeEnded && { endDate: { gt: new Date() } }),
+      },
+    };
+
+    const totalItems = await prisma.competitionUser.count({
+      where: whereCompetitionUser,
+    });
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const participations = await prisma.competitionUser.findMany({
+      where: whereCompetitionUser,
+      orderBy: { competition: { startDate: 'desc' } },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        competition: {
+          include: {
+            gym: { select: { id: true, name: true, imageUrl: true } },
+            _count: { select: { competitionTasks: true } },
+          },
         },
       },
     });
-
-    return {
-      competitions,
-      totalItems,
-      totalPages,
-    };
+    return { participations, totalItems, totalPages, page, limit };
   },
+
 
   // Get competition by ID
   getCompetitionById: async (competitionId, includeLeaderboard = false) => {
