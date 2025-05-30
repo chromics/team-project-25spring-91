@@ -13,12 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CompetitionTask } from "@/types/competition";
+import { TaskWithProgress } from "@/types/competition";
 import api from "@/lib/api";
 import { toast } from "sonner";
 
 interface TaskProgressDialogProps {
-  task: CompetitionTask;
+  task: TaskWithProgress;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onProgressUpdated: () => void;
@@ -44,7 +44,27 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [updateMode, setUpdateMode] = useState<"set" | "increment">("increment");
 
-  const currentProgress = task.taskProgress?.[0]?.currentValue || "0";
+  const getCurrentProgress = () => {
+    if (task.progress) {
+      return task.progress.currentValue || "0";
+    }
+    if (task.userProgress && task.userProgress.length > 0) {
+      return task.userProgress[0].currentValue || "0";
+    }
+    return "0";
+  };
+
+  const getCurrentNotes = () => {
+    if (task.progress) {
+      return task.progress.notes || "";
+    }
+    if (task.userProgress && task.userProgress.length > 0) {
+      return task.userProgress[0].notes || "";
+    }
+    return "";
+  };
+
+  const currentProgress = getCurrentProgress();
   const currentValue = parseFloat(currentProgress);
   const targetValue = parseFloat(task.targetValue);
   const progressPercentage =
@@ -56,7 +76,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
     if (open) {
       setNewValue(currentProgress);
       setIncrementValue("");
-      setNotes(task.taskProgress?.[0]?.notes || "");
+      setNotes(getCurrentNotes());
       setUpdateMode("increment");
     }
   }, [open, task]);
@@ -135,8 +155,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
       const decimalIndex = currentValue.indexOf(".");
       if (decimalIndex !== -1) {
         const decimalPlaces = currentValue.substring(decimalIndex + 1);
-        // If cursor is after decimal point and we already have 3 decimal places
-        if (cursorPosition > decimalIndex && decimalPlaces.length >= 3) {
+        if (cursorPosition > decimalIndex && decimalPlaces.length >= 2) {
           e.preventDefault();
           return;
         }
@@ -192,7 +211,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
 
     // Check if there are no changes
     const newNotes = notes.trim();
-    const currentNotes = task.taskProgress?.[0]?.notes || "";
+    const currentNotes = getCurrentNotes();
     const hasProgressChange = hasValidProgressInput && finalValue !== currentValue;
     const hasNotesChange = newNotes !== currentNotes;
 
@@ -222,13 +241,9 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
     setLoading(true);
     try {
       const updateData: any = {
-        notes: newNotes || undefined,
+        currentValue: finalValue,
+        notes: newNotes === "" ? "" : newNotes,
       };
-
-      // Only update currentValue if we have a valid progress input
-      if (hasValidProgressInput) {
-        updateData.currentValue = finalValue;
-      }
 
       await api.put(`/competitions/tasks/${task.id}/progress`, updateData);
 
@@ -329,7 +344,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
 
     // Check if notes have changed
     const newNotes = notes.trim();
-    const currentNotes = task.taskProgress?.[0]?.notes || "";
+    const currentNotes = getCurrentNotes();
     const hasNotesChange = newNotes !== currentNotes;
 
     // If notes changed, allow submission regardless of progress input
@@ -358,7 +373,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
           <div className="overflow-hidden">
             <h3 className="font-medium break-words">{task.name}</h3>
             <p className="text-sm text-muted-foreground break-words">
-              Target: {task.targetValue} {task.unit}
+              Target: {targetValue.toLocaleString()} {task.unit}
             </p>
           </div>
 
@@ -367,7 +382,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
             <div className="flex items-center justify-between overflow-hidden">
               <span className="text-sm font-medium">Current Progress</span>
               <Badge variant="outline" className="break-words min-w-0">
-                {currentValue} / {targetValue} {task.unit}
+                {currentValue.toLocaleString()} / {targetValue.toLocaleString()} {task.unit}
               </Badge>
             </div>
             <Progress value={progressPercentage} />
@@ -408,7 +423,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
                   />
                   <p className="text-xs text-muted-foreground break-words overflow-hidden">
                     This will be added to your current progress of{" "}
-                    {currentValue} {task.unit}. Use negative values to subtract.
+                    {currentValue.toLocaleString()} {task.unit}. Use negative values to subtract.
                     {getWarningMessage()}
                   </p>
                 </div>
@@ -444,7 +459,7 @@ export const TaskProgressDialog: React.FC<TaskProgressDialogProps> = ({
               <div className="flex items-center justify-between overflow-hidden">
                 <span className="text-sm font-medium">Preview</span>
                 <Badge variant="secondary" className="break-words min-w-0">
-                  {previewValue} / {targetValue} {task.unit}
+                  {previewValue.toLocaleString()} / {targetValue.toLocaleString()} {task.unit}
                 </Badge>
               </div>
               <Progress value={previewPercentage} />

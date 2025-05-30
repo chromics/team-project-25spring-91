@@ -38,7 +38,7 @@ export interface UserCompetition {
 export interface CompetitionTask {
   id: number;
   competitionId: number;
-  exerciseId: number;
+  exerciseId: number | null;
   name: string;
   description: string;
   targetValue: string;
@@ -49,8 +49,8 @@ export interface CompetitionTask {
     id: number;
     name: string;
     category: string;
-  };
-  taskProgress?: TaskProgress[];
+    imageUrl?: string | null;
+  } | null;
 }
 
 export interface TaskProgress {
@@ -62,6 +62,11 @@ export interface TaskProgress {
   completionDate: string | null;
   lastUpdated: string;
   notes: string | null;
+}
+
+export interface TaskWithProgress extends CompetitionTask {
+  userProgress?: TaskProgress[];
+  progress?: TaskProgress;
 }
 
 export interface LeaderboardEntry {

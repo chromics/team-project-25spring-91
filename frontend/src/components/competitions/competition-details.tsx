@@ -27,7 +27,7 @@ import api from "@/lib/api";
 import {
   Competition,
   UserCompetition,
-  CompetitionTask,
+  TaskWithProgress,
   LeaderboardEntry,
 } from "@/types/competition";
 import { TaskProgressDialog } from "./task-progress-dialog";
@@ -47,16 +47,17 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   onOpenChange,
   onJoin,
 }) => {
-  const [allTasks, setAllTasks] = useState<CompetitionTask[]>([]);
+  const [allTasks, setAllTasks] = useState<TaskWithProgress[]>([]);
   const [allLeaderboard, setAllLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<CompetitionTask | null>(
+  const [selectedTask, setSelectedTask] = useState<TaskWithProgress | null>(
     null
   );
   const [progressDialogOpen, setProgressDialogOpen] = useState(false);
   const [competitionData, setCompetitionData] = useState<Competition | null>(
     null
   );
+  const [userProgressData, setUserProgressData] = useState<any>(null);
 
   // Pagination states
   const [tasksPage, setTasksPage] = useState(1);
@@ -101,15 +102,25 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   const fetchCompetitionData = async () => {
     setLoading(true);
     try {
-      // Fetch competition details by ID to get participant count and tasks
-      const competitionResponse = await api.get(`/competitions/${comp.id}`);
-      const competitionData = competitionResponse.data.data;
-      setCompetitionData(competitionData);
-      
-      // Set all tasks
-      setAllTasks(competitionData.competitionTasks || []);
+      // For ongoing/completed competitions (user competitions), use the progress API
+      if (type === "ongoing" || type === "completed") {
+        const progressResponse = await api.get(
+          `/competitions/user/competitions/${comp.id}/progress`
+        );
+        const progressData = progressResponse.data.data;
+        
+        setUserProgressData(progressData.participant);
+        setAllTasks(progressData.tasks || []);
+        setCompetitionData(progressData.participant.competition);
+      } else {
+        // For available competitions, use the regular competition API
+        const competitionResponse = await api.get(`/competitions/${comp.id}`);
+        const competitionData = competitionResponse.data.data;
+        setCompetitionData(competitionData);
+        setAllTasks(competitionData.competitionTasks || []);
+      }
 
-      // Fetch leaderboard
+      // Fetch leaderboard for all types
       const leaderboardResponse = await api.get(
         `/competitions/${comp.id}/leaderboard`
       );
@@ -121,7 +132,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
     }
   };
 
-  const handleUpdateProgress = (task: CompetitionTask) => {
+  const handleUpdateProgress = (task: TaskWithProgress) => {
     setSelectedTask(task);
     setProgressDialogOpen(true);
   };
@@ -131,16 +142,40 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
     setProgressDialogOpen(false);
   };
 
-  const getCurrentProgress = (task: CompetitionTask): number => {
-    if (!task.taskProgress || task.taskProgress.length === 0) return 0;
-    const progress = task.taskProgress[0];
-    return parseFloat(progress.currentValue) || 0;
+  const getCurrentProgress = (task: TaskWithProgress): number => {
+    if (task.progress) {
+      return parseFloat(task.progress.currentValue) || 0;
+    }
+    if (task.userProgress && task.userProgress.length > 0) {
+      return parseFloat(task.userProgress[0].currentValue) || 0;
+    }
+    return 0;
   };
 
-  const getProgressPercentage = (task: CompetitionTask): number => {
+  const getProgressPercentage = (task: TaskWithProgress): number => {
     const current = getCurrentProgress(task);
     const target = parseFloat(task.targetValue);
     return target > 0 ? Math.min((current / target) * 100, 100) : 0;
+  };
+
+  const isTaskCompleted = (task: TaskWithProgress): boolean => {
+    if (task.progress) {
+      return task.progress.isCompleted;
+    }
+    if (task.userProgress && task.userProgress.length > 0) {
+      return task.userProgress[0].isCompleted;
+    }
+    return false;
+  };
+
+  const getTaskNotes = (task: TaskWithProgress): string | null => {
+    if (task.progress) {
+      return task.progress.notes;
+    }
+    if (task.userProgress && task.userProgress.length > 0) {
+      return task.userProgress[0].notes;
+    }
+    return null;
   };
 
   const handleTasksPageChange = (newPage: number) => {
@@ -176,6 +211,11 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
         return "bg-primary text-primary-foreground";
     }
   };
+
+  const participantCount = competitionData?._count?.participants || 
+                          comp._count?.participants || 0;
+
+  const currentUserProgress = userProgressData || userProgress;
 
   return (
     <>
@@ -227,8 +267,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {competitionData?._count?.participants || 
-                         comp._count?.participants || 0}/{comp.maxParticipants}{" "}
+                        {participantCount}/{comp.maxParticipants}{" "}
                         participants
                       </span>
                     </div>
@@ -236,7 +275,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                 </CardContent>
               </Card>
 
-              {userProgress && (
+              {currentUserProgress && (
                 <Card>
                   <CardContent className="p-4">
                     <div className="space-y-3">
@@ -246,25 +285,25 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                           <span className="text-sm">Total Points</span>
                         </div>
                         <span className="font-semibold">
-                          {userProgress.totalPoints}
+                          {currentUserProgress.totalPoints}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          {getRankIcon(userProgress.rank)}
+                          {getRankIcon(currentUserProgress.rank)}
                           <span className="text-sm">Current Rank</span>
                         </div>
                         <span className="font-semibold">
-                          #{userProgress.rank}
+                          #{currentUserProgress.rank}
                         </span>
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span>Overall Progress</span>
-                          <span>{userProgress.completionPct}%</span>
+                          <span>{currentUserProgress.completionPct}%</span>
                         </div>
                         <Progress
-                          value={parseFloat(userProgress.completionPct)}
+                          value={parseFloat(currentUserProgress.completionPct)}
                         />
                       </div>
                     </div>
@@ -313,6 +352,8 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                         const currentProgress = getCurrentProgress(task);
                         const progressPercentage = getProgressPercentage(task);
                         const target = parseFloat(task.targetValue);
+                        const isCompleted = isTaskCompleted(task);
+                        const notes = getTaskNotes(task);
 
                         return (
                           <Card key={task.id}>
@@ -321,9 +362,16 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                                 <CardTitle className="text-base">
                                   {task.name}
                                 </CardTitle>
-                                <Badge variant="outline">
-                                  {task.pointsValue} points
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">
+                                    {task.pointsValue} points
+                                  </Badge>
+                                  {isCompleted && (
+                                    <Badge variant="default" className="bg-green-600">
+                                      Completed
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </CardHeader>
                             <CardContent>
@@ -337,14 +385,19 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                                   <div className="flex justify-between text-sm">
                                     <span>Progress</span>
                                     <span>
-                                      {currentProgress} / {target} {task.unit} ({progressPercentage.toFixed(1)}%)
+                                      {currentProgress.toLocaleString()} / {target.toLocaleString()} {task.unit} ({progressPercentage.toFixed(1)}%)
                                     </span>
                                   </div>
                                   <Progress value={progressPercentage} />
-                                  {progressPercentage >= 100 && (
+                                  {isCompleted && (
                                     <div className="flex items-center gap-1 text-sm text-green-600">
                                       <Trophy className="h-4 w-4" />
                                       <span>Task Completed! 🎉</span>
+                                    </div>
+                                  )}
+                                  {notes && (
+                                    <div className="text-sm text-muted-foreground italic">
+                                      Note: {notes}
                                     </div>
                                   )}
                                 </div>
@@ -356,7 +409,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                                     Target:{" "}
                                   </span>
                                   <span className="font-medium">
-                                    {task.targetValue} {task.unit}
+                                    {target.toLocaleString()} {task.unit}
                                   </span>
                                 </div>
                                 {type === "ongoing" && (
@@ -428,7 +481,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                     <div className="space-y-2">
                       {paginatedLeaderboard.map((entry, index) => {
                         const globalIndex = (leaderboardPage - 1) * itemsPerPage + index;
-                        const isCurrentUser = userProgress && entry.userId === userProgress.userId;
+                        const isCurrentUser = currentUserProgress && entry.userId === currentUserProgress.userId;
                         
                         return (
                           <Card key={entry.id} className={isCurrentUser ? "ring-2 ring-primary" : ""}>
