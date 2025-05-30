@@ -1,126 +1,241 @@
+// frontend/src/app/dashboard/chat/page.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, History, RotateCcw } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  Send,
+  Bot,
+  User,
+  RotateCcw,
+  AlertTriangle,
+  Copy,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { UserRole } from '@/components/auth/sign-up-form';
-import ButterflyLoader from '@/components/butterfly-loader';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from "@/components/auth/sign-up-form";
+import ButterflyLoader from "@/components/butterfly-loader";
+import { useRoleProtection } from "@/hooks/use-role-protection";
 import { useChat } from "@/hooks/useChat";
 import { Message } from "@/types/chat";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+const formatTimestamp = (date: Date) => {
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+};
+
+const SUGGESTED_PROMPTS = [
+  "Explain the benefits of compound exercises",
+  "Write a workout plan for building muscle mass in 4 weeks",
+  "Give me 5 high-protein meal ideas for post-workout recovery",
+  "Create a daily calorie and macronutrient breakdown for weight loss",
+  "How can I track my workout progress effectively?",
+  "Write a short explanation of how different rep ranges affect muscle growth"
+];
+
 
 export default function ChatPage() {
-  const { isAuthorized, isLoading: authLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER]
+  const {
+    isAuthorized,
+    isLoading: authLoading,
+    user,
+  } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER],
   });
 
   const [inputValue, setInputValue] = useState("");
-  const [conversations, setConversations] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
     messages,
     isLoading,
-    conversationId,
+    initialHistoryLoaded,
     sendMessage,
-    loadConversation,
-    loadUserConversations,
     clearChat,
+    loadInitialHistory,
   } = useChat();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    if (isAuthorized) {
-      loadConversationHistory();
+    if (isAuthorized && !initialHistoryLoaded && loadInitialHistory) {
+      loadInitialHistory();
     }
-  }, [isAuthorized]);
-
-  const loadConversationHistory = async () => {
-    const history = await loadUserConversations();
-    if (history?.data) {
-      setConversations(history.data);
-    }
-  };
+  }, [isAuthorized, initialHistoryLoaded, loadInitialHistory]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
-
     const messageToSend = inputValue;
     setInputValue("");
-    await sendMessage(messageToSend);
-    
-    setTimeout(loadConversationHistory, 1000);
+    const success = await sendMessage(messageToSend);
+    if (!success) {
+      toast.error("Message sending failed. Check chat for error details.");
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const handleLoadConversation = async (id: string) => {
-    await loadConversation(id);
+  const handleNewChat = () => {
+    clearChat();
+    setInputValue("");
+    inputRef.current?.focus();
   };
 
-  const MessageBubble: React.FC<{ message: Message }> = ({ message }) => (
-    <div
-      className={`flex gap-3 mb-4 ${
-        message.role === "user" ? "justify-end" : "justify-start"
-      }`}
-    >
-      {message.role === "assistant" && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarFallback>
-            <Bot className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
-      <div
-        className={`max-w-[80%] rounded-lg px-4 py-3 ${
-          message.role === "user"
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted"
-        }`}
-      >
-        <p className="text-sm whitespace-pre-wrap leading-relaxed">
-          {message.content}
-        </p>
-        <span className="text-xs opacity-70 mt-2 block">
-          {message.timestamp.toLocaleTimeString()}
-        </span>
+  const handleSuggestedPrompt = (prompt: string) => {
+    setInputValue(prompt);
+    inputRef.current?.focus();
+  };
+
+  const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
+    const isUser = message.role === "user";
+    const isError = message.role === "assistant" && message.content.toLowerCase().startsWith("error:");
+
+    const handleCopy = () => {
+      navigator.clipboard.writeText(message.content.replace(/^Error: /i, ''));
+      toast.success("Copied to clipboard!");
+    };
+
+    return (
+      <div className={cn(
+        "group flex items-start gap-3 mb-6 max-w-none",
+        isUser ? "justify-end" : "justify-start"
+      )}>
+        {!isUser && (
+          <Avatar className="w-6 h-6 flex-shrink-0 mt-0.5">
+            <AvatarFallback className="bg-foreground text-background text-xs">
+              <Bot className="w-3 h-3" />
+            </AvatarFallback>
+          </Avatar>
+        )}
+
+        <div className={cn(
+          "max-w-[80%] space-y-1",
+          isUser && "flex flex-col items-end"
+        )}>
+          <div className={cn(
+            "rounded-xl px-3 py-2.5 text-sm leading-relaxed",
+            isUser
+              ? "bg-foreground text-background"
+              : isError
+                ? "bg-destructive/10 text-destructive border border-destructive/20"
+                : "bg-muted text-foreground"
+          )}>
+            {isError && (
+              <div className="flex items-center gap-2 mb-2 font-medium">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span className="text-xs">Error</span>
+              </div>
+            )}
+
+            <div className="whitespace-pre-wrap">
+              {(isError ? message.content.replace(/^Error: /i, '') : message.content)}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
+            <Clock className="w-3 h-3" />
+            <span>{formatTimestamp(message.timestamp)}</span>
+
+            {message.role === "assistant" && !isError && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted"
+                onClick={handleCopy}
+                aria-label="Copy message"
+              >
+                <Copy className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {isUser && (
+          <Avatar className="w-6 h-6 flex-shrink-0 mt-0.5">
+            <AvatarFallback className="bg-muted text-foreground text-xs">
+              <User className="w-3 h-3" />
+            </AvatarFallback>
+          </Avatar>
+        )}
       </div>
-      {message.role === "user" && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarFallback>
-            <User className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
-      )}
+    );
+  };
+
+  const TypingIndicator = () => (
+    <div className="flex items-start gap-3 mb-6">
+      <Avatar className="w-6 h-6 flex-shrink-0 mt-0.5">
+        <AvatarFallback className="bg-foreground text-background text-xs">
+          <Bot className="w-3 h-3" />
+        </AvatarFallback>
+      </Avatar>
+      <div className="bg-muted rounded-xl px-3 py-2.5">
+        <div className="flex items-center gap-1">
+          <div className="flex space-x-1">
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 
-  if (authLoading) {
+  const EmptyState = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center max-w-2xl mx-auto">
+      <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-6">
+        <Bot className="w-6 h-6 text-muted-foreground" />
+      </div>
+
+      <h2 className="text-xl font-medium mb-2 text-foreground">
+        How can I help you with your fitness journey today?
+      </h2>
+      <p className="text-muted-foreground mb-8 text-sm">
+        Ask me anything - I can help with workout plans, diet advice, calorie tracking, and more.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-xl">
+        {SUGGESTED_PROMPTS.map((prompt, index) => (
+          <Card
+            key={index}
+            className="cursor-pointer transition-all duration-200 hover:bg-accent border-border"
+            onClick={() => handleSuggestedPrompt(prompt)}
+          >
+            <CardContent className="p-3">
+              <p className="text-xs text-foreground text-left">
+                {prompt}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  const showPageLoader = authLoading || (!initialHistoryLoaded && isLoading && messages.length === 0);
+
+  if (showPageLoader) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
+      <div className="flex justify-center items-center h-full">
         <ButterflyLoader />
       </div>
     );
@@ -128,168 +243,84 @@ export default function ChatPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
+      <div className="flex flex-col justify-center items-center h-full text-center p-6">
+        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <h2 className="text-lg font-medium mb-2">Access Denied</h2>
+        <p className="text-muted-foreground text-sm">You need to be logged in to access the AI Assistant.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto">
-      {/* Header */}
-      <Card className="rounded-none border-x-0 border-t-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-xl font-semibold flex items-center gap-3">
-            <Bot className="w-6 h-6" />
-            AI Assistant
-            {user && (
-              <span className="text-sm font-normal text-muted-foreground">
-                - Welcome, {user.displayName || user.email}
-              </span>
+    <div className="h-[calc(100vh-8rem)] flex flex-col bg-background">
+      {/* Messages Area - Full height minus input */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="max-w-3xl mx-auto p-6">
+            {!initialHistoryLoaded && isLoading && messages.length === 0 ? (
+              <div className="flex justify-center items-center h-64">
+                <ButterflyLoader />
+              </div>
+            ) : messages.length > 0 ? (
+              <div>
+                {messages.map((message) => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+                {isLoading &&
+                  messages.some(m => m.id.startsWith('user-live')) &&
+                  !messages.some(m => m.id.startsWith('assistant-live') &&
+                    m.id > messages.findLast(m => m.id.startsWith('user-live'))!.id) && (
+                    <TypingIndicator />
+                  )}
+              </div>
+            ) : (
+              <EmptyState />
             )}
-          </CardTitle>
-          <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <History className="w-4 h-4 mr-2" />
-                  History
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                {conversations.length > 0 ? (
-                  conversations.slice(0, 10).map((conv) => (
-                    <DropdownMenuItem
-                      key={conv.id}
-                      onClick={() => handleLoadConversation(conv.id.toString())}
-                      className="cursor-pointer p-3"
-                    >
-                      <div className="flex flex-col gap-1 w-full">
-                        <span className="text-sm font-medium truncate">
-                          {conv.prompt.substring(0, 50)}...
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(conv.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <DropdownMenuItem disabled>
-                    No conversation history
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </div>
+
+      <div className="border-t bg-background p-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex gap-2 items-end">
             <Button
               variant="outline"
-              size="sm"
-              onClick={clearChat}
-              disabled={messages.length === 0}
+              onClick={handleNewChat}
+              disabled={isLoading && messages.length === 0}
+              className="min-h-[44px] px-3 shrink-0"
             >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              New Chat
+              <RotateCcw className="w-4 h-4" />
             </Button>
-          </div>
-        </CardHeader>
-      </Card>
 
-      {/* Messages Area */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <ScrollArea className="flex-1 p-6">
-          {messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-16">
-              <Bot className="w-16 h-16 mx-auto mb-6 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">
-                Welcome to AI Assistant
-              </h3>
-              <p className="text-sm">
-                Start a conversation by typing a message below.
-              </p>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-md mx-auto">
-                <Button
-                  variant="outline"
-                  className="text-left justify-start h-auto p-3"
-                  onClick={() => setInputValue("What can you help me with?")}
-                >
-                  <div className="text-sm">
-                    <div className="font-medium">Getting Started</div>
-                    <div className="text-muted-foreground text-xs">
-                      What can you help me with?
-                    </div>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="text-left justify-start h-auto p-3"
-                  onClick={() => setInputValue("Explain quantum computing")}
-                >
-                  <div className="text-sm">
-                    <div className="font-medium">Learn Something</div>
-                    <div className="text-muted-foreground text-xs">
-                      Explain quantum computing
-                    </div>
-                  </div>
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
-              ))}
-            </div>
-          )}
-          {isLoading && (
-            <div className="flex gap-3 mb-4">
-              <Avatar className="w-8 h-8">
-                <AvatarFallback>
-                  <Bot className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="bg-muted rounded-lg px-4 py-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-current rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-current rounded-full animate-bounce delay-200" />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </ScrollArea>
-
-        {/* Input Area */}
-        <Card className="rounded-none border-x-0 border-b-0">
-          <CardContent className="p-6">
-            <div className="flex gap-3">
+            <div className="flex-1 relative">
               <Input
                 ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
+                placeholder="Message..."
                 disabled={isLoading}
-                className="flex-1 min-h-[44px]"
+                className="min-h-[44px] text-sm rounded-xl border-input focus:border-ring focus:ring-ring pr-12"
+                autoFocus
               />
-              <Button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputValue.trim()}
-                size="lg"
-                className="px-6"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
             </div>
-            {conversationId && (
-              <div className="mt-3 text-center">
-                <span className="text-xs text-muted-foreground">
-                  Conversation ID: {conversationId}
-                </span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+            <Button
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputValue.trim()}
+              className="min-h-[44px] px-3 shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
