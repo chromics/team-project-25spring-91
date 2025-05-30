@@ -32,40 +32,83 @@ export const CompetitionsPage: React.FC = () => {
   const fetchCompetitions = async () => {
     setLoading(true);
     try {
-      // Fetch user competitions
-      const userCompetitionsResponse = await api.get(
-        "/competitions/user/competitions"
-      );
-      const userCompetitions = userCompetitionsResponse.data.data || [];
-
-      // Get competition IDs that user has joined
-      const joinedCompetitionIds = new Set(
-        userCompetitions.map((comp: UserCompetition) => comp.competitionId)
-      );
-
       const now = new Date();
-      const ongoing = userCompetitions.filter(
-        (comp: UserCompetition) => new Date(comp.competition.endDate) >= now
+
+      // Fetch available competitions (not joined yet)
+      const availableResponse = await api.get(
+        "/competitions/user/discover-subscribed-gym-competitions"
       );
-      const completed = userCompetitions.filter(
-        (comp: UserCompetition) => new Date(comp.competition.endDate) < now
+      const availableData = availableResponse.data.data || [];
+
+      // Fetch joined competitions
+      const joinedResponse = await api.get(
+        "/competitions/user/joined-subscribed-gym-competitions"
       );
+      const joinedData = joinedResponse.data.data || [];
+
+      console.log("Available competitions:", availableData);
+      console.log("Joined competitions:", joinedData);
+      console.log("Current date:", now);
+
+      // Filter available competitions (not joined, active, not ended)
+      const available = availableData.filter((comp: Competition) => {
+        const endDate = new Date(comp.endDate);
+        const isAvailable = Boolean(
+          comp.isActive &&
+          endDate >= now
+        );
+
+        console.log(`Available competition ${comp.id} (${comp.name}):`, {
+          endDate,
+          isActive: comp.isActive,
+          participants: comp._count?.participants,
+          maxParticipants: comp.maxParticipants,
+          isAvailable,
+        });
+
+        return isAvailable;
+      });
+
+      // Filter joined competitions into ongoing and completed
+      const ongoing = joinedData.filter((userComp: UserCompetition) => {
+        const endDate = new Date(userComp.competition.endDate);
+        const isOngoing = Boolean(endDate >= now && userComp.isActive);
+
+        console.log(
+          `Ongoing competition ${userComp.competition.id} (${userComp.competition.name}):`
+        , {
+          endDate,
+          isActive: userComp.isActive,
+          isOngoing,
+        });
+
+        return isOngoing;
+      });
+
+      const completed = joinedData.filter((userComp: UserCompetition) => {
+        const endDate = new Date(userComp.competition.endDate);
+        const isCompleted = endDate < now;
+
+        console.log(
+          `Completed competition ${userComp.competition.id} (${userComp.competition.name}):`
+        , {
+          endDate,
+          now,
+          isCompleted,
+        });
+
+        return isCompleted;
+      });
+
+      console.log("Filtered results:", {
+        ongoing: ongoing.length,
+        completed: completed.length,
+        available: available.length,
+      });
 
       setOngoingCompetitions(ongoing);
       setCompletedCompetitions(completed);
-
-      // Fetch available competitions (placeholder - will be replaced with proper API)
-      // For now, using gym ID 1 as example
-      // TODO: Update the API 
-      const availableResponse = await api.get("/competitions?gymId=1");
-      const allCompetitions = availableResponse.data.data || [];
-      
-      // Filter out competitions that user has already joined
-      const availableOnly = allCompetitions.filter(
-        (comp: Competition) => !joinedCompetitionIds.has(comp.id)
-      );
-      
-      setAvailableCompetitions(availableOnly);
+      setAvailableCompetitions(available);
     } catch (error) {
       console.error("Error fetching competitions:", error);
       toast.error("Failed to load competitions");
@@ -76,6 +119,44 @@ export const CompetitionsPage: React.FC = () => {
 
   const handleJoinCompetition = async (competitionId: number) => {
     try {
+      // Find the competition to validate before joining
+      const competition = availableCompetitions.find(
+        (comp) => comp.id === competitionId
+      );
+
+      if (!competition) {
+        toast.error("Competition not found");
+        return;
+      }
+
+      const now = new Date();
+      const startDate = new Date(competition.startDate);
+      const endDate = new Date(competition.endDate);
+
+      // Validate competition eligibility
+      if (!competition.isActive) {
+        toast.error("This competition is not active");
+        return;
+      }
+
+      if (startDate > now) {
+        toast.error("This competition hasn't started yet");
+        return;
+      }
+
+      if (endDate < now) {
+        toast.error("This competition has already ended");
+        return;
+      }
+
+      if (
+        competition._count &&
+        competition._count.participants >= competition.maxParticipants
+      ) {
+        toast.error("This competition is at maximum capacity");
+        return;
+      }
+
       await api.post(`/competitions/${competitionId}/join`);
       toast.success("Successfully joined competition!");
       fetchCompetitions(); // Refresh the data
@@ -97,8 +178,27 @@ export const CompetitionsPage: React.FC = () => {
   };
 
   // Helper function to get competition ID safely
-  const getCompetitionId = (competition: Competition | UserCompetition): number => {
-    return "competition" in competition ? competition.competition.id : competition.id;
+  const getCompetitionId = (
+    competition: Competition | UserCompetition
+  ): number => {
+    return "competition" in competition
+      ? competition.competition.id
+      : competition.id;
+  };
+
+  // Helper function to check if user can join competition
+  const canJoinCompetition = (competition: Competition): boolean => {
+    const now = new Date();
+    const startDate = new Date(competition.startDate);
+    const endDate = new Date(competition.endDate);
+
+    return Boolean(
+      competition.isActive &&
+      startDate <= now &&
+      endDate >= now &&
+      competition._count &&
+      competition._count.participants < competition.maxParticipants
+    );
   };
 
   if (loading) {
@@ -164,10 +264,10 @@ export const CompetitionsPage: React.FC = () => {
           {availableCompetitions.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
-                No competitions available at the moment.
+                No competitions available from your subscribed gyms.
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Check back later for new competitions!
+                Subscribe to more gyms or check back later for new competitions!
               </p>
             </div>
           ) : (
@@ -180,7 +280,12 @@ export const CompetitionsPage: React.FC = () => {
                   onViewDetails={() =>
                     handleViewDetails(competition, "available")
                   }
-                  onJoin={() => handleJoinCompetition(competition.id)}
+                  onJoin={
+                    canJoinCompetition(competition)
+                      ? () => handleJoinCompetition(competition.id)
+                      : undefined
+                  }
+                  canJoin={canJoinCompetition(competition)}
                 />
               ))}
             </div>
@@ -222,7 +327,8 @@ export const CompetitionsPage: React.FC = () => {
           onOpenChange={setDetailsOpen}
           onJoin={
             detailsType === "available"
-              ? () => handleJoinCompetition(getCompetitionId(selectedCompetition))
+              ? () =>
+                  handleJoinCompetition(getCompetitionId(selectedCompetition))
               : undefined
           }
         />

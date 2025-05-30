@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, MapPin, Trophy, Target } from "lucide-react";
+import { Calendar, MapPin, Trophy, Target, AlertCircle } from "lucide-react";
 import { Competition, UserCompetition } from "@/types/competition";
 
 interface CompetitionCardProps {
@@ -11,6 +11,7 @@ interface CompetitionCardProps {
   type: "available" | "ongoing" | "completed";
   onViewDetails: () => void;
   onJoin?: () => void;
+  canJoin?: boolean;
 }
 
 export const CompetitionCard: React.FC<CompetitionCardProps> = ({
@@ -18,6 +19,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
   type,
   onViewDetails,
   onJoin,
+  canJoin = true,
 }) => {
   const isUserCompetition = "totalPoints" in competition;
   const comp = isUserCompetition ? competition.competition : competition;
@@ -31,8 +33,29 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
     });
   };
 
-  const isExpired = new Date(comp.endDate) < new Date();
-  const isStarted = new Date(comp.startDate) <= new Date();
+  const now = new Date();
+  const startDate = new Date(comp.startDate);
+  const endDate = new Date(comp.endDate);
+  const isExpired = endDate < now;
+  const isStarted = startDate <= now;
+  const isAtCapacity =
+    comp._count && comp._count.participants >= comp.maxParticipants;
+
+  const getJoinButtonText = () => {
+    if (!comp.isActive) return "Inactive";
+    if (!isStarted) return "Not Started";
+    if (isExpired) return "Ended";
+    if (isAtCapacity) return "Full";
+    return "Join Competition";
+  };
+
+  const getJoinButtonDisabledReason = () => {
+    if (!comp.isActive) return "This competition is not active";
+    if (!isStarted) return "Competition hasn't started yet";
+    if (isExpired) return "Competition has ended";
+    if (isAtCapacity) return "Competition is at maximum capacity";
+    return null;
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -44,7 +67,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
         />
         <div className="absolute top-4 right-4">
           {type === "completed" && (
-            <Badge variant="default">
+            <Badge variant="default" className="bg-completed text-completed-foreground">
               Completed
             </Badge>
           )}
@@ -55,7 +78,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           )}
           {type === "available" && (
             <Badge variant="default">
-              {isStarted ? "Started" : "Upcoming"}
+              {!isStarted ? "Upcoming" : isExpired ? "Ended" : "Available"}
             </Badge>
           )}
         </div>
@@ -81,6 +104,22 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           </span>
         </div>
 
+        {/* Participant count for available competitions */}
+        {type === "available" && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Trophy className="h-4 w-4" />
+            <span>
+              {comp._count?.participants || 0}/{comp.maxParticipants}{" "}
+              participants
+            </span>
+            {isAtCapacity && (
+              <Badge variant="destructive" className="ml-2">
+                Full
+              </Badge>
+            )}
+          </div>
+        )}
+
         {userProgress && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -90,7 +129,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
               </div>
               <div className="flex items-center gap-1">
                 <Target className="h-4 w-4" />
-                <span>Rank: #{userProgress.rank}</span>
+                <span>Rank: #{userProgress.rank || "N/A"}</span>
               </div>
             </div>
             <div className="space-y-1">
@@ -103,13 +142,28 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
           </div>
         )}
 
+        {/* Warning message for unavailable competitions */}
+        {type === "available" && !canJoin && (
+          <div className="flex items-start gap-2 p-2 bg-muted rounded-md">
+            <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              {getJoinButtonDisabledReason()}
+            </p>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Button onClick={onViewDetails} variant="outline" className="flex-1">
             View Details
           </Button>
           {type === "available" && onJoin && (
-            <Button onClick={onJoin} className="flex-1">
-              Join Competition
+            <Button
+              onClick={onJoin}
+              className="flex-1"
+              disabled={!canJoin}
+              title={!canJoin ? getJoinButtonDisabledReason() || undefined : undefined}
+            >
+              {getJoinButtonText()}
             </Button>
           )}
         </div>

@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  AlertCircle,
 } from "lucide-react";
 import api from "@/lib/api";
 import {
@@ -90,6 +91,46 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
     });
   };
 
+  // Check if user can join competition
+  const canJoinCompetition = (): boolean => {
+    const now = new Date();
+    const startDate = new Date(comp.startDate);
+    const endDate = new Date(comp.endDate);
+
+    return Boolean(
+      comp.isActive &&
+      startDate <= now &&
+      endDate >= now &&
+      comp._count &&
+      comp._count.participants < comp.maxParticipants
+    );
+  };
+
+  // Check if user can update progress
+  const canUpdateProgress = (): boolean => {
+    if (type !== "ongoing") return false;
+    
+    const now = new Date();
+    const endDate = new Date(comp.endDate);
+    
+    return Boolean(endDate >= now && comp.isActive);
+  };
+
+  const getJoinButtonDisabledReason = (): string | null => {
+    if (!comp.isActive) return "This competition is not active";
+    
+    const now = new Date();
+    const startDate = new Date(comp.startDate);
+    const endDate = new Date(comp.endDate);
+    
+    if (startDate > now) return "Competition hasn't started yet";
+    if (endDate < now) return "Competition has ended";
+    if (comp._count && comp._count.participants >= comp.maxParticipants) {
+      return "Competition is at maximum capacity";
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (open) {
       fetchCompetitionData();
@@ -133,6 +174,9 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
   };
 
   const handleUpdateProgress = (task: TaskWithProgress) => {
+    if (!canUpdateProgress()) {
+      return;
+    }
     setSelectedTask(task);
     setProgressDialogOpen(true);
   };
@@ -216,6 +260,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                           comp._count?.participants || 0;
 
   const currentUserProgress = userProgressData || userProgress;
+  const joinDisabledReason = getJoinButtonDisabledReason();
 
   return (
     <>
@@ -294,7 +339,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                           <span className="text-sm">Current Rank</span>
                         </div>
                         <span className="font-semibold">
-                          #{currentUserProgress.rank}
+                          #{currentUserProgress.rank || "N/A"}
                         </span>
                       </div>
                       <div className="space-y-1">
@@ -333,7 +378,21 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">Competition Tasks</h3>
                   {type === "available" && onJoin && (
-                    <Button onClick={onJoin}>Join Competition</Button>
+                    <div className="flex flex-col items-end gap-2">
+                      {joinDisabledReason && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>{joinDisabledReason}</span>
+                        </div>
+                      )}
+                      <Button 
+                        onClick={onJoin} 
+                        disabled={!canJoinCompetition()}
+                        title={joinDisabledReason || undefined}
+                      >
+                        Join Competition
+                      </Button>
+                    </div>
                   )}
                 </div>
 
@@ -412,10 +471,20 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
                                     {target.toLocaleString()} {task.unit}
                                   </span>
                                 </div>
-                                {type === "ongoing" && (
+                                {type === "ongoing" && canUpdateProgress() && (
                                   <Button
                                     size="sm"
                                     onClick={() => handleUpdateProgress(task)}
+                                  >
+                                    <TrendingUp className="h-4 w-4 mr-1" />
+                                    Update Progress
+                                  </Button>
+                                )}
+                                {type === "ongoing" && !canUpdateProgress() && (
+                                  <Button
+                                    size="sm"
+                                    disabled
+                                    title="Competition has ended or is inactive"
                                   >
                                     <TrendingUp className="h-4 w-4 mr-1" />
                                     Update Progress
@@ -558,7 +627,7 @@ export const CompetitionDetails: React.FC<CompetitionDetailsProps> = ({
         </DialogContent>
       </Dialog>
 
-      {selectedTask && (
+      {selectedTask && canUpdateProgress() && (
         <TaskProgressDialog
           task={selectedTask}
           open={progressDialogOpen}
