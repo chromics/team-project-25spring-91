@@ -45,6 +45,7 @@ const aiService = {
       select: {
         id: true,
         prompt: true, // Maybe a truncated version for list view? For now, full.
+        response: true,
         interactionType: true,
         createdAt: true,
       }
