@@ -1,8 +1,7 @@
-// components/competitions/CompetitionsPage.tsx
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CompetitionCard } from "./CompetitionCard";
-import { CompetitionDetails } from "./CompetitionDetails";
+import { CompetitionCard } from "./competition-card";
+import { CompetitionDetails } from "./competition-details";
 import { Competition, UserCompetition } from "@/types/competition";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -39,6 +38,11 @@ export const CompetitionsPage: React.FC = () => {
       );
       const userCompetitions = userCompetitionsResponse.data.data || [];
 
+      // Get competition IDs that user has joined
+      const joinedCompetitionIds = new Set(
+        userCompetitions.map((comp: UserCompetition) => comp.competitionId)
+      );
+
       const now = new Date();
       const ongoing = userCompetitions.filter(
         (comp: UserCompetition) => new Date(comp.competition.endDate) >= now
@@ -52,8 +56,16 @@ export const CompetitionsPage: React.FC = () => {
 
       // Fetch available competitions (placeholder - will be replaced with proper API)
       // For now, using gym ID 1 as example
+      // TODO: Update the API 
       const availableResponse = await api.get("/competitions?gymId=1");
-      setAvailableCompetitions(availableResponse.data.data || []);
+      const allCompetitions = availableResponse.data.data || [];
+      
+      // Filter out competitions that user has already joined
+      const availableOnly = allCompetitions.filter(
+        (comp: Competition) => !joinedCompetitionIds.has(comp.id)
+      );
+      
+      setAvailableCompetitions(availableOnly);
     } catch (error) {
       console.error("Error fetching competitions:", error);
       toast.error("Failed to load competitions");
