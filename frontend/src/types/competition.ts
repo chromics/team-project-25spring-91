@@ -50,6 +50,7 @@ export interface CompetitionTask {
     name: string;
     category: string;
   };
+  taskProgress?: TaskProgress[];
 }
 
 export interface TaskProgress {
