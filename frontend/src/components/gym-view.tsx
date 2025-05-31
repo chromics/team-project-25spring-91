@@ -23,7 +23,7 @@ const GymView: FC<GymViewProps> = ({ gym, open, onClose }) => {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{gym.name}</DialogTitle>
-          <DialogDescription>{gym.location}</DialogDescription>
+          <DialogDescription>{gym.address}</DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[400px] pr-4 space-y-4">
           {gym.imageUrl && (
