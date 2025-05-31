@@ -28,7 +28,7 @@ import api from '@/lib/api'
 import { ExerciseOption } from '@/types/exercise'
 
 interface AddCompetitionFormProps {
-  gym: Gym
+  gym: any
   onClose: () => void
 }
 

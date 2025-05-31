@@ -19,7 +19,7 @@ import PreviewDialog from './preview-dialog'
 import { X, Upload, Plus, Trash2 } from 'lucide-react'
 
 interface AddGymClassFormProps {
-  gym: Gym
+  gym: any
   onClose: () => void
 }
 

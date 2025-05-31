@@ -14,7 +14,7 @@ import AddGymClassForm from './add-gym-class-form'
 import AddCompetitionForm from './add-competition-form'
 
 interface AdminUpdateDialogProps {
-  gym: Gym
+  gym: any
   open: boolean
   onOpenChange: (open: boolean) => void
 }

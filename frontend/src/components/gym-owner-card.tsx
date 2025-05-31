@@ -11,7 +11,7 @@ import type { Gym } from '@/types/gym';
 import { Button } from '@/components/ui/button';
 
 interface GymOwnerCardProps {
-  gym: Gym;
+  gym: any;
   onEdit: () => void;
   onDelete: () => void;
 }

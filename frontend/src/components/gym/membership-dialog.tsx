@@ -11,7 +11,7 @@ import api from '@/lib/api';
 type StepNumber = 1 | 2;
 
 interface MembershipDialogProps {
-  gym: Gym;
+  gym: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

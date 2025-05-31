@@ -18,7 +18,7 @@ import PreviewDialog from './preview-dialog'
 import { X, Upload } from 'lucide-react'
 
 interface AddSubscriptionFormProps {
-  gym: Gym
+  gym: any
   onClose: () => void
 }
 

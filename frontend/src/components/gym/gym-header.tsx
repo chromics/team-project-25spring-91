@@ -6,7 +6,7 @@ import Image from 'next/image'
 import type { Gym } from '@/types/gym'
 
 interface GymHeaderProps {
-  gym: Gym
+  gym: any
 }
 
 export function GymHeader({ gym }: GymHeaderProps) {

@@ -17,7 +17,7 @@ import MembershipDialog from '@/components/gym/membership-dialog'
 
 
 interface GymCardProps {
-  gym: Gym
+  gym: any
 }
 
 const GymCard: FC<GymCardProps> = ({ gym }) => {
