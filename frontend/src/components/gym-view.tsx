@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Gym } from "@/types/gym";
 
 interface GymViewProps {
-  gym: Gym;
+  gym: any;
   open: boolean;
   onClose: () => void;
 }
