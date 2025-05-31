@@ -1,3 +1,4 @@
+//tests/actualWorkout.test.js
 const request = require('supertest');
 const app = require('../src/app');
 const { getAuthHeader } = require('./utils/auth');
@@ -193,5 +194,96 @@ describe('Actual Workouts Routes', () => {
 
       expect(response.body.status).toBe('success');
     });
+  });
+});
+
+// Add these test cases to the existing file
+
+describe('GET /api/actual-workouts/comparison', () => {
+  it('should get planned vs actual comparison', async () => {
+    const response = await request(app)
+      .get('/api/actual-workouts/comparison')
+      .set('Authorization', getAuthHeader(global.testUsers.user))
+      .expect(200);
+
+    expect(response.body.status).toBe('success');
+    expect(response.body.data.adherenceRate).toBeDefined();
+    expect(response.body.data.workouts).toBeInstanceOf(Array);
+  });
+});
+
+describe('PUT /api/actual-workouts/:id', () => {
+  it('should update actual workout', async () => {
+    const workout = await global.prisma.actualWorkout.create({
+      data: {
+        userId: global.testUsers.user.id,
+        title: 'Workout to Update',
+        completedDate: new Date(),
+        actualDuration: 30
+      }
+    });
+
+    const updateData = {
+      title: 'Updated Workout Title',
+      actualDuration: 45
+    };
+
+    const response = await request(app)
+      .put(`/api/actual-workouts/${workout.id}`)
+      .set('Authorization', getAuthHeader(global.testUsers.user))
+      .send(updateData)
+      .expect(200);
+
+    expect(response.body.status).toBe('success');
+    expect(response.body.data.title).toBe(updateData.title);
+  });
+
+  it('should return 404 for workout belonging to another user', async () => {
+    const workout = await global.prisma.actualWorkout.create({
+      data: {
+        userId: global.testUsers.admin.id,
+        title: 'Other User Workout',
+        completedDate: new Date(),
+        actualDuration: 30
+      }
+    });
+
+    const updateData = {
+      title: 'Should not update'
+    };
+
+    const response = await request(app)
+      .put(`/api/actual-workouts/${workout.id}`)
+      .set('Authorization', getAuthHeader(global.testUsers.user))
+      .send(updateData)
+      .expect(404);
+
+    expect(response.body.status).toBe('error');
+  });
+});
+
+describe('DELETE /api/actual-workouts/:id', () => {
+  it('should delete actual workout', async () => {
+    const workout = await global.prisma.actualWorkout.create({
+      data: {
+        userId: global.testUsers.user.id,
+        title: 'Workout to Delete',
+        completedDate: new Date(),
+        actualDuration: 30
+      }
+    });
+
+    const response = await request(app)
+      .delete(`/api/actual-workouts/${workout.id}`)
+      .set('Authorization', getAuthHeader(global.testUsers.user))
+      .expect(200);
+
+    expect(response.body.status).toBe('success');
+
+    // Verify deletion
+    const deletedWorkout = await global.prisma.actualWorkout.findUnique({
+      where: { id: workout.id }
+    });
+    expect(deletedWorkout).toBeNull();
   });
 });

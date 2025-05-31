@@ -1,3 +1,4 @@
+//tests/utils/auth.js
 const jwt = require('jsonwebtoken');
 
 function generateToken(user) {

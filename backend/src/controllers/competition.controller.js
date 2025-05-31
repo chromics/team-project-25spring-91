@@ -39,31 +39,60 @@ const competitionController = {
     });
   },
 
-  getCompetitionsForSubscribedGyms: async (req, res) => {
+  // Controller for discoverable competitions in subscribed gyms
+  getDiscoverableCompetitionsForSubscribedGyms: async (req, res) => {
     const userId = req.user.id;
     const { isActive, search, page, limit, includeEnded } = req.query;
-
-    const result = await competitionService.getCompetitionsForSubscribedGyms(
-      userId,
-      {
-        isActive,
-        search,
-        page: page ? parseInt(page) : undefined,
-        limit: limit ? parseInt(limit) : undefined,
-        includeEnded,
-      },
-    );
-
+    const result =
+      await competitionService.getDiscoverableCompetitionsForSubscribedGyms(
+        userId,
+        {
+          isActive: isActive !== undefined ? isActive === 'true' : undefined, // Pass boolean or undefined
+          search,
+          page: page ? parseInt(page) : undefined,
+          limit: limit ? parseInt(limit) : undefined,
+          includeEnded: includeEnded === 'true',
+        },
+      );
     res.status(200).json({
       status: 'success',
       results: result.competitions.length,
       pagination: {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
+        page: result.page,
+        limit: result.limit,
         totalPages: result.totalPages,
         totalItems: result.totalItems,
       },
       data: result.competitions,
+    });
+  },
+
+  // Controller for joined competitions in subscribed gyms
+  getJoinedCompetitionsForSubscribedGyms: async (req, res) => {
+    const userId = req.user.id;
+    const { isActiveCompetition, search, page, limit, includeEnded } =
+      req.query;
+    const result =
+      await competitionService.getJoinedCompetitionsForSubscribedGyms(userId, {
+        isActiveCompetition:
+          isActiveCompetition !== undefined
+            ? isActiveCompetition === 'true'
+            : undefined,
+        search,
+        page: page ? parseInt(page) : undefined,
+        limit: limit ? parseInt(limit) : undefined,
+        includeEnded: includeEnded === 'true',
+      });
+    res.status(200).json({
+      status: 'success',
+      results: result.participations.length,
+      pagination: {
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+        totalItems: result.totalItems,
+      },
+      data: result.participations,
     });
   },
 

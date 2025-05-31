@@ -352,8 +352,8 @@ const getNavigationData = (role: UserRole) => {
                 url: "/dashboard/leaderboard",
               },
               {
-                title: "Challenges",
-                url: "/dashboard/challenge",
+                title: "Competitions",
+                url: "/dashboard/competition",
               },
             ],
           },
