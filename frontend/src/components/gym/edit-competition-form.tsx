@@ -1,3 +1,4 @@
+// components/edit-competition-form.tsx
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -27,8 +28,22 @@ import { X, Upload, Plus, Edit, Trash2 } from 'lucide-react'
 import api from '@/lib/api'
 import { ExerciseOption } from '@/types/exercise'
 
-interface AddCompetitionFormProps {
+interface Competition {
+  id: number
+  gymId: number
+  name: string
+  description: string
+  startDate: string
+  endDate: string
+  imageUrl?: string
+  maxParticipants: number
+  isActive: boolean
+  createdAt: string
+}
+
+interface EditCompetitionFormProps {
   gym: Gym
+  competition: Competition
   onClose: () => void
 }
 
@@ -41,15 +56,15 @@ interface CompetitionFormData {
 }
 
 interface TaskFormData {
-  id?: string
+  id?: number
   name: string
   description: string
   exerciseId: string
   exerciseName?: string
   exerciseCategory?: string
-  metric: string
   targetValue: string
   unit: string
+  metric: string
   pointsValue: string
 }
 
@@ -69,13 +84,13 @@ const METRIC_UNITS = {
   Duration: ['seconds', 'minutes', 'hours'],
 }
 
-const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
+const EditCompetitionForm = ({ gym, competition, onClose }: EditCompetitionFormProps) => {
   const [formData, setFormData] = useState<CompetitionFormData>({
-    name: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    maxParticipants: '',
+    name: competition.name,
+    description: competition.description,
+    startDate: new Date(competition.startDate).toISOString().slice(0, 16),
+    endDate: new Date(competition.endDate).toISOString().slice(0, 16),
+    maxParticipants: competition.maxParticipants.toString(),
   })
 
   const [tasks, setTasks] = useState<TaskFormData[]>([])
@@ -86,20 +101,21 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
     name: '',
     description: '',
     exerciseId: '',
-    metric: '',
     targetValue: '',
     unit: '',
+    metric: '',
     pointsValue: '',
   })
 
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>('')
+  const [imagePreview, setImagePreview] = useState<string>(competition.imageUrl || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
-  // Fetch exercises when component mounts
+  // Fetch exercises and tasks when component mounts
   useEffect(() => {
     fetchExercises()
+    fetchTasks()
   }, [])
 
   const fetchExercises = async () => {
@@ -123,6 +139,32 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
       ]
       setExerciseOptions(mockData)
       toast.warning('Could not fetch exercises from API, using fallback data.')
+    }
+  }
+
+  const fetchTasks = async () => {
+    try {
+      const response = await api.get(`/competitions/${competition.id}/tasks-list`)
+
+      let tasksData = []
+      if (response.data.status === 'success' && response.data.data) {
+        tasksData = response.data.data.map((task: any) => ({
+          id: task.id,
+          name: task.name,
+          description: task.description,
+          exerciseId: task.exerciseId.toString(),
+          exerciseName: task.exercise?.name || '',
+          exerciseCategory: task.exercise?.category || '',
+          targetValue: task.targetValue.toString(),
+          unit: task.unit,
+          pointsValue: task.pointsValue.toString(),
+        }))
+      }
+
+      setTasks(tasksData)
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
+      toast.error('Failed to load tasks')
     }
   }
 
@@ -188,6 +230,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
     }))
   }
 
+
   const getAvailableMetrics = (exerciseCategory: string) => {
     const category = exerciseCategory.toLowerCase()
     return EXERCISE_METRICS[category as keyof typeof EXERCISE_METRICS] || [
@@ -212,9 +255,9 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
         name: '',
         description: '',
         exerciseId: '',
-        metric: '',
         targetValue: '',
         unit: '',
+        metric: '',
         pointsValue: '',
       })
     }
@@ -226,11 +269,10 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
     setEditingTaskIndex(null)
   }
 
-  const saveTask = () => {
+  const saveTask = async () => {
     if (
       !currentTask.name ||
       !currentTask.exerciseId ||
-      !currentTask.metric ||
       !currentTask.targetValue ||
       !currentTask.unit ||
       !currentTask.pointsValue
@@ -242,31 +284,71 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
     const selectedExercise = exerciseOptions.find(
       (ex) => ex.id.toString() === currentTask.exerciseId
     )
-    const taskWithExerciseInfo = {
-      ...currentTask,
-      exerciseName: selectedExercise?.name || '',
-      exerciseCategory: selectedExercise?.category || '',
-      id: editingTaskIndex !== null ? tasks[editingTaskIndex].id : Date.now().toString(),
-    }
 
-    if (editingTaskIndex !== null) {
-      setTasks((prev) =>
-        prev.map((task, index) =>
-          index === editingTaskIndex ? taskWithExerciseInfo : task
+    try {
+      const taskData = {
+        name: currentTask.name.trim(),
+        description: currentTask.description.trim(),
+        exerciseId: parseInt(currentTask.exerciseId),
+        targetValue: parseInt(currentTask.targetValue),
+        unit: currentTask.unit,
+        pointsValue: parseInt(currentTask.pointsValue),
+      }
+
+      if (editingTaskIndex !== null && currentTask.id) {
+        // Update existing task
+        await api.put(`/competitions/tasks/${currentTask.id}`, taskData)
+
+        const updatedTask = {
+          ...currentTask,
+          exerciseName: selectedExercise?.name || '',
+          exerciseCategory: selectedExercise?.category || '',
+        }
+
+        setTasks((prev) =>
+          prev.map((task, index) =>
+            index === editingTaskIndex ? updatedTask : task
+          )
         )
-      )
-      toast.success('Task updated successfully')
-    } else {
-      setTasks((prev) => [...prev, taskWithExerciseInfo])
-      toast.success('Task added successfully')
-    }
+        toast.success('Task updated successfully')
+      } else {
+        // Create new task
+        const response = await api.post(`/competitions/${competition.id}/tasks`, taskData)
 
-    closeTaskDialog()
+        const newTask = {
+          id: response.data.id || response.data.data?.id,
+          ...currentTask,
+          exerciseName: selectedExercise?.name || '',
+          exerciseCategory: selectedExercise?.category || '',
+        }
+
+        setTasks((prev) => [...prev, newTask])
+        toast.success('Task added successfully')
+      }
+
+      closeTaskDialog()
+    } catch (error) {
+      console.error('Error saving task:', error)
+      toast.error('Failed to save task')
+    }
   }
 
-  const removeTask = (index: number) => {
-    setTasks((prev) => prev.filter((_, i) => i !== index))
-    toast.success('Task removed')
+  const removeTask = async (index: number) => {
+    const task = tasks[index]
+
+    if (task.id) {
+      try {
+        await api.delete(`/competitions/tasks/${task.id}`)
+        setTasks((prev) => prev.filter((_, i) => i !== index))
+        toast.success('Task deleted successfully')
+      } catch (error) {
+        console.error('Error deleting task:', error)
+        toast.error('Failed to delete task')
+      }
+    } else {
+      setTasks((prev) => prev.filter((_, i) => i !== index))
+      toast.success('Task removed')
+    }
   }
 
   const validateForm = (): boolean => {
@@ -288,19 +370,9 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
       return false
     }
 
-    if (startDate < new Date()) {
-      toast.error('Start date cannot be in the past')
-      return false
-    }
-
     const maxParticipants = parseInt(formData.maxParticipants)
     if (isNaN(maxParticipants) || maxParticipants <= 0) {
       toast.error('Max participants must be a positive number')
-      return false
-    }
-
-    if (tasks.length === 0) {
-      toast.error('Please add at least one task to the competition')
       return false
     }
 
@@ -313,86 +385,47 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
     setIsSubmitting(true)
 
     try {
-      // Create competition with JSON data (no FormData)
+      // Update competition
       const competitionData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
         maxParticipants: parseInt(formData.maxParticipants),
-        gymId: gym.id,
       }
 
-
-
-      const competitionResponse = await api.post('/competitions', competitionData, {
+      await api.put(`/competitions/${competition.id}`, competitionData, {
         headers: { 'Content-Type': 'application/json' },
       })
 
-      const competitionId = competitionResponse.data.id ||
-        competitionResponse.data.data?.id ||
-        competitionResponse.data.competition?.id
-
-      if (!competitionId) {
-        throw new Error('Competition ID not returned from server')
-      }
-
-      // Update with image if exists
+      // Update image if changed
       if (imageFile) {
         const imageFormData = new FormData()
         imageFormData.append('image', imageFile)
 
         try {
-          await api.put(`/competitions/${competitionId}`, imageFormData, {
+          await api.patch(`/competitions/${competition.id}`, imageFormData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
         } catch (imageError) {
-          console.warn('Image upload failed, but competition was created:', imageError)
+          console.warn('Image upload failed:', imageError)
         }
       }
 
-      // Create all tasks
-      const taskPromises = tasks.map((task) => {
-        const taskData = {
-          name: task.name.trim(),
-          description: task.description.trim(),
-          exerciseId: parseInt(task.exerciseId),
-          targetValue: parseInt(task.targetValue),
-          unit: task.unit,
-          pointsValue: parseInt(task.pointsValue),
-        }
-
-        return api.post(`/competitions/${competitionId}/tasks`, taskData)
-      })
-
-      await Promise.all(taskPromises)
-
-      toast.success('Competition and all tasks created successfully!')
+      toast.success('Competition updated successfully!')
       onClose()
     } catch (error: any) {
-      console.error('Error creating competition:', error)
+      console.error('Error updating competition:', error)
 
-      if (error.response?.data?.error && Array.isArray(error.response.data.error)) {
-        const validationErrors = error.response.data.error
-        const errorMessages = validationErrors.map((err: any) =>
-          `${err.path}: ${err.message}`
-        ).join(', ')
-        toast.error(`Validation errors: ${errorMessages}`)
-      } else {
-        const errorMessage = error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message
-        toast.error(`Failed to create competition: ${errorMessage}`)
-      }
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message
+      toast.error(`Failed to update competition: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
       setShowPreview(false)
     }
   }
-
-
-
-
 
   const handlePreviewOpen = () => {
     if (!validateForm()) return
@@ -436,7 +469,6 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
                 value={formData.startDate}
                 onChange={handleInputChange}
                 required
-                min={new Date().toISOString().slice(0, 16)}
               />
             </div>
             <div className="space-y-2">
@@ -448,7 +480,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
                 value={formData.endDate}
                 onChange={handleInputChange}
                 required
-                min={formData.startDate || new Date().toISOString().slice(0, 16)}
+                min={formData.startDate}
               />
             </div>
           </div>
@@ -525,7 +557,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
         {/* Tasks Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Competition Tasks *</h3>
+            <h3 className="text-lg font-semibold">Competition Tasks</h3>
             <Button onClick={() => openTaskDialog()} size="sm" className='cursor-pointer'>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
@@ -543,7 +575,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
             <div className="space-y-3">
               {tasks.map((task, index) => (
                 <div
-                  key={task.id}
+                  key={task.id || index}
                   className="flex items-center justify-between p-4 border rounded-lg bg-gray-50"
                 >
                   <div className="flex-1">
@@ -551,9 +583,6 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
                       <h4 className="font-medium">{task.name}</h4>
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                         {task.exerciseName}
-                      </span>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {task.metric}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
@@ -605,7 +634,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
         </div>
       </div>
 
-      {/* Task Dialog */}
+      {/* Task Dialog - Same as AddCompetitionForm */}
       <Dialog open={showTaskDialog} onOpenChange={closeTaskDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -655,6 +684,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
                 required
               />
             </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -714,34 +744,36 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
                 </Select>
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="targetValue">Target Value *</Label>
-                <Input
-                  id="targetValue"
-                  name="targetValue"
-                  type="number"
-                  min="1"
-                  value={currentTask.targetValue}
-                  onChange={handleTaskInputChange}
-                  placeholder="5000"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="targetValue">Target Value *</Label>
+                  <Input
+                    id="targetValue"
+                    name="targetValue"
+                    type="number"
+                    min="1"
+                    value={currentTask.targetValue}
+                    onChange={handleTaskInputChange}
+                    placeholder="5000"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pointsValue">Points Value *</Label>
+                  <Input
+                    id="pointsValue"
+                    name="pointsValue"
+                    type="number"
+                    min="1"
+                    value={currentTask.pointsValue}
+                    onChange={handleTaskInputChange}
+                    placeholder="200"
+                    required
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="pointsValue">Points Value *</Label>
-                <Input
-                  id="pointsValue"
-                  name="pointsValue"
-                  type="number"
-                  min="1"
-                  value={currentTask.pointsValue}
-                  onChange={handleTaskInputChange}
-                  placeholder="200"
-                  required
-                />
-              </div>
+
             </div>
 
             <div className="space-y-2">
@@ -777,11 +809,11 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
           data={previewData}
           onConfirm={handleSubmit}
           isSubmitting={isSubmitting}
-          confirmText="Confirm & Create"
+          confirmText="Update Competition"
         />
       )}
     </>
   )
 }
 
-export default AddCompetitionForm
+export default EditCompetitionForm
