@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import type { Gym } from '@/types/gym'
 import PreviewDialog from './preview-dialog'
 import { X, Upload, Plus, Trash2 } from 'lucide-react'
+import api from '@/lib/api'
 
 interface AddGymClassFormProps {
   gym: Gym
@@ -107,33 +108,73 @@ const AddGymClassForm = ({ gym, onClose }: AddGymClassFormProps) => {
     setIsSubmitting(true)
 
     try {
-      const submitData = new FormData()
-      
-      submitData.append('name', formData.name)
-      submitData.append('description', formData.description)
-      submitData.append('maxCapacity', formData.maxCapacity)
-      submitData.append('durationMinutes', formData.durationMinutes)
-      submitData.append('difficultyLevel', formData.difficultyLevel)
-      submitData.append('membersOnly', formData.membersOnly.toString())
-      submitData.append('gymId', gym.id.toString())
-      submitData.append('schedules', JSON.stringify(schedules))
-
-      if (imageFile) {
-        submitData.append('image', imageFile)
+      // Create gym class with JSON data (no FormData)
+      const classData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        maxCapacity: parseInt(formData.maxCapacity),
+        durationMinutes: parseInt(formData.durationMinutes),
+        difficultyLevel: formData.difficultyLevel,
+        membersOnly: formData.membersOnly,
+        gymId: gym.id,
       }
 
-      // Use actual API call for classes
-      // const response = await api.post('/classes', submitData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // })
+      const classResponse = await api.post('/classes', classData, {
+        headers: { 'Content-Type': 'application/json' },
+      })
 
-      toast.success('Gym class created successfully!')
+      const classId = classResponse.data.id ||
+        classResponse.data.data?.id ||
+        classResponse.data.class?.id
+
+      if (!classId) {
+        throw new Error('Class ID not returned from server')
+      }
+
+      // Update with image if exists
+      if (imageFile) {
+        const imageFormData = new FormData()
+        imageFormData.append('image', imageFile)
+
+        try {
+          await api.put(`/classes/${classId}`, imageFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        } catch (imageError) {
+          console.warn('Image upload failed, but class was created:', imageError)
+        }
+      }
+
+      // Create all schedules
+      const schedulePromises = schedules.map((schedule) => {
+        const scheduleData = {
+          startTime: new Date(schedule.startTime).toISOString(),
+          endTime: new Date(schedule.endTime).toISOString(),
+          instructor: schedule.instructor.trim(),
+        }
+
+        return api.post(`/classes/${classId}/schedules`, scheduleData)
+      })
+
+      await Promise.all(schedulePromises)
+
+      toast.success('Gym class and all schedules created successfully!')
       onClose()
     } catch (error: any) {
       console.error('Error creating gym class:', error)
-      toast.error('Failed to create gym class. Please try again.')
+
+      if (error.response?.data?.error && Array.isArray(error.response.data.error)) {
+        const validationErrors = error.response.data.error
+        const errorMessages = validationErrors.map((err: any) =>
+          `${err.path}: ${err.message}`
+        ).join(', ')
+        toast.error(`Validation errors: ${errorMessages}`)
+      } else {
+        const errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message
+        toast.error(`Failed to create gym class: ${errorMessage}`)
+      }
     } finally {
       setIsSubmitting(false)
       setShowPreview(false)
