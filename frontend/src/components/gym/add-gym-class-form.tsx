@@ -103,12 +103,10 @@ const AddGymClassForm = ({ gym, onClose }: AddGymClassFormProps) => {
       )
     )
   }
-
   const handleSubmit = async () => {
     setIsSubmitting(true)
 
     try {
-      // Create gym class with JSON data (no FormData)
       const classData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -123,64 +121,54 @@ const AddGymClassForm = ({ gym, onClose }: AddGymClassFormProps) => {
         headers: { 'Content-Type': 'application/json' },
       })
 
-      const classId = classResponse.data.id ||
-        classResponse.data.data?.id ||
-        classResponse.data.class?.id
+      const classId = classResponse.data.id || classResponse.data.data?.id
 
       if (!classId) {
         throw new Error('Class ID not returned from server')
       }
 
-      // Update with image if exists
       if (imageFile) {
         const imageFormData = new FormData()
+        imageFormData.append('name', formData.name.trim())
         imageFormData.append('image', imageFile)
+
 
         try {
           await api.put(`/classes/${classId}`, imageFormData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           })
+          console.log('Image uploaded successfully')
         } catch (imageError) {
-          console.warn('Image upload failed, but class was created:', imageError)
+          console.warn('Image upload failed:', imageError)
+          toast.warning('Class created but image upload failed')
         }
       }
 
-      // Create all schedules
-      const schedulePromises = schedules.map((schedule) => {
-        const scheduleData = {
-          startTime: new Date(schedule.startTime).toISOString(),
-          endTime: new Date(schedule.endTime).toISOString(),
-          instructor: schedule.instructor.trim(),
-        }
+      if (schedules.length > 0) {
+        const schedulePromises = schedules.map((schedule) =>
+          api.post('/schedules', {
+            ...schedule,
+            classId: classId,
+          })
+        )
+        await Promise.all(schedulePromises)
+      }
 
-        return api.post(`/classes/${classId}/schedules`, scheduleData)
-      })
-
-      await Promise.all(schedulePromises)
-
-      toast.success('Gym class and all schedules created successfully!')
+      toast.success('Class created successfully!')
       onClose()
     } catch (error: any) {
-      console.error('Error creating gym class:', error)
-
+      console.error('Error creating class:', error)
       if (error.response?.data?.error && Array.isArray(error.response.data.error)) {
-        const validationErrors = error.response.data.error
-        const errorMessages = validationErrors.map((err: any) =>
-          `${err.path}: ${err.message}`
-        ).join(', ')
-        toast.error(`Validation errors: ${errorMessages}`)
+        const errorMessages = error.response.data.error.map((err: any) => err.message).join(', ')
+        toast.error(`Validation error: ${errorMessages}`)
       } else {
-        const errorMessage = error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message
-        toast.error(`Failed to create gym class: ${errorMessage}`)
+        toast.error(error.response?.data?.message || 'Failed to create class. Please try again.')
       }
     } finally {
       setIsSubmitting(false)
       setShowPreview(false)
     }
   }
-
   const previewData = {
     ...formData,
     schedules,
