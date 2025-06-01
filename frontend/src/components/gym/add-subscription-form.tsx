@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 import type { Gym } from '@/types/gym'
 import PreviewDialog from './preview-dialog'
 import { X, Upload } from 'lucide-react'
+import api from '@/lib/api'
 
 interface AddSubscriptionFormProps {
   gym: Gym
@@ -76,26 +77,45 @@ const AddSubscriptionForm = ({ gym, onClose }: AddSubscriptionFormProps) => {
     setIsSubmitting(true)
 
     try {
-      const submitData = new FormData()
+      // Convert duration to days based on durationType
+      let durationDays: number
+      const durationValue = parseInt(formData.duration)
       
-      submitData.append('name', formData.name)
-      submitData.append('description', formData.description)
-      submitData.append('price', formData.price)
-      submitData.append('duration', formData.duration)
-      submitData.append('durationType', formData.durationType)
-      submitData.append('features', formData.features)
-      submitData.append('gymId', gym.id.toString())
-
-      if (imageFile) {
-        submitData.append('image', imageFile)
+      switch (formData.durationType) {
+        case 'days':
+          durationDays = durationValue
+          break
+        case 'weeks':
+          durationDays = durationValue * 7
+          break
+        case 'months':
+          durationDays = durationValue * 30
+          break
+        case 'years':
+          durationDays = durationValue * 365
+          break
+        default:
+          durationDays = durationValue * 30 // default to months
       }
 
-      // Replace with actual API call
-      // const response = await api.post('/subscriptions', submitData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // })
+      const submitData = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        durationDays: durationDays,
+        maxBookingsPerWeek: 10, // You might want to make this configurable
+        isActive: true,
+      }
+
+      const response = await api.post(
+        `/gyms/${gym.id}/membership-plans`,
+        submitData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
 
       toast.success('Subscription created successfully!')
       onClose()
