@@ -37,6 +37,7 @@ const routeNames: Record<string, string> = {
   'my-gyms': 'My Gyms',
   'chat': 'Ask AI',
   'logged-meals': 'Logged Meals',
+  'competitions': 'Competitions', 
   // add more routes
 };
 
