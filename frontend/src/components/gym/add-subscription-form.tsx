@@ -221,47 +221,7 @@ const AddSubscriptionForm = ({ gym, onClose }: AddSubscriptionFormProps) => {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Subscription Image</Label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-            {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-32 object-cover rounded"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={removeImage}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-2">
-                  <Label htmlFor="image" className="cursor-pointer">
-                    <span className="text-sm text-blue-600 hover:text-blue-500">
-                      Upload an image
-                    </span>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </Label>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+
 
         <div className="flex gap-2 pt-4">
           <Button
