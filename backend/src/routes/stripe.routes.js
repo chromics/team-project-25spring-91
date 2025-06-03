@@ -11,4 +11,7 @@ router.post('/webhook',
 
 router.post('/create-checkout-session', stripeController.createCheckoutSession);
 
+// Add session verification endpoint
+router.get('/verify-session/:sessionId', stripeController.verifySession);
+
 module.exports = router;

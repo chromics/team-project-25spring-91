@@ -70,7 +70,36 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
       setLoading(false);
     }
   };
+const handleSubscribe = async () => {
+  if (!user) {
+    toast.error('Please log in to subscribe');
+    return;
+  }
 
+  try {
+    setLoading(true);
+    
+    const { data } = await api.post('/stripe/create-checkout-session', {
+      planId: selectedPlan?.id,
+      gymId: gym.id,
+      userEmail: user?.email,
+      successUrl: `${window.location.origin}/dashboard/stripe-success`,
+      cancelUrl: `${window.location.origin}/dashboard/stripe-canceled`,
+    });
+
+    // Redirect to Stripe Checkout
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      toast.error('Failed to create checkout session');
+    }
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    toast.error('Failed to create checkout session');
+  } finally {
+    setLoading(false);
+  }
+};
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -217,7 +246,7 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
             </Button>
           ) : (
             <div className="flex w-full justify-between gap-4">
-              <Button asChild
+              <Button 
                 variant="outline"
                 onClick={handleBack}
                 className="min-w-[100px] transition-all duration-300"
@@ -225,13 +254,13 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
                 Back
               </Button>
               <Button
-                // onClick={resetAndClose}
+                onClick={handleSubscribe}
 
               className="min-w-[100px] transition-all duration-300"
               >
-                <Link href={`${'https://buy.stripe.com/test_bIY8wI4kQ4Ba9cQdQS'}?prefilled_email=${user?.email}`}>
+                {/* <Link href={`${'https://buy.stripe.com/test_bIY8wI4kQ4Ba9cQdQS'}?prefilled_email=${user?.email}`}>
                 Subscribe
-              </Link>
+              </Link> */}
               Done
             </Button>
             </div>
