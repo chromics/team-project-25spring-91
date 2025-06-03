@@ -177,221 +177,229 @@ const AddGymClassForm = ({ gym, onClose }: AddGymClassFormProps) => {
     gymName: gym.name,
   }
 
-  return (
+return (
     <>
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Class Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Yoga Class"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="maxCapacity">Max Capacity</Label>
-            <Input
-              id="maxCapacity"
-              name="maxCapacity"
-              type="number"
-              value={formData.maxCapacity}
-              onChange={handleInputChange}
-              placeholder="20"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="durationMinutes">Duration (minutes)</Label>
-            <Input
-              id="durationMinutes"
-              name="durationMinutes"
-              type="number"
-              value={formData.durationMinutes}
-              onChange={handleInputChange}
-              placeholder="60"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="difficultyLevel">Difficulty Level</Label>
-            <Select
-              value={formData.difficultyLevel}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, difficultyLevel: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="beginner">Beginner</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Describe the class..."
-            rows={3}
-          />
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="membersOnly"
-            checked={formData.membersOnly}
-            onCheckedChange={(checked) =>
-              setFormData((prev) => ({ ...prev, membersOnly: !!checked }))
-            }
-          />
-          <Label htmlFor="membersOnly">Members Only</Label>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Class Image</Label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-            {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-32 object-cover rounded"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={removeImage}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-2">
-                  <Label htmlFor="image" className="cursor-pointer">
-                    <span className="text-sm text-blue-600 hover:text-blue-500">
-                      Upload an image
-                    </span>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </Label>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Class Schedules</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addSchedule}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Schedule
-            </Button>
-          </div>
-
-          {schedules.map((schedule) => (
-            <div
-              key={schedule.id}
-              className="grid grid-cols-4 gap-2 p-3 border rounded-lg"
-            >
-              <div className="space-y-1">
-                <Label className="text-xs">Start Time</Label>
-                <Input
-                  type="datetime-local"
-                  value={schedule.startTime}
-                  onChange={(e) =>
-                    updateSchedule(schedule.id, 'startTime', e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">End Time</Label>
-                <Input
-                  type="datetime-local"
-                  value={schedule.endTime}
-                  onChange={(e) =>
-                    updateSchedule(schedule.id, 'endTime', e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Instructor</Label>
-                <Input
-                  value={schedule.instructor}
-                  onChange={(e) =>
-                    updateSchedule(schedule.id, 'instructor', e.target.value)
-                  }
-                  placeholder="John Smith"
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeSchedule(schedule.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Class Name</Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Yoga Class"
+                        required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="maxCapacity">Max Capacity</Label>
+                    <Input
+                        id="maxCapacity"
+                        name="maxCapacity"
+                        type="number"
+                        value={formData.maxCapacity}
+                        onChange={handleInputChange}
+                        placeholder="20"
+                        required
+                    />
+                </div>
             </div>
-          ))}
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+                    <Input
+                        id="durationMinutes"
+                        name="durationMinutes"
+                        type="number"
+                        value={formData.durationMinutes}
+                        onChange={handleInputChange}
+                        placeholder="60"
+                        required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="difficultyLevel">Difficulty Level</Label>
+                    <Select
+                        value={formData.difficultyLevel}
+                        onValueChange={(value) =>
+                            setFormData((prev) => ({ ...prev, difficultyLevel: value }))
+                        }
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Describe the class..."
+                    rows={3}
+                />
+            </div>
+
+            <div className="flex items-center space-x-2">
+                <Checkbox
+                    id="membersOnly"
+                    checked={formData.membersOnly}
+                    onCheckedChange={(checked) =>
+                        setFormData((prev) => ({ ...prev, membersOnly: !!checked }))
+                    }
+                />
+                <Label htmlFor="membersOnly">Members Only</Label>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Class Image</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    {imagePreview ? (
+                        <div className="relative">
+                            <img
+                                src={imagePreview}
+                                alt="Preview"
+                                className="w-full h-32 object-cover rounded"
+                            />
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-2 right-2"
+                                onClick={removeImage}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="mt-2">
+                                <Label htmlFor="image" className="cursor-pointer">
+                                    <span className="text-sm text-blue-600 hover:text-blue-500">
+                                        Upload an image
+                                    </span>
+                                    <Input
+                                        id="image"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                </Label>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <Label>Class Schedules</Label>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addSchedule}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Schedule
+                    </Button>
+                </div>
+
+                {schedules.map((schedule) => (
+                    <div
+                        key={schedule.id}
+                        className="p-4 border rounded-lg space-y-3"
+                    >
+                        {/* Row 1: Time inputs */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">Start Time</Label>
+                                <Input
+                                    type="datetime-local"
+                                    value={schedule.startTime}
+                                    onChange={(e) =>
+                                        updateSchedule(schedule.id, 'startTime', e.target.value)
+                                    }
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">End Time</Label>
+                                <Input
+                                    type="datetime-local"
+                                    value={schedule.endTime}
+                                    onChange={(e) =>
+                                        updateSchedule(schedule.id, 'endTime', e.target.value)
+                                    }
+                                    className="w-full"
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* Row 2: Instructor and remove button */}
+                        <div className="flex items-end gap-4">
+                            <div className="flex-1 space-y-2">
+                                <Label className="text-sm font-medium">Instructor</Label>
+                                <Input
+                                    value={schedule.instructor}
+                                    onChange={(e) =>
+                                        updateSchedule(schedule.id, 'instructor', e.target.value)
+                                    }
+                                    placeholder="John Smith"
+                                    className="w-full"
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeSchedule(schedule.id)}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex gap-2 pt-4">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowPreview(true)}
+                    className="flex-1"
+                >
+                    Preview
+                </Button>
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Cancel
+                </Button>
+            </div>
         </div>
 
-        <div className="flex gap-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowPreview(true)}
-            className="flex-1"
-          >
-            Preview
-          </Button>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-
-      <PreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        title="Gym Class Preview"
-        data={previewData}
-        onConfirm={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+        <PreviewDialog
+            open={showPreview}
+            onOpenChange={setShowPreview}
+            title="Gym Class Preview"
+            data={previewData}
+            onConfirm={handleSubmit}
+            isSubmitting={isSubmitting}
+        />
     </>
-  )
+)
 }
 
 export default AddGymClassForm

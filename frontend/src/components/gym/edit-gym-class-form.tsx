@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import type { Gym, GymClass } from '@/types/gym'
 import PreviewDialog from './preview-dialog'
-import { X, Upload, Plus, Trash2 } from 'lucide-react'
+import { X, Upload, Plus, Trash2, Calendar, Clock, User } from 'lucide-react'
 import api from '@/lib/api'
 
 interface EditGymClassFormProps {
@@ -70,9 +70,8 @@ const EditGymClassForm = ({ gym, gymClass, onClose }: EditGymClassFormProps) => 
                 `/classes/${gymClass.id}/schedules`
             )
             
-            // Convert to local format with proper datetime-local format
             const formattedSchedules = response.data.data.map((schedule: any) => ({
-                id: schedule.id?.toString(), // Keep original numeric ID for existing schedules
+                id: schedule.id?.toString(), 
                 startTime: schedule.startTime ? new Date(schedule.startTime).toISOString().slice(0, 16) : '',
                 endTime: schedule.endTime ? new Date(schedule.endTime).toISOString().slice(0, 16) : '',
                 instructor: schedule.instructor || '',
@@ -81,7 +80,6 @@ const EditGymClassForm = ({ gym, gymClass, onClose }: EditGymClassFormProps) => 
             setSchedules(formattedSchedules)
         } catch (error) {
             console.error('Error fetching schedules:', error)
-            // Don't show error toast as schedules might not exist yet
         } finally {
             setLoading(false)
         }
@@ -157,10 +155,25 @@ const EditGymClassForm = ({ gym, gymClass, onClose }: EditGymClassFormProps) => 
         )
     }
 
+    const formatDateTime = (dateTimeString: string) => {
+        if (!dateTimeString) return 'Not set'
+        const date = new Date(dateTimeString)
+        return date.toLocaleString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    }
+
     const validateSchedules = () => {
-        for (const schedule of schedules) {
+        const newSchedules = schedules.filter(schedule => !isExistingSchedule(schedule.id))
+        
+        for (const schedule of newSchedules) {
             if (!schedule.startTime || !schedule.endTime) {
-                toast.error('Please fill in all schedule times')
+                toast.error('Please fill in all schedule times for new schedules')
                 return false
             }
             
@@ -267,6 +280,10 @@ const EditGymClassForm = ({ gym, gymClass, onClose }: EditGymClassFormProps) => 
         imagePreview,
         gymName: gym.name,
     }
+
+    // Separate existing and new schedules
+    const existingSchedules = schedules.filter(schedule => isExistingSchedule(schedule.id))
+    const newSchedules = schedules.filter(schedule => !isExistingSchedule(schedule.id))
 
     return (
         <>
@@ -415,57 +432,123 @@ const EditGymClassForm = ({ gym, gymClass, onClose }: EditGymClassFormProps) => 
                             <p className="mt-2 text-sm text-muted-foreground">Loading schedules...</p>
                         </div>
                     ) : (
-                        schedules.map((schedule) => (
-                            <div
-                                key={schedule.id}
-                                className="grid grid-cols-4 gap-2 p-3 border rounded-lg"
-                            >
-                                <div className="space-y-1">
-                                    <Label className="text-xs">Start Time</Label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={schedule.startTime}
-                                        onChange={(e) =>
-                                            updateSchedule(schedule.id, 'startTime', e.target.value)
-                                        }
-                                    />
+                        <div className="space-y-4">
+                            {/* Existing Schedules - Read Only */}
+                            {existingSchedules.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-medium text-muted-foreground">
+                                        Current Schedules (Read Only)
+                                    </h4>
+                                    {existingSchedules.map((schedule) => (
+                                        <div
+                                            key={schedule.id}
+                                            className="p-4 border rounded-lg bg-muted/30"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-2 flex-1">
+                                                    <div className="flex items-center gap-4 text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                            <span className="font-medium">Start:</span>
+                                                            <span>{formatDateTime(schedule.startTime)}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="h-4 w-4 text-muted-foreground" />
+                                                            <span className="font-medium">End:</span>
+                                                            <span>{formatDateTime(schedule.endTime)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="font-medium">Instructor:</span>
+                                                        <span>{schedule.instructor || 'Not assigned'}</span>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleScheduleRemove(schedule.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="space-y-1">
-                                    <Label className="text-xs">End Time</Label>
-                                    <Input
-                                        type="datetime-local"
-                                        value={schedule.endTime}
-                                        onChange={(e) =>
-                                            updateSchedule(schedule.id, 'endTime', e.target.value)
-                                        }
-                                    />
+                            )}
+
+                            {/* New Schedules - Editable */}
+                            {newSchedules.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-medium text-muted-foreground">
+                                        New Schedules
+                                    </h4>
+                                    {newSchedules.map((schedule) => (
+                                        <div
+                                            key={schedule.id}
+                                            className="p-4 border rounded-lg space-y-3 bg-background"
+                                        >
+                                            {/* Row 1: Time inputs */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">Start Time</Label>
+                                                    <Input
+                                                        type="datetime-local"
+                                                        value={schedule.startTime}
+                                                        onChange={(e) =>
+                                                            updateSchedule(schedule.id, 'startTime', e.target.value)
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">End Time</Label>
+                                                    <Input
+                                                        type="datetime-local"
+                                                        value={schedule.endTime}
+                                                        onChange={(e) =>
+                                                            updateSchedule(schedule.id, 'endTime', e.target.value)
+                                                        }
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Row 2: Instructor and actions */}
+                                            <div className="flex items-end gap-4">
+                                                <div className="flex-1 space-y-2">
+                                                    <Label className="text-sm font-medium">Instructor</Label>
+                                                    <Input
+                                                        value={schedule.instructor}
+                                                        onChange={(e) =>
+                                                            updateSchedule(schedule.id, 'instructor', e.target.value)
+                                                        }
+                                                        placeholder="John Smith"
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleScheduleRemove(schedule.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="space-y-1">
-                                    <Label className="text-xs">Instructor</Label>
-                                    <Input
-                                        value={schedule.instructor}
-                                        onChange={(e) =>
-                                            updateSchedule(schedule.id, 'instructor', e.target.value)
-                                        }
-                                        placeholder="John Smith"
-                                    />
+                            )}
+
+                            {schedules.length === 0 && (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Calendar className="mx-auto h-12 w-12 mb-2" />
+                                    <p>No schedules yet. Add your first schedule above.</p>
                                 </div>
-                                <div className="flex items-end justify-between">
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => handleScheduleRemove(schedule.id)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                    {/* Show indicator for existing vs new schedules */}
-                                    <span className="text-xs text-muted-foreground">
-                                        {isExistingSchedule(schedule.id) ? '(DB)' : '(New)'}
-                                    </span>
-                                </div>
-                            </div>
-                        ))
+                            )}
+                        </div>
                     )}
                 </div>
 
