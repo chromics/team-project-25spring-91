@@ -49,14 +49,14 @@ getAllGymClasses: async (req, res) => {
     });
   },
   
-  getClassSchedules: async (req, res) => {
+getClassSchedules: async (req, res) => {
     const classId = parseInt(req.params.id);
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate } = req.query; // Will be string or undefined
     
     const schedules = await classService.getClassSchedules(
       classId,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined
+      startDate, // Pass directly
+      endDate   // Pass directly
     );
     
     res.status(200).json({
