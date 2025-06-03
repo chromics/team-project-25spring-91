@@ -5,53 +5,58 @@ import ButterflyLoader from '@/components/butterfly-loader';
 import { useRoleProtection } from '@/hooks/use-role-protection';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import api from "@/lib/api";
+import axios from "axios";
+
+import { PersonalInformationSection } from "@/components/settings/personal-information";
+import { AccountInformationSection } from "@/components/settings/account-information";
+
+interface UserProfileData {
+  id: number;
+  email: string;
+  displayName: string;
+  dateOfBirth: string | null;
+  gender: string | null;
+  heightCm: number | null;
+  weightKg: number | string | null;
+  createdAt: string;
+  role: string;
+  imageUrl: string | null;
+}
 
 interface UserSettings {
-  // Personal Information
-  height: string;
-  weight: string;
-  gender: string;
-  dateOfBirth: Date | undefined;
-
-  // Account Information
+  id: number;
   email: string;
-  username: string;
+  displayName: string;
+  dateOfBirth: Date | null;
+  gender: string;
+  heightCm: number | string;
+  weightKg: number | string;
+  createdAt: string;
+  role: string;
+  imageUrl: string | null;
 }
 
 export default function SettingsPage() {
-  const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER, UserRole.ADMIN, UserRole.GYM_OWNER]
+  const { isAuthorized, isLoading: isRoleLoading, user } = useRoleProtection({
+    allowedRoles: [UserRole.REGULAR_USER, UserRole.ADMIN, UserRole.GYM_OWNER],
   });
 
   const [settings, setSettings] = useState<UserSettings>({
-    height: "",
-    weight: "",
-    gender: "",
-    dateOfBirth: undefined,
+    id: 0,
     email: "",
-    username: "",
+    displayName: "",
+    dateOfBirth: null,
+    gender: "",
+    heightCm: "",
+    weightKg: "",
+    createdAt: "",
+    role: "",
+    imageUrl: null,
   });
 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
@@ -59,72 +64,140 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const fetchUserSettings = async () => {
+      if (!isAuthorized || isRoleLoading) {
+        if (!isRoleLoading && !isAuthorized) {
+          setIsLoadingSettings(false);
+        }
+        return;
+      }
+
+      setIsLoadingSettings(true);
       try {
-        // Replace with your actual API endpoint
-        const response = await fetch("/api/user/settings");
-        const data = await response.json();
-        setSettings({
-          ...data,
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-        });
+        const response = await api.get<{
+          status: string;
+          data: UserProfileData;
+          message?: string;
+        }>("/users/profile");
+
+        if (response.data.status === "success" && response.data.data) {
+          const userData = response.data.data;
+          setSettings({
+            id: userData.id,
+            email: userData.email,
+            displayName: userData.displayName,
+            dateOfBirth: userData.dateOfBirth
+              ? new Date(userData.dateOfBirth)
+              : null,
+            gender: userData.gender || "",
+            heightCm: userData.heightCm ?? "",
+            weightKg: userData.weightKg ?? "",
+            createdAt: userData.createdAt,
+            role: userData.role,
+            imageUrl: userData.imageUrl,
+          });
+        } else {
+          throw new Error(
+            response.data.message || "Failed to load user profile data.",
+          );
+        }
       } catch (error) {
+        let errorMessage = "Failed to fetch user settings";
+        if (
+          axios.isAxiosError(error) &&
+          error.response?.data?.message
+        ) {
+          errorMessage = error.response.data.message;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast.error(errorMessage);
         console.error("Failed to fetch user settings:", error);
-        // Mock data for development
-        setSettings({
-          height: "175",
-          weight: "70",
-          gender: "male",
-          dateOfBirth: new Date("1990-01-01"),
-          email: "user@example.com",
-          username: "johndoe",
-        });
       } finally {
         setIsLoadingSettings(false);
       }
     };
 
-    // Only fetch settings if user is authorized
-    if (isAuthorized && !isLoading) {
-      fetchUserSettings();
-    }
-  }, [isAuthorized, isLoading]);
+    fetchUserSettings();
+  }, [isAuthorized, isRoleLoading]);
 
-  const handleInputChange = (field: keyof UserSettings, value: string | Date | undefined) => {
-    setSettings(prev => ({
+  const handleInputChange = (
+    field: keyof UserSettings,
+    value: string | Date | null | number,
+  ) => {
+    setSettings((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleImageUrlChange = (newImageUrl: string | null) => {
+    setSettings((prev) => ({
+      ...prev,
+      imageUrl: newImageUrl,
     }));
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Replace with your actual API endpoint
-      const response = await fetch("/api/user/settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...settings,
-          dateOfBirth: settings.dateOfBirth?.toISOString(),
-        }),
-      });
+      // Prepare data for the PUT request
+      const updateData: Partial<UserProfileData> = {
+        email: settings.email,
+        displayName: settings.displayName,
+        dateOfBirth: settings.dateOfBirth
+          ? format(settings.dateOfBirth, "yyyy-MM-dd")
+          : null,
+        gender: settings.gender || null,
+        heightCm: settings.heightCm ? Number(settings.heightCm) : null,
+        weightKg: settings.weightKg ? Number(settings.weightKg) : null,
+        imageUrl: settings.imageUrl,
+      };
 
-      if (response.ok) {
+      const response = await api.put<{
+        status: string;
+        message?: string;
+        data?: UserProfileData; // Backend might return the updated profile
+      }>("/users/profile", updateData);
+
+      if (response.data.status === "success") {
         toast.success("Settings updated successfully!");
+        if (response.data.data) {
+          const updatedUserData = response.data.data;
+          // Update local state with potentially updated data from backend
+          setSettings((prev) => ({
+            ...prev,
+            email: updatedUserData.email,
+            displayName: updatedUserData.displayName,
+            dateOfBirth: updatedUserData.dateOfBirth
+              ? new Date(updatedUserData.dateOfBirth)
+              : null,
+            gender: updatedUserData.gender || "",
+            heightCm: updatedUserData.heightCm ?? "",
+            weightKg: updatedUserData.weightKg ?? "",
+            imageUrl: updatedUserData.imageUrl,
+          }));
+        }
       } else {
-        throw new Error("Failed to update settings");
+        throw new Error(response.data.message || "Failed to update settings");
       }
     } catch (error) {
+      let errorMessage = "Failed to save settings";
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.data?.message
+      ) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
       console.error("Failed to save settings:", error);
-      toast.error("Failed to update settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoading) {
+  if (isRoleLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <ButterflyLoader />
@@ -134,8 +207,11 @@ export default function SettingsPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <ButterflyLoader />
+      <div className="flex flex-col justify-center items-center min-h-[200px] text-center">
+        <p className="text-xl text-destructive">Access Denied</p>
+        <p className="text-muted-foreground">
+          You do not have permission to view this page.
+        </p>
       </div>
     );
   }
@@ -143,7 +219,7 @@ export default function SettingsPage() {
   if (isLoadingSettings) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -151,153 +227,37 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
-            Manage your account settings and personal information.
+            Welcome {user?.displayName || settings.displayName || "User"}!
+            Manage your account settings and personal information here.
           </p>
         </div>
 
-        <Separator />
-
         <div className="space-y-8">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>
-                Update your personal details and preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Height */}
-                <div className="space-y-2">
-                  <Label htmlFor="height">Height (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    placeholder="175"
-                    value={settings.height}
-                    onChange={(e) => handleInputChange("height", e.target.value)}
-                  />
-                </div>
+          <PersonalInformationSection
+            settings={settings}
+            onInputChange={handleInputChange}
+            onImageUrlChange={handleImageUrlChange}
+            userDisplayNameForAvatar={
+              settings.displayName || user?.displayName || ""
+            }
+          />
 
-                {/* Weight */}
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    placeholder="70"
-                    value={settings.weight}
-                    onChange={(e) => handleInputChange("weight", e.target.value)}
-                  />
-                </div>
-              </div>
+          <AccountInformationSection
+            settings={settings}
+            onInputChange={
+              handleInputChange as (field: "email", value: string) => void
+            }
+          />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Gender */}
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={settings.gender}
-                    onValueChange={(value) => handleInputChange("gender", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Date of Birth */}
-                <div className="space-y-2">
-                  <Label>Date of Birth</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !settings.dateOfBirth && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {settings.dateOfBirth ? (
-                          format(settings.dateOfBirth, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={settings.dateOfBirth}
-                        onSelect={(date) => handleInputChange("dateOfBirth", date)}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>
-                Update your account credentials and login information.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={settings.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    This will be your new login email address.
-                  </p>
-                </div>
-
-                {/* Username */}
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    placeholder="johndoe"
-                    value={settings.username}
-                    onChange={(e) => handleInputChange("username", e.target.value)}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    This is your public display name.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Save Button */}
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving} className="min-w-[120px]">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || isLoadingSettings}
+              className="min-w-[120px]"
+            >
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
