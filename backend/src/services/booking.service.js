@@ -37,6 +37,31 @@ const bookingService = {
     
     return bookings;
   },
+
+  getTotalBookingsForOwnedGyms: async (ownerId) => {
+      const ownedGyms = await prisma.gym.findMany({
+        where: { ownerId },
+        select: { id: true },
+      });
+
+      if (ownedGyms.length === 0) {
+        return 0;
+      }
+      const ownedGymIds = ownedGyms.map(gym => gym.id);
+
+      const totalBookings = await prisma.userBooking.count({
+        where: {
+          schedule: {
+            gymClass: {
+              gymId: { in: ownedGymIds },
+            },
+          },
+          // Consider only confirmed or attended bookings as "actual" bookings
+          bookingStatus: { in: ['confirmed', 'attended'] },
+        },
+      });
+      return totalBookings;
+    },
   
   getUpcomingBookings: async (userId) => {
     const now = new Date();
@@ -366,6 +391,8 @@ getBookingHistory: async (userId, { page = 1, limit = 10, paginate = true }) => 
           }
         }
       });
+
+      
       
       // Decrement membership booking count if cancelled within the same week
       // This allows the user to book another class

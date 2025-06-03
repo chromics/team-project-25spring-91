@@ -190,6 +190,15 @@ getAllGyms: async ({ search, page = 1, limit = 10, paginate = true }) => {
     const count = await prisma.gym.count();
     return count;
   },
+
+  getOwnedGymCount: async (ownerId) => {
+      const count = await prisma.gym.count({
+        where: { ownerId },
+      });
+      return count;
+    }
+
+  
 };
 
 module.exports = { gymService };
