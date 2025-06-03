@@ -52,7 +52,7 @@ export default function GymsPage() {
   }, []);
 
   const { isAuthorized, isLoading, user } = useRoleProtection({
-    allowedRoles: [UserRole.REGULAR_USER, UserRole.ADMIN]
+    allowedRoles: [UserRole.REGULAR_USER, UserRole.GYM_OWNER ,UserRole.ADMIN]
 
   });
 

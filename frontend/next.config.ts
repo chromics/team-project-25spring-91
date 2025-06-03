@@ -18,6 +18,12 @@ const nextConfig = {
         port: "5000",
         pathname: "/api/uploads/competitions/**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/api/uploads/gym-classes/**",
+      },
     ],
   },
 };
