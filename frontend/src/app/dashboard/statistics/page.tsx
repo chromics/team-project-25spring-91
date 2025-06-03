@@ -1,6 +1,6 @@
 "use client";
-import { AnnualLineChart } from "@/components/line-chart";
-import AnnualBarChart from "@/components/bar-chart";
+import { AnnualLineChart } from "@/components/statistics/monthly-volume-chart";
+import AnnualBarChart from "@/components/statistics/monthly-workout-completion-chart";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/lib/api";
