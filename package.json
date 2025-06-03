@@ -3,6 +3,7 @@
     "@google/generative-ai": "^0.24.0",
     "@radix-ui/react-scroll-area": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.2",
+    "bcryptjs": "^3.0.2",
     "cohere-ai": "^7.17.1",
     "lucide-react": "^0.487.0"
   }
