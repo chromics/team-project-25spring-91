@@ -146,9 +146,10 @@ const AddGymClassForm = ({ gym, onClose }: AddGymClassFormProps) => {
 
       if (schedules.length > 0) {
         const schedulePromises = schedules.map((schedule) =>
-          api.post('/schedules', {
-            ...schedule,
-            classId: classId,
+          api.post(`/classes/${classId}/schedules`, {
+            startTime: new Date(schedule.startTime).toISOString(),
+            endTime: new Date(schedule.endTime).toISOString(),
+            instructor: schedule.instructor,
           })
         )
         await Promise.all(schedulePromises)
