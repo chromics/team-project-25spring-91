@@ -146,12 +146,13 @@ const PreviewDialog = ({
         <DialogFooter>
           <Button
             variant="outline"
+            className='cursor-pointer'
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button onClick={onConfirm} disabled={isSubmitting}>
+          <Button className='cursor-pointer' onClick={onConfirm} disabled={isSubmitting}>
             {isSubmitting ? 'Creating...' : 'Confirm & Create'}
           </Button>
         </DialogFooter>

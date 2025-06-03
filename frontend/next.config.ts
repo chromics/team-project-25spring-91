@@ -9,8 +9,14 @@ const nextConfig = {
       {
         protocol: "http",
         hostname: "localhost",
-        port: "5000", 
-        pathname: "/api/uploads/gyms/**", 
+        port: "5000",
+        pathname: "/api/uploads/gyms/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/api/uploads/competitions/**",
       },
     ],
   },
