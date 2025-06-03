@@ -241,7 +241,7 @@ const getNavigationData = (role: UserRole) => {
             url: "#",
             items: [
               {
-                title: "Admin Dashboard", // Changed from "Dashboard"
+                title: "Admin Dashboard",
                 url: "/dashboard/admin/dashboard",
               },
               {
@@ -270,7 +270,7 @@ const getNavigationData = (role: UserRole) => {
             url: "#",
             items: [
               {
-                title: "Owner Dashboard", // Changed from "Dashboard"
+                title: "Owner Dashboard",
                 url: "/dashboard/gym-owner/dashboard",
               },
               {
@@ -299,10 +299,10 @@ const getNavigationData = (role: UserRole) => {
             title: "Personal",
             url: "#",
             items: [
-              {
-                title: "User Dashboard", // Changed from "Dashboard"
-                url: "/dashboard/dashboard",
-              },
+              // {
+              //   title: "User Dashboard",
+              //   url: "/dashboard/dashboard",
+              // },
               {
                 title: "Statistics",
                 url: "/dashboard/statistics",
@@ -351,10 +351,10 @@ const getNavigationData = (role: UserRole) => {
             title: "Growth",
             url: "#",
             items: [
-              {
-                title: "Leaderboards",
-                url: "/dashboard/leaderboard",
-              },
+              // {
+              //   title: "Leaderboards",
+              //   url: "/dashboard/leaderboard",
+              // },
               {
                 title: "Competitions",
                 url: "/dashboard/competition",
