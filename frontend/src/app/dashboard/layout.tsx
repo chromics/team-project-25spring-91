@@ -38,6 +38,7 @@ const routeNames: Record<string, string> = {
   'chat': 'Ask AI',
   'logged-meals': 'Logged Meals',
   'competitions': 'Competitions', 
+  'classes': 'Classes'
   // add more routes
 };
 

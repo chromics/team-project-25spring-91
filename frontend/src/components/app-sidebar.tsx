@@ -281,6 +281,10 @@ const getNavigationData = (role: UserRole) => {
                 title: "View Competitions",
                 url: "/dashboard/gym-owner/competitions",
               },
+              {
+                title: "View Classes",
+                url: "/dashboard/gym-owner/classes",
+              },
             ],
           },
         ],
