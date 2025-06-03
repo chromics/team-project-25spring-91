@@ -3,76 +3,64 @@ const prisma = require('../config/prisma');
 const { ApiError } = require('../utils/ApiError');
 
 const classService = {
-  getAllGymClasses: async ({ gymId, difficultyLevel, search, page = 1, limit = 10 }) => {
-    const skip = (page - 1) * limit;
-    
-    // Build filter
-    const filters = {
-      isActive: true
-    };
-    
-    if (gymId) {
-      filters.gymId = gymId;
-    }
-    
-    if (difficultyLevel) {
-      filters.difficultyLevel = difficultyLevel;
-    }
-    
-    if (search) {
-      filters.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ];
-    }
-    
-    // Get total count
-    const totalItems = await prisma.gymClass.count({
-      where: filters
-    });
-    
-    // Get paginated classes
-    const classes = await prisma.gymClass.findMany({
-      where: filters,
-      include: {
-        gym: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        // Include the next few upcoming schedules
+getAllGymClasses: async ({
+      gymId,
+      difficultyLevel,
+      search,
+      page = 1,
+      limit = 10,
+      paginate = true, // New parameter
+    }) => {
+      const filters = { isActive: true };
+      if (gymId) filters.gymId = gymId;
+      if (difficultyLevel) filters.difficultyLevel = difficultyLevel;
+      if (search) {
+        filters.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      const includeOptions = {
+        gym: { select: { id: true, name: true } },
         schedules: {
-          where: {
-            startTime: {
-              gte: new Date()
-            },
-            isCancelled: false
-          },
-          orderBy: {
-            startTime: 'asc'
-          },
-          take: 5
-        }
-      },
-      orderBy: [
-        {
-          gymId: 'asc'
+          where: { startTime: { gte: new Date() }, isCancelled: false },
+          orderBy: { startTime: 'asc' },
+          take: 5,
         },
-        {
-          name: 'asc'
-        }
-      ],
-      skip,
-      take: limit
-    });
-    
-    return {
-      classes,
-      totalItems,
-      totalPages: Math.ceil(totalItems / limit)
-    };
-  },
+      };
+      const orderByOptions = [{ gymId: 'asc' }, { name: 'asc' }];
+
+      if (!paginate) {
+        const classes = await prisma.gymClass.findMany({
+          where: filters,
+          include: includeOptions,
+          orderBy: orderByOptions,
+        });
+        return {
+          classes,
+          totalItems: classes.length,
+          paginationApplied: false,
+        };
+      }
+
+      const skip = (page - 1) * limit;
+      const totalItems = await prisma.gymClass.count({ where: filters });
+      const classes = await prisma.gymClass.findMany({
+        where: filters,
+        include: includeOptions,
+        orderBy: orderByOptions,
+        skip,
+        take: limit,
+      });
+
+      return {
+        classes,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        paginationApplied: true,
+      };
+    },
   
   getGymClassById: async (classId) => {
     const gymClass = await prisma.gymClass.findUnique({

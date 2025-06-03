@@ -84,63 +84,53 @@ const bookingService = {
     return bookings;
   },
   
-  getBookingHistory: async (userId, page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
-    const now = new Date();
-    
-    // Get total count
-    const totalItems = await prisma.userBooking.count({
-      where: {
+getBookingHistory: async (userId, { page = 1, limit = 10, paginate = true }) => {
+      const now = new Date();
+      const where = {
         userId,
-        schedule: {
-          startTime: {
-            lt: now
-          }
-        }
-      }
-    });
-    
-    // Get paginated history
-    const bookings = await prisma.userBooking.findMany({
-      where: {
-        userId,
-        schedule: {
-          startTime: {
-            lt: now
-          }
-        }
-      },
-      include: {
+        schedule: { startTime: { lt: now } },
+      };
+      const includeOptions = {
         schedule: {
           include: {
             gymClass: {
-              include: {
-                gym: {
-                  select: {
-                    id: true,
-                    name: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        schedule: {
-          startTime: 'desc'
-        }
-      },
-      skip,
-      take: limit
-    });
-    
-    return {
-      bookings,
-      totalItems,
-      totalPages: Math.ceil(totalItems / limit)
-    };
-  },
+              include: { gym: { select: { id: true, name: true } } },
+            },
+          },
+        },
+      };
+      const orderByOptions = { schedule: { startTime: 'desc' } };
+
+      if (!paginate) {
+        const bookings = await prisma.userBooking.findMany({
+          where,
+          include: includeOptions,
+          orderBy: orderByOptions,
+        });
+        return {
+          bookings,
+          totalItems: bookings.length,
+          paginationApplied: false,
+        };
+      }
+
+      const skip = (page - 1) * limit;
+      const totalItems = await prisma.userBooking.count({ where });
+      const bookings = await prisma.userBooking.findMany({
+        where,
+        include: includeOptions,
+        orderBy: orderByOptions,
+        skip,
+        take: limit,
+      });
+
+      return {
+        bookings,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        paginationApplied: true,
+      };
+    },
   
   getBookingById: async (userId, bookingId) => {
     const booking = await prisma.userBooking.findFirst({
