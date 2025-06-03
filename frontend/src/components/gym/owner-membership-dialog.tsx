@@ -14,19 +14,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { Gym, MembershipPlan } from '@/types/gym';
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from 'sonner';
 import api from '@/lib/api';
 
@@ -62,11 +51,9 @@ const OwnerMembershipDialog: React.FC<OwnerMembershipDialogProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [editingPlan, setEditingPlan] = useState<MembershipPlan | null>(null);
-  const [deletingPlan, setDeletingPlan] = useState<MembershipPlan | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const [deletingPlanId, setDeletingPlanId] = useState<number | string | null>(null);
   
   const [formData, setFormData] = useState<MembershipFormData>(initialFormData);
 
@@ -75,7 +62,6 @@ const OwnerMembershipDialog: React.FC<OwnerMembershipDialogProps> = ({
       handleFetchPlans();
       resetForm();
     } else {
-      // Complete reset when dialog closes
       resetAllStates();
     }
   }, [open, gym.id]);
@@ -91,16 +77,8 @@ const OwnerMembershipDialog: React.FC<OwnerMembershipDialogProps> = ({
     resetForm();
     setMembershipPlans([]);
     setLoading(false);
-    setDeletingPlan(null);
-    setIsDeleting(false);
-    setShowDeleteDialog(false);
+    setDeletingPlanId(null);
   }, [resetForm]);
-
-  const resetDeleteStates = useCallback(() => {
-    setDeletingPlan(null);
-    setIsDeleting(false);
-    setShowDeleteDialog(false);
-  }, []);
 
   const handleFetchPlans = async () => {
     try {
@@ -187,34 +165,33 @@ const OwnerMembershipDialog: React.FC<OwnerMembershipDialogProps> = ({
     }
   };
 
-  // Separate handlers for delete dialog
-  const handleDeleteClick = (plan: MembershipPlan) => {
-    setDeletingPlan(plan);
-    setShowDeleteDialog(true);
-  };
-
-  const handleDeleteCancel = () => {
-    resetDeleteStates();
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deletingPlan || isDeleting) return;
+  // DIRECT DELETE - No confirmation
+  const handleDelete = async (plan: MembershipPlan) => {
+    if (deletingPlanId === plan.id) return; // Prevent double-click
     
-    setIsDeleting(true);
+    setDeletingPlanId(plan.id);
     
     try {
-      await api.delete(`/membership-plans/plans/${deletingPlan.id}`);
-      toast.success('Membership plan deleted successfully!');
-      
-      // Reset delete states first
-      resetDeleteStates();
-      
-      // Then refresh the list
+      await api.delete(`/membership-plans/plans/${plan.id}`);
+      toast.success(`"${plan.name}" deleted successfully!`);
       await handleFetchPlans();
     } catch (error: any) {
-      console.error('Error deleting plan:', error);
-      toast.error('Failed to delete membership plan');
-      setIsDeleting(false); // Keep dialog open on error
+      console.error('Delete error:', error);
+      
+      let errorMessage = 'Failed to delete membership plan';
+      if (error?.response?.status === 404) {
+        errorMessage = 'Membership plan not found';
+      } else if (error?.response?.status === 403) {
+        errorMessage = 'You do not have permission to delete this plan';
+      } else if (error?.response?.status === 409) {
+        errorMessage = 'Cannot delete plan - it may be in use by active members';
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setDeletingPlanId(null);
     }
   };
 
@@ -359,138 +336,103 @@ const OwnerMembershipDialog: React.FC<OwnerMembershipDialogProps> = ({
   }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-semibold">
-                  {gym.name} - Membership Plans
-                </DialogTitle>
-                <DialogDescription>
-                  Manage membership plans for your gym
-                </DialogDescription>
-              </div>
-              <Button 
-                onClick={() => setShowAddForm(true)}
-                disabled={loading}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Plan
-              </Button>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <DialogContent className="sm:max-w-[800px]">
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-2xl font-semibold">
+                {gym.name} - Membership Plans
+              </DialogTitle>
+              <DialogDescription>
+                Manage membership plans for your gym
+              </DialogDescription>
             </div>
-          </DialogHeader>
+            <Button 
+              onClick={() => setShowAddForm(true)}
+              disabled={loading}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Plan
+            </Button>
+          </div>
+        </DialogHeader>
 
-          <div className="py-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`membership-list-${membershipPlans.length}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="max-h-[450px] overflow-y-auto pr-2"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center h-32">
-                    <div className="text-muted-foreground">Loading plans...</div>
-                  </div>
-                ) : membershipPlans.length === 0 ? (
-                  <div className="flex items-center justify-center h-32">
-                    <div className="text-center space-y-2">
-                      <div className="text-4xl opacity-20">📋</div>
-                      <p className="text-muted-foreground">No membership plans yet</p>
-                      <Button onClick={() => setShowAddForm(true)}>
-                        Create your first plan
-                      </Button>
+        <div className="py-4">
+          <div className="max-h-[450px] overflow-y-auto pr-2">
+            {loading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-muted-foreground">Loading plans...</div>
+              </div>
+            ) : membershipPlans.length === 0 ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-center space-y-2">
+                  <div className="text-4xl opacity-20">📋</div>
+                  <p className="text-muted-foreground">No membership plans yet</p>
+                  <Button onClick={() => setShowAddForm(true)}>
+                    Create your first plan
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {membershipPlans.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold">{plan.name}</h3>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            plan.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {plan.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground text-sm mb-2">
+                          {plan.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="font-semibold">${plan.price}</span>
+                          <span>{plan.durationDays} days</span>
+                          <span>{plan.maxBookingsPerWeek} bookings/week</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(plan)}
+                          disabled={loading}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(plan)}
+                          disabled={loading || deletingPlanId === plan.id}
+                        >
+                          {deletingPlanId === plan.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {membershipPlans.map((plan) => (
-                      <motion.div
-                        key={plan.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-semibold">{plan.name}</h3>
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                plan.isActive 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {plan.isActive ? 'Active' : 'Inactive'}
-                              </span>
-                            </div>
-                            <p className="text-muted-foreground text-sm mb-2">
-                              {plan.description}
-                            </p>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="font-semibold">${plan.price}</span>
-                              <span>{plan.durationDays} days</span>
-                              <span>{plan.maxBookingsPerWeek} bookings/week</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(plan)}
-                              disabled={loading}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteClick(plan)}
-                              disabled={loading}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                ))}
+              </div>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Separate AlertDialog with explicit state control */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Membership Plan</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deletingPlan?.name}"? This action cannot be undone and may affect existing members with this plan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={handleDeleteCancel}
-              disabled={isDeleting}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
