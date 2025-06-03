@@ -122,21 +122,21 @@ const ClassesPage = () => {
         }
     }
 
-    const handleDeleteClass = async (classId: number) => {
-        if (!confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
-            return
-        }
-
-        try {
-            // TODO: Replace with your actual API endpoint
-            await api.delete(`/classes/${classId}`)
-            toast.success('Class deleted successfully')
-            setClasses(prev => prev.filter(cls => cls.id !== classId))
-        } catch (error) {
-            console.error('Error deleting class:', error)
-            toast.error('Failed to delete class')
-        }
+const handleDeleteClass = async (classId: number) => {
+    try {
+        console.log('Deleting class with ID:', classId)
+        console.log('API call URL:', `/classes/${classId}`)
+        
+        const response = await api.delete(`/classes/${classId}`)
+        console.log('Delete response:', response.data)
+        
+        toast.success('Class deleted successfully')
+        setClasses(prev => prev.filter(cls => cls.id !== classId))
+    } catch (error) {
+        console.error('Error deleting class:', error)
+        toast.error('Failed to delete class')
     }
+}
 
     const handleUpdateClass = (gymClass: GymClass) => {
         setEditingClass(gymClass)
