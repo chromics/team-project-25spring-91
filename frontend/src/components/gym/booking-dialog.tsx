@@ -18,7 +18,7 @@ const stepTitles: Record<StepNumber, string> = {
 };
 
 interface BookingDialogProps {
-  gym: any;
+  gym: Gym;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

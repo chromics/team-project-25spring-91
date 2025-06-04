@@ -17,7 +17,7 @@ import MembershipDialog from '@/components/gym/membership-dialog'
 
 
 interface GymCardProps {
-  gym: any
+  gym: Gym
 }
 
 const GymCard: FC<GymCardProps> = ({ gym }) => {
@@ -28,10 +28,15 @@ const GymCard: FC<GymCardProps> = ({ gym }) => {
       <Card className="w-full border-0 shadow-none flex flex-col">
         <div className="aspect-square relative w-full overflow-hidden rounded-lg">
           {gym.imageUrl && (
-            <Image
-              src={`http://localhost:5000${gym.imageUrl}`}
+            <img
+              // src={`http://localhost:5000${gym.imageUrl}`}
+              src={
+                gym.imageUrl.startsWith('http')
+                  ? gym.imageUrl
+                  : `http://localhost:5000${gym.imageUrl}`
+              }
               alt={gym.name}
-              fill
+              
               className="object-cover"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             />

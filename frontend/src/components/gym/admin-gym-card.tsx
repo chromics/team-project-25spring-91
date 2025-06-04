@@ -14,10 +14,10 @@ import {
 import type { Gym } from '@/types/gym'
 import { Button } from '@/components/ui/button'
 import UpdateGymDialog from '@/components/gym/update-gym-dialog'
-import MembershipDialog from './membership-dialog'
+import OwnerMembershipDialog from './owner-membership-dialog'
 
 interface GymOwnerCardProps {
-  gym: any
+  gym: Gym
 }
 
 const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym }) => {
@@ -31,10 +31,10 @@ const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym }) => {
       <Card className="w-full border-0 shadow-none flex flex-col">
         <div className="aspect-square relative w-full overflow-hidden rounded-lg">
           {gym.imageUrl && (
-            <Image
+            <img
               src={`http://localhost:5000${gym.imageUrl}`}
               alt={gym.name}
-              fill
+              
               className="object-cover"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             />
@@ -83,7 +83,7 @@ const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym }) => {
         onOpenChange={setUpdateOpen}
       />
 
-      <MembershipDialog
+      <OwnerMembershipDialog
         gym={gym}
         open={membershipOpen}
         onOpenChange={setMembershipOpen}

@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-import Image from 'next/image';
 import {
   Card,
   CardTitle,
@@ -9,6 +8,8 @@ import {
 } from '@/components/ui/card';
 import type { Gym } from '@/types/gym';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+
 
 interface GymOwnerCardProps {
   gym: any;
@@ -22,6 +23,7 @@ const GymOwnerCard: FC<GymOwnerCardProps> = ({ gym, onEdit, onDelete }) => (
     {gym.imageUrl && (
         <img
             src={gym.imageUrl}
+            
             alt={gym.name}
             className="w-full h-48 object-cover rounded-xl"
         />

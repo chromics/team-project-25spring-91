@@ -1,24 +1,21 @@
 // app/(routes)/gyms/[gymId]/components/gym-header.tsx
 "use client"
 
-import { MapPin, Clock, Phone, Globe } from 'lucide-react'
-import Image from 'next/image'
+import { MapPin, Clock, Phone } from 'lucide-react'
 import type { Gym } from '@/types/gym'
 
 interface GymHeaderProps {
-  gym: any
+  gym: Gym
 }
 
 export function GymHeader({ gym }: GymHeaderProps) {
   return (
     <div className="relative w-full">
       <div className="relative h-[300px] w-full overflow-hidden">
-        <Image
+        <img
           src={`http://localhost:5000${gym.imageUrl}`}
           alt={gym.name}
-          fill
           className="object-cover"
-          priority
         />
         <div className="absolute inset-0 bg-black/30" />
       </div>
@@ -53,19 +50,6 @@ export function GymHeader({ gym }: GymHeaderProps) {
                 </div>
               )}
 
-              {gym.websiteUrl && (
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <a 
-                    href={gym.websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Visit Website
-                  </a>
-                </div>
-              )}
             </div>
           </div>
         </div>

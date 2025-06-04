@@ -3,14 +3,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { useAuth } from "@/context/auth-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-context";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
@@ -63,8 +62,8 @@ export function SignUpForm() {
         description: "Welcome! Your account has been created." 
       });
 
-      // router.push('/dashboard/statistics');
-      router.push('/dashboard');
+      router.push('/dashboard/statistics');
+      // router.push('/dashboard');
 
     } catch (error) {
       let errorMessage = 'Failed to sign up';

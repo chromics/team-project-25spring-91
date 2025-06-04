@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,7 @@ import AddGymClassForm from './add-gym-class-form'
 import AddCompetitionForm from './add-competition-form'
 
 interface AdminUpdateDialogProps {
-  gym: any
+  gym: Gym
   open: boolean
   onOpenChange: (open: boolean) => void
 }
