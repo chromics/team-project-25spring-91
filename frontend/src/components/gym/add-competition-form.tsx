@@ -337,7 +337,6 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
         throw new Error('Competition ID not returned from server')
       }
 
-      // Update with image if exists
       if (imageFile) {
         const imageFormData = new FormData()
         imageFormData.append('image', imageFile)
