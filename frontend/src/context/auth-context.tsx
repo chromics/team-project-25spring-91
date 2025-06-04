@@ -215,8 +215,9 @@ const getDefaultDashboard = (role: UserRole): string => {
     case UserRole.GYM_OWNER:
       return '/dashboard/gym-owner/dashboard';
     case UserRole.REGULAR_USER:
+      return '/dashboard/statistics';
     default:
-      return '/dashboard/dashboard';
+      return '/dashboard/statistics';
   }
 };
 
@@ -278,7 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Only redirect from these very specific paths to avoid conflicts
       const shouldRedirect = [
-        '/dashboard/statistics', // to be remove
+        // '/dashboard/statistics', // to be remove
         '/dashboard',
         '/'
       ].includes(currentPath);

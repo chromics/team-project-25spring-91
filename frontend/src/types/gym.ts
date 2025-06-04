@@ -89,6 +89,7 @@ export interface MembershipPlan {
   price: string; 
   maxBookingsPerWeek: number ;
   isActive: boolean;
+  checkoutUrl: string;
   createdAt: string;
 }
 

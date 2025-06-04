@@ -175,7 +175,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value || ''
   
   // Only check for token presence, let client-side handle role-based redirects
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (request.nextUrl.pathname.startsWith('/dashboard/statistics')) {
     if (!token) {
       return NextResponse.redirect(new URL('/sign-in', request.url))
     }
@@ -184,7 +184,7 @@ export function middleware(request: NextRequest) {
   // Prevent authenticated users from accessing login
   if (request.nextUrl.pathname.startsWith('/sign-in')) {
     if (token) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL('/dashboard/statistics', request.url))
     }
   }
 

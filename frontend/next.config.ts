@@ -24,6 +24,11 @@ const nextConfig = {
         port: "5000",
         pathname: "/api/uploads/gym-classes/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn-magazine.nutrabay.com",
+        pathname: "/wp-content/uploads/**",
+      },
     ],
   },
 };
