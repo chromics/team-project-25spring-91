@@ -37,8 +37,8 @@ export function LoginForm({
         description: "Welcome back!"
       });
 
-      // router.push('/dashboard/statistics');
-      router.push('/dashboard');
+      router.push('/dashboard/statistics');
+      // router.push('/dashboard');
 
     } catch (error) {
       let errorMessage = 'Failed to sign in';
