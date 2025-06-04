@@ -83,8 +83,8 @@ const handleSubscribe = async () => {
       planId: selectedPlan?.id,
       gymId: gym.id,
       userEmail: user?.email,
-      successUrl: `${window.location.origin}/dashboard/stripe-success`,
-      cancelUrl: `${window.location.origin}/dashboard/stripe-canceled`,
+      successUrl: `${window.location.origin}/dashboard/my-bookings`,
+      cancelUrl: `${window.location.origin}/dashboard/my-bookings`,
     });
 
     // Redirect to Stripe Checkout
