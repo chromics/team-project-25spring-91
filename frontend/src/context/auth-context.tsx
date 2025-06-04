@@ -33,7 +33,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Add this helper function
 const getDefaultDashboard = (role: UserRole): string => {
   switch (role) {
     case UserRole.ADMIN:
@@ -81,10 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const urlToken = new URLSearchParams(window.location.search).get('token');
     if (urlToken && !hasRedirected.current) {
-      // Clear the URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      // Set the token
       Cookies.set('token', urlToken, {
         expires: 7,
         secure: process.env.NODE_ENV === 'production',
@@ -93,17 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(urlToken);
       hasRedirected.current = true;
 
-      // Redirect to dashboard
       router.push('/dashboard/statistics');
     }
   }, [router]);
 
-  // Handle role-based redirect after user is loaded - but only once and only for specific routes
   useEffect(() => {
     if (user && !loading && !hasRedirected.current && isInitialized.current) {
       const currentPath = window.location.pathname;
 
-      // Only redirect from these very specific paths to avoid conflicts
       const shouldRedirect = [
         // '/dashboard/statistics', // to be remove
         '/dashboard',
@@ -137,8 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       setToken(newToken);
       hasRedirected.current = true;
-      isInitialized.current = false; // Reset for new user
-
+      isInitialized.current = false; 
     } catch (error) {
       console.error('SignUp Error:', error);
       throw error;
@@ -160,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setToken(newToken);
       hasRedirected.current = true;
-      isInitialized.current = false; // Reset for new user
+      isInitialized.current = false; 
 
     } catch (error) {
       console.error('Login Error:', error);

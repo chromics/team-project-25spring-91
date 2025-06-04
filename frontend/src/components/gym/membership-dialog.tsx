@@ -8,7 +8,6 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/auth-context';
 import api from '@/lib/api';
-import Link from 'next/link';
 
 type StepNumber = 1 | 2;
 
@@ -37,11 +36,7 @@ const MembershipDialog: React.FC<MembershipDialogProps> = ({ gym, open, onOpenCh
     }
   }, [gym.id, open]);
 
-  const resetAndClose = () => {
-    onOpenChange(false);
-    setStep(1);
-    setSelectedPlan(null);
-  };
+
 
   const handleNext = () => {
     if (!selectedPlan) return;
@@ -87,7 +82,6 @@ const handleSubscribe = async () => {
       cancelUrl: `${window.location.origin}/dashboard/my-bookings`,
     });
 
-    // Redirect to Stripe Checkout
     if (data.url) {
       window.location.href = data.url;
     } else {
@@ -123,7 +117,7 @@ const handleSubscribe = async () => {
                       No Plans Available
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-md">
-                      This gym doesn't have any membership plans available at the
+                      This gym does not have any membership plans available at the
                       moment.
                     </p>
                   </div>
@@ -202,7 +196,7 @@ const handleSubscribe = async () => {
                 {gym.name}
               </div>
               <div className="space-y-2">
-                <p className="text-muted-foreground">You've selected the:</p>
+                <p className="text-muted-foreground">You have selected the:</p>
                 <p className="text-3xl font-bold tracking-tight">{selectedPlan?.name} Plan</p>
                 <p className="mt-4 text-sm text-muted-foreground max-w-md mx-auto">
                   Please complete the payment by clicking the subscribe button below.

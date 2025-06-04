@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import api from "@/lib/api";
+import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 

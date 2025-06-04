@@ -27,7 +27,7 @@ export default function GymOwnerDashboard() {
     totalBookingsInOwnedGyms: 0,
     revenueThisMonth: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const { isAuthorized, isLoading, user } = useRoleProtection({
     allowedRoles: [UserRole.GYM_OWNER],
@@ -79,7 +79,7 @@ export default function GymOwnerDashboard() {
         let gymData = response.data.data || response.data;
 
         if (user?.role !== UserRole.ADMIN && user?.id) {
-          gymData = gymData.filter((gym: any) => gym.ownerId === user.id);
+          gymData = gymData.filter((gym: Gym) => gym.ownerId === user.id);
         }
 
         const formattedGyms = gymData.map((gym: Gym) => ({
@@ -208,7 +208,7 @@ export default function GymOwnerDashboard() {
               <div className="col-span-full text-center py-10">
                 <h3 className="text-lg font-medium">No gyms found</h3>
                 <p className="text-muted-foreground mt-2 mb-4">
-                  You haven't created any gyms yet. Start by creating your first
+                  You have not created any gyms yet. Start by creating your first
                   gym!
                 </p>
                 <Button

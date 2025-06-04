@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import Image from 'next/image'
 import {
   Select,
   SelectContent,
@@ -483,7 +484,7 @@ const AddCompetitionForm = ({ gym, onClose }: AddCompetitionFormProps) => {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
               {imagePreview ? (
                 <div className="relative">
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Preview"
                     className="w-full h-32 object-cover rounded"
