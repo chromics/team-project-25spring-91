@@ -3,7 +3,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: 'https://sustracker-backend-v2-0-1.onrender.com'
 });
 
 api.interceptors.request.use((config) => {
