@@ -24,6 +24,12 @@ const nextConfig = {
         port: "5000",
         pathname: "/api/uploads/gym-classes/**",
       },
+            {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/api/uploads/users/**",
+      },
       {
         protocol: "https",
         hostname: "cdn-magazine.nutrabay.com",
