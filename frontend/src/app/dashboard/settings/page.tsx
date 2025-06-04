@@ -130,7 +130,7 @@ export default function SettingsPage() {
     }));
   };
 
-  const handleImageUrlChange = (newImageUrl: string | null) => {
+  const handleImageChange = (newImageUrl: string | null) => {
     setSettings((prev) => ({
       ...prev,
       imageUrl: newImageUrl,
@@ -156,14 +156,13 @@ export default function SettingsPage() {
       const response = await api.put<{
         status: string;
         message?: string;
-        data?: UserProfileData; // Backend might return the updated profile
+        data?: UserProfileData;
       }>("/users/profile", updateData);
 
       if (response.data.status === "success") {
         toast.success("Settings updated successfully!");
         if (response.data.data) {
           const updatedUserData = response.data.data;
-          // Update local state with potentially updated data from backend
           setSettings((prev) => ({
             ...prev,
             email: updatedUserData.email,
@@ -226,7 +225,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
@@ -239,7 +238,7 @@ export default function SettingsPage() {
           <PersonalInformationSection
             settings={settings}
             onInputChange={handleInputChange}
-            onImageUrlChange={handleImageUrlChange}
+            onImageChange={handleImageChange}
             userDisplayNameForAvatar={
               settings.displayName || user?.displayName || ""
             }
