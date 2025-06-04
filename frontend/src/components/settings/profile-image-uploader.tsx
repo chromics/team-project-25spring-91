@@ -15,7 +15,7 @@ import { User as UserIcon, Upload, X, Image as ImageIcon } from "lucide-react";
 
 interface ProfileImageUploaderProps {
   currentImageUrl: string | null;
-  onImageChange: (newImageUrl: string | null) => void; // This will be called with a data URL or null
+  onImageChange: (newImageUrl: string | null, file: File | null) => void;
   displayName?: string;
 }
 
@@ -78,13 +78,11 @@ export function ProfileImageUploader({
     reader.onload = (e) => {
       const result = e.target?.result as string;
       setPreviewUrl(result);
-      onImageChange(result); // Pass the data URL to the parent
+      onImageChange(result, file); // Pass both data URL and file
     };
     reader.readAsDataURL(file);
 
-    toast.success(
-      "Image selected. Save all settings to apply the new picture.",
-    );
+    toast.success("Image selected. Save all settings to apply the new picture.");
   };
 
   const handleUploadClick = () => {
@@ -94,13 +92,11 @@ export function ProfileImageUploader({
   const handleRemoveImage = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
-    onImageChange(null); // Notify parent that image is removed
+    onImageChange(null, null); // Pass null for both
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Reset file input
+      fileInputRef.current.value = "";
     }
-    toast.info(
-      "Profile picture removed. Save all settings to apply changes.",
-    );
+    toast.info("Profile picture removed. Save all settings to apply changes.");
   };
 
   const getAvatarFallbackText = () => {

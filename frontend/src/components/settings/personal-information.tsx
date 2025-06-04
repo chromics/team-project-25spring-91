@@ -72,8 +72,11 @@ export function PersonalInformationSection({
           <div className="lg:col-span-1">
             <ProfileImageUploader
               currentImageUrl={settings.imageUrl}
-              onImageChange={onImageChange}
-              displayName={userDisplayNameForAvatar}
+              onImageChange={(newImageUrl, file) => {
+                onInputChange("imageUrl", newImageUrl);
+                setPendingImageFile(file);
+              }}
+              userDisplayNameForAvatar={userDisplayNameForAvatar}
             />
           </div>
 
