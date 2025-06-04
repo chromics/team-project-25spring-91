@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/auth-context';
 import api from '@/lib/api';
 import type {
   GymClass,
@@ -37,6 +38,7 @@ export function ScheduleDialog({
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [userMemberships, setUserMemberships] = useState<UserMembership[]>([]);
+  const { user } = useAuth();
 
 
   useEffect(() => {
@@ -87,7 +89,7 @@ export function ScheduleDialog({
   };
 
   const handleBooking = async (scheduleId: ID) => {
-    const relevantMembership = findRelevantMembership(); 
+    const relevantMembership = findRelevantMembership();
 
     if (!relevantMembership?.id) {
       toast.error(
@@ -102,7 +104,7 @@ export function ScheduleDialog({
     try {
       await api.post(`/bookings`, {
         scheduleId: scheduleId,
-        membershipId: relevantMembership.id, 
+        membershipId: relevantMembership.id,
       });
       toast.success('Class booked successfully');
       onOpenChange(false);
@@ -160,18 +162,20 @@ export function ScheduleDialog({
                           <span>{schedule.instructor}</span>
                         </div>
                       </div>
-
-                      <Button
-                        onClick={() => handleBooking(schedule.id)}
-                        disabled={schedule.isFull || schedule.isCancelled}
-                        variant={schedule.isFull ? "secondary" : "default"}
-                      >
-                        {schedule.isCancelled 
-                          ? 'Cancelled'
-                          : schedule.isFull 
-                          ? 'Full' 
-                          : 'Book Now'}
-                      </Button>
+                      
+                      {user?.role === 'user' && (
+                        <Button
+                          onClick={() => handleBooking(schedule.id)}
+                          disabled={schedule.isFull || schedule.isCancelled}
+                          variant={schedule.isFull ? "secondary" : "default"}
+                        >
+                          {schedule.isCancelled
+                            ? 'Cancelled'
+                            : schedule.isFull
+                              ? 'Full'
+                              : 'Book Now'}
+                        </Button>
+                      )}
                     </div>
 
                     {schedule.isCancelled && schedule.cancellationReason && (

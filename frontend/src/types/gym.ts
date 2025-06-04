@@ -87,7 +87,7 @@ export interface MembershipPlan {
   description: string;
   durationDays: number;
   price: string; 
-  maxBookingsPerWeek: number | null;
+  maxBookingsPerWeek: number ;
   isActive: boolean;
   createdAt: string;
 }
