@@ -35,6 +35,11 @@ const nextConfig = {
         hostname: "cdn-magazine.nutrabay.com",
         pathname: "/wp-content/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "example.com",
+        pathname: "/images/**",
+      },
     ],
   },
 };

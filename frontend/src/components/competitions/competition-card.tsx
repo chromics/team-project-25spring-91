@@ -61,7 +61,7 @@ export const CompetitionCard: React.FC<CompetitionCardProps> = ({
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <img
-          src={comp.imageUrl || "/api/placeholder/400/200"}
+          src={`http://localhost:5000${comp.imageUrl}`|| "/api/placeholder/400/200"}
           alt={comp.name}
           className="w-full h-48 object-cover"
         />
