@@ -9,15 +9,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
     Target,
     Award,
-    Edit,
-    Trash2,
-    Plus,
     Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -69,20 +65,20 @@ export function TasksDialog({ competitionId, competitionName, children }: TasksD
         }
     }
 
-    const handleDeleteTask = async (taskId: number) => {
-        if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-            return
-        }
+    // const handleDeleteTask = async (taskId: number) => {
+    //     if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+    //         return
+    //     }
 
-        try {
-            await api.delete(`/competitions/tasks/${taskId}`)
-            toast.success('Task deleted successfully')
-            fetchTasks() // Refresh tasks
-        } catch (error) {
-            console.error('Error deleting task:', error)
-            toast.error('Failed to delete task')
-        }
-    }
+    //     try {
+    //         await api.delete(`/competitions/tasks/${taskId}`)
+    //         toast.success('Task deleted successfully')
+    //         fetchTasks() // Refresh tasks
+    //     } catch (error) {
+    //         console.error('Error deleting task:', error)
+    //         toast.error('Failed to delete task')
+    //     }
+    // }
 
     // const handleUpdateTask = (taskId: number) => {
     //     // TODO: Implement update task functionality

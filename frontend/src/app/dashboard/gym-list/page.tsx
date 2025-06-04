@@ -26,7 +26,6 @@ export default function GymsPage() {
           description: gym.description,
           contactInfo: gym.contactInfo,
           imageUrl: gym.imageUrl,
-          // _count: gym._count,
         }));
         setGyms(formattedGyms);
 
@@ -51,7 +50,7 @@ export default function GymsPage() {
     fetchGyms();
   }, []);
 
-  const { isAuthorized, isLoading, user } = useRoleProtection({
+  const { isAuthorized, isLoading } = useRoleProtection({
     allowedRoles: [UserRole.REGULAR_USER, UserRole.GYM_OWNER ,UserRole.ADMIN]
 
   });
@@ -80,7 +79,6 @@ export default function GymsPage() {
     );
   }
 
-  // Main return for loaded content
   return (
     <div className="
       p-4 sm:p-6 lg:p-8

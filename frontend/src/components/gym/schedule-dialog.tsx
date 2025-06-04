@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format, toDate } from 'date-fns';
+import { format } from 'date-fns';
 import { Calendar, Clock, User } from 'lucide-react';
 import {
   Dialog,
@@ -20,7 +20,6 @@ import type {
   GymClass,
   ID,
   UserMembership,
-  MembershipPlan,
   Schedule,
 } from '@/types/gym';
 

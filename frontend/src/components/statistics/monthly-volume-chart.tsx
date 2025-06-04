@@ -127,12 +127,12 @@ export function AnnualLineChart({ chartData }: ComponentProps) {
     });
   }, [timeRange, sortedChartData, currentYear, currentMonth]);
 
-  const total = React.useMemo(
-    () => ({
-      count: filteredData.reduce((acc, curr) => acc + curr.volume, 0),
-    }),
-    [filteredData]
-  );
+  // const total = React.useMemo(
+  //   () => ({
+  //     count: filteredData.reduce((acc, curr) => acc + curr.volume, 0),
+  //   }),
+  //   [filteredData]
+  // );
 
   // Calculate the maximum volume for proper scaling
   const maxVolume = React.useMemo(() => {

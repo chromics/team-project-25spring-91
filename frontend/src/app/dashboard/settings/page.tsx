@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, ImageIcon, X, ArrowLeft, User, Mail, Phone, MapPin } from "lucide-react";
+import { Upload, ImageIcon, X, ArrowLeft, User, Mail } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import ButterflyLoader from "@/components/butterfly-loader";
+import Image from "next/image";
 
 interface SettingsFormData {
   displayName: string;
@@ -44,8 +44,8 @@ export default function SettingsPage() {
         email: user.email || "",
         dateOfBirth: user.dateOfBirth || "",
         gender: user.gender || "",
-        heightCm: Number(user.heightCm) || 0,  // Convert to number
-        weightKg: Number(user.weightKg) || 0,  // Convert to number
+        heightCm: Number(user.heightCm) || 0, 
+        weightKg: Number(user.weightKg) || 0,  
       });
       setIsLoading(false);
     }
@@ -133,7 +133,6 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-6 px-4 max-w-4xl">
-        {/* Header */}
         <div className="mb-8">
           <Button
             variant="ghost"
@@ -153,9 +152,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-12">
-          {/* Profile Image Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-foreground border-b border-border pb-2">
               Profile Image
@@ -163,7 +160,7 @@ export default function SettingsPage() {
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 bg-muted/20 hover:bg-muted/30 transition-colors">
               {imagePreview ? (
                 <div className="relative max-w-2xl mx-auto">
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Profile preview"
                     className="w-full h-80 object-cover rounded-lg"
@@ -211,7 +208,6 @@ export default function SettingsPage() {
               Personal Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Display Name */}
               <div className="space-y-3">
                 <Label htmlFor="displayName" className="text-base font-medium flex items-center">
                   <User className="h-4 w-4 mr-2" />
@@ -229,7 +225,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Email */}
               <div className="space-y-3">
                 <Label htmlFor="email" className="text-base font-medium flex items-center">
                   <Mail className="h-4 w-4 mr-2" />
@@ -247,7 +242,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Date of Birth */}
               <div className="space-y-3">
                 <Label htmlFor="dateOfBirth" className="text-base font-medium">
                   Date of Birth
@@ -262,7 +256,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Gender */}
               <div className="space-y-3">
                 <Label htmlFor="gender" className="text-base font-medium">
                   Gender
@@ -281,7 +274,6 @@ export default function SettingsPage() {
                 </select>
               </div>
 
-              {/* Height */}
               <div className="space-y-3">
                 <Label htmlFor="heightCm" className="text-base font-medium">
                   Height (cm)
@@ -297,7 +289,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* Weight */}
               <div className="space-y-3">
                 <Label htmlFor="weightKg" className="text-base font-medium">
                   Weight (kg)
@@ -315,7 +306,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Submit Buttons */}
           <div className="flex gap-6 pt-8 border-t border-border">
             <Button
               type="button"
