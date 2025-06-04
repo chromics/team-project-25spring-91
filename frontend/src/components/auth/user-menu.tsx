@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -42,7 +43,6 @@ export function UserMenu() {
       setIsSigningOut(true);
       logout();
       router.push("/");
-      // Force a reload after logout
       window.location.reload();
     } catch (error) {
       let errorMessage = 'Failed to load workouts';
@@ -74,7 +74,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar>
-            <AvatarImage src={''} alt={user.displayName || 'User'} />
+            <AvatarImage src={`http://localhost:5000${user.imageUrl}`} alt={user.displayName || 'User'} />
             <AvatarFallback>{getInitials()}</AvatarFallback>
           </Avatar>
         </Button>
